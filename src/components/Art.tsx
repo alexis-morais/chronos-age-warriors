@@ -1,5 +1,5 @@
-import type { CSSProperties } from 'react'
 import type { Appearance, EquipmentDefinition } from '../types'
+import { enemySprite, equipmentAsset, resolveEnemyId, warriorSprite, weaponMotion, type EnemyId, type SpriteState } from '../art/assetsV04'
 
 const line = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 
@@ -25,11 +25,7 @@ function ArmorIllustration({ art }: { art: string }) {
 }
 
 export function EquipmentArt({ item, compact = false, silhouette = false }: { item: EquipmentDefinition; compact?: boolean; silhouette?: boolean }) {
-  const weaponIndex: Record<string, number> = { club: 0, spear: 1, axe: 2, bow: 3, fangs: 4, mammoth: 5, hammer: 6, claw: 7, heart: 8 }
-  const armorIndex: Record<string, number> = { hide: 0, bones: 1, plate: 2, shell: 3, fur: 4, titan: 5 }
-  const index = item.type === 'weapon' ? weaponIndex[item.art] : armorIndex[item.art]
-  const cols = 3, rows = item.type === 'weapon' ? 3 : 2, col = index % cols, row = Math.floor(index / cols)
-  if (!silhouette) return <div className={`equipment-art reference-art ${compact ? 'compact' : ''}`} role="img" aria-label={`Illustration — ${item.name}`}><span className={item.type === 'weapon' ? 'weapon-reference-sprite' : 'armor-reference-sprite'} style={{ '--sprite-x': `${col * 50}%`, '--sprite-y': `${row * 100 / (rows - 1)}%` } as CSSProperties}/></div>
+  if (!silhouette) return <div className={`equipment-art production-art ${compact ? 'compact' : ''}`} role="img" aria-label={`Illustration — ${item.name}`}><img src={equipmentAsset(item.id, item.type)} alt="" loading="lazy"/></div>
   return <svg className={`equipment-art ${compact ? 'compact' : ''} silhouette`} viewBox="0 0 160 130" role="img" aria-label={`Silhouette verrouillée — ${item.type === 'weapon' ? 'arme' : 'armure'}`}><circle cx="80" cy="65" r="62" fill="currentColor" opacity=".08"/>{item.type === 'weapon' ? <WeaponIllustration art={item.art}/> : <ArmorIllustration art={item.art}/>}</svg>
 }
 
@@ -85,7 +81,17 @@ export function WarriorAvatar({ appearance, weapon, armor, enemy = false, classN
 }
 
 export function EnemyAvatar({ variant = 0, className = '' }: { variant?: number; className?: string }) {
-  const enemies = ['tribal-hunter', 'tribal-warrior', 'cave-brute', 'bone-lancer', 'shaman', 'raptor', 'smilodon', 'mammoth-guardian']
-  const art = enemies[Math.abs(variant) % enemies.length]
-  return <div className={`warrior enemy-reference ${className}`} role="img" aria-label="Ennemi primordial"><img src={`/art-direction/enemies/${art}.png`} alt=""/></div>
+  return <ProductionEnemy variant={variant} className={className}/>
+}
+
+export function ProductionWarrior({ appearance, weapon, state = 'idle', className = '' }: { appearance: Appearance; weapon?: string; state?: SpriteState; className?: string }) {
+  const sex = appearance.gender === 'Femme' ? 'female' : 'male'
+  const src = warriorSprite(sex, weapon, state)
+  return <div className={`warrior-sprite motion-${weaponMotion(weapon)} state-${state} ${className}`} role="img" aria-label={`Warrior ${appearance.gender}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
+}
+
+export function ProductionEnemy({ variant = 0, enemyId, state = 'idle', boss = false, className = '' }: { variant?: number; enemyId?: EnemyId; state?: SpriteState; boss?: boolean; className?: string }) {
+  const resolved = resolveEnemyId(enemyId ?? variant, boss)
+  const src = enemySprite(resolved, state, boss)
+  return <div className={`enemy-sprite enemy-${resolved} state-${state} ${boss ? 'is-boss' : ''} ${className}`} role="img" aria-label={`Ennemi primordial ${resolved}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
 }

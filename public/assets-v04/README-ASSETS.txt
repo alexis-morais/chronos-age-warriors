@@ -1,10 +1,10 @@
-CHRONOS AGE WARRIORS — V0.3 CURATED ASSET PACK
+CHRONOS AGE WARRIORS — V0.4 PRODUCTION ASSET PACK
 
-This folder is the ONLY visual asset set to use for the V0.3 integration.
+This folder is the ONLY visual asset set to use for the V0.4 integration.
 Ignore all other generated images from the conversation unless explicitly requested later.
 
 branding/logo.png
-  Final logo reference for V0.3.
+  Final production logo for V0.4.
 
 reference/hub-reference.png
   Hub layout / visual hierarchy reference only. Do not use as a full-screen background image.
@@ -43,7 +43,7 @@ ui/ui-kit.png
   UI icon, rarity-frame and chest visual reference. Prefer clean vector icons for small navigation/stat icons if raster extraction would look blurry.
 
 IMPORTANT
-- V0.3 should not invent a new art direction.
-- Use these files as the canonical V0.3 visual pack.
+- V0.4 should not invent a new art direction.
+- Use these files as the canonical V0.4 visual pack.
 - Character/enemy atlas crops should be made programmatically with fixed coordinates, not manually guessed in CSS.
-- Keep originals intact; derived crops may go in public/assets-v03/derived/.
+- Keep originals intact; normalized production sprites are generated in public/assets-v04/derived/ with `npm run assets:v04`.
