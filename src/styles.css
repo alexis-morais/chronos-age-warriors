@@ -161,7 +161,7 @@ fieldset legend { font-size:.85rem; font-weight:700; margin-bottom:.6rem; }
 .roulette-marker { position:absolute;z-index:3;left:50%;top:0;bottom:0;width:2px;background:#f6d16e;box-shadow:0 0 12px #f6d16e; }
 .roulette-track { display:flex;gap:10px;position:absolute;left:50%;top:12px;transform:translateX(30px); }
 .spinning .roulette-track { animation:roulette 4.2s cubic-bezier(.1,.68,.12,1) forwards; }
-@keyframes roulette { to{transform:translateX(-2415px)} }
+@keyframes roulette { to{transform:translateX(-2475px)} }
 .roulette-card { flex:0 0 150px;height:165px;border:1px solid color-mix(in srgb,var(--rarity) 50%,transparent);border-radius:15px;background:#171a16;color:var(--rarity);display:flex;flex-direction:column;align-items:center;padding:.4rem;text-align:center; }
 .roulette-card .equipment-art { height:105px;width:110px; }.roulette-card strong { color:#eee;font-size:.7rem;line-height:1.1; }.roulette-card span { font-size:.6rem; }
 .chest-button { min-width:260px; }.hint { color:#999; }.odds { margin-top:2rem;display:flex;flex-wrap:wrap;justify-content:center;gap:.5rem 1rem;color:#6f756c;font-size:.7rem; }
@@ -219,3 +219,96 @@ fieldset legend { font-size:.85rem; font-weight:700; margin-bottom:.6rem; }
 
 @media (max-width:370px) { .bottom-nav span{display:none}.bottom-nav button{min-height:48px}.hero-avatar{min-height:260px}.collection-grid{grid-template-columns:1fr 1fr}.equipment-card-copy{padding:.65rem}.equipment-card .equipment-art{height:110px}.map-node{width:34px;height:34px}.battle-top>div:first-child{display:none}.battle-top{grid-template-columns:1fr auto}.speed-control{justify-self:start} }
 @media (prefers-reduced-motion:reduce) { *,*:before,*:after { animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important; } }
+
+/* V0.2 visual system */
+.stat { position:relative; display:grid; grid-template-columns:auto 1fr; grid-template-rows:auto auto; column-gap:.55rem; align-items:center; background:transparent; border:0; border-left:1px solid var(--line); border-radius:0; padding:.35rem .8rem; }
+.stat svg { grid-row:1/3; width:18px; color:#d2ad5b; }
+.stat span { font-size:.7rem; letter-spacing:.03em; }.stat strong { line-height:1; }
+.hp-display { position:relative; display:grid;grid-template-columns:auto 1fr;column-gap:.8rem;align-items:center;background:transparent;border:0;border-block:1px solid var(--line);border-radius:0; }
+.hp-display>svg { grid-row:1/3;color:#d26e58; }.hp-display span,.hp-display strong { grid-column:2; }
+.hero-avatar .warrior { width:min(76%,300px); }
+.hub-page>* { min-width:0; }.skill-panel { min-width:0;width:100%; }
+.gear-gallery { background:linear-gradient(90deg,#11140f,#171b15); }
+.gear-gallery:before { content:'';display:block;height:12px;margin-bottom:2rem;border-radius:7px;background:linear-gradient(#5a412a,#2d2118);box-shadow:0 7px 0 #12100d,0 16px 30px #0008;transform-origin:left;animation:wardrobe-open .7s ease both; }
+@keyframes wardrobe-open { from{transform:scaleX(.15);opacity:0} }
+
+.equipment-card { display:flex;flex-direction:column;position:relative;overflow:hidden;text-align:left;border:1px solid color-mix(in srgb,var(--rarity,#aaa) 22%,transparent);border-radius:20px;background:#191c18;color:var(--rarity,#aaa);min-height:330px;transition:.25s ease;isolation:isolate; }
+.equipment-card:before { content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 22%,color-mix(in srgb,var(--rarity) 12%,transparent),transparent 43%);z-index:-1; }
+.equipment-card:after { content:'';position:absolute;left:18px;right:18px;top:12px;height:1px;background:linear-gradient(90deg,transparent,var(--rarity),transparent);opacity:.45; }
+.equipment-card:hover { transform:translateY(-4px);border-color:color-mix(in srgb,var(--rarity) 48%,transparent); }
+.equipment-card .card-main { border:0;background:none;color:inherit;text-align:left;padding:0;display:flex;flex-direction:column;flex:1; }
+.card-art-wrap { position:relative;width:100%;height:160px;display:grid;place-items:center;overflow:hidden; }
+.equipment-card .equipment-art { width:100%;height:160px;padding:.35rem 1rem 0;filter:drop-shadow(0 13px 9px #0008);transition:.25s; }
+.equipment-card:hover .equipment-art { transform:scale(1.04) rotate(-1deg); }
+.rarity-pip { position:absolute;left:16px;top:16px;width:7px;height:7px;border-radius:50%;background:var(--rarity);box-shadow:0 0 12px var(--rarity); }
+.equipment-card-copy { width:100%;padding:.85rem 1rem 1rem;color:#f1eee5;gap:.3rem; }
+.card-kicker { display:flex;align-items:center;justify-content:space-between;width:100%; }.card-kicker small { font-size:.64rem;color:#a8aa9e;letter-spacing:.1em; }
+.equipment-card-copy strong { min-height:auto;font-family:'Marcellus';font-size:1rem;line-height:1.2; }
+.equipment-card-copy p { color:#8f9589;font-size:.72rem;line-height:1.35;margin:.15rem 0 .35rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.card-stats { display:flex;flex-wrap:wrap;gap:.25rem;margin-top:.4rem; }.card-stats span,.loot-stat-chips span { color:#d8d6c9;background:#252a22;border-radius:6px;padding:.24rem .38rem;font-size:.67rem; }
+.xp-line { display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:.45rem;width:100%;color:#747a70;font-size:.61rem;font-weight:700; }.xp-line .tiny-progress { margin:0; }.xp-line b { color:#a5aa9f;font-weight:600; }
+.card-equip { margin:.1rem .8rem .8rem;border:0;border-radius:10px;min-height:36px;background:var(--rarity);color:#17150f;font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:.35rem; }.card-equip svg{width:15px}.card-equip.is-equipped { background:#282d25;color:#b9beaf; }.card-equip:disabled{cursor:default}
+.equipment-card.locked { filter:none;opacity:.62;background:#151714; }.equipment-card.locked .equipment-art.silhouette { filter:grayscale(1) brightness(.2);opacity:.72; }.equipment-card.locked .card-main{cursor:default}.equipment-card.locked .rarity-pip{background:#5d625b;box-shadow:none}.equipment-card.locked .rarity-label{color:#737870}
+.rarity-mythique.equipment-card:before { background:radial-gradient(circle at 50% 25%,#7042942e,transparent 50%),radial-gradient(circle at 22% 18%,#fff 0 1px,transparent 2px),radial-gradient(circle at 82% 37%,#ba90ff 0 1px,transparent 2px); }
+.shelf .equipment-card { min-height:300px; }
+
+.skill-list { display:grid;grid-template-columns:repeat(4,1fr);gap:.55rem; }
+.skill-list button { border:0;text-align:left;color:#d9d8cc;background:#20241d;border-radius:12px;padding:.7rem;display:flex;align-items:center;gap:.6rem;min-width:0; }
+.skill-list button>svg { flex:0 0 auto;width:17px;color:#e5bc5d; }.skill-list button>span { min-width:0;background:none;border:0;border-radius:0;padding:0;display:block;font-size:inherit; }.skill-list strong,.skill-list small { display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }.skill-list strong { font-size:.75rem; }.skill-list small { color:#81877c;font-size:.62rem;margin-top:.15rem; }.skill-list .locked-skill { opacity:.38; }.skill-list .locked-skill>svg { color:#7e847a; }
+
+/* Loot dossier and comparison */
+.reward-card { width:min(100%,760px);align-items:stretch;text-align:left;padding:1.5rem 1.7rem; }
+.reward-card>.eyebrow { text-align:center; }.loot-hero { display:grid;grid-template-columns:190px 1fr;align-items:center;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:1rem; }.loot-hero .equipment-art { width:190px;height:155px; }.loot-hero h2 { margin:.15rem 0 .35rem;font-size:clamp(1.5rem,3vw,2.4rem); }.loot-hero b { color:#aeb3a6;font-size:.75rem;font-weight:600; }
+.loot-detail { display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:1rem 0; }.loot-detail section { padding:1rem;background:#131612;border-radius:14px;border:1px solid var(--line); }.loot-detail small { display:block;color:#757b70;font-size:.62rem;font-weight:800;letter-spacing:.12em;margin-bottom:.55rem; }.loot-detail p { color:#bdc0b4;margin:.65rem 0 0;font-size:.82rem;line-height:1.45; }.loot-stat-chips { display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:1rem; }.loot-stat-chips span { color:#f0e9d6;background:#2a2e26;font-size:.74rem; }
+.comparison-title { display:grid;grid-template-columns:72px 1fr;align-items:center;gap:.6rem;margin-bottom:.6rem; }.comparison-title .equipment-art { width:72px;height:62px; }.comparison-title strong,.comparison-title span { display:block; }.comparison-title strong { font-family:'Marcellus';font-size:.95rem; }.comparison-title span { color:#83897d;font-size:.7rem;margin-top:.2rem; }
+.stat-differences { display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--line); }.stat-differences span { font-size:.67rem;font-weight:800;padding:.25rem .4rem;border-radius:6px;background:#242922; }.stat-differences .up{color:#77d59a}.stat-differences .down{color:#e47d6b}.stat-differences .equal{color:#9ca196}
+.recycle-gains { display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin:1rem 0; }.recycle-gains span { display:flex;align-items:center;gap:.45rem;justify-content:center;background:#242920;border-radius:12px;padding:.8rem;color:#e9dfc5;font-size:.82rem; }.recycle-gains svg{width:17px;color:#e7bd60}.xp-before-after { margin:0 0 1rem;padding:1rem;background:#121512;border-radius:14px; }.xp-label { display:flex;justify-content:space-between;color:#8e9488;font-size:.68rem;margin:.45rem 0; }.xp-before-after .before i { background:#5f655d; }.skill-orb { width:92px;height:92px;border-radius:50%;display:grid;place-items:center;margin:.5rem auto 1rem;background:radial-gradient(circle,#a366d7,#251330 65%);box-shadow:0 0 35px #9c5bcc55; }.skill-orb svg{width:42px;height:42px}.skill-orb~h2,.skill-orb~p{text-align:center}
+.roulette.finished .roulette-card.winner { transform:scale(1.08);border-color:var(--rarity);box-shadow:0 0 28px color-mix(in srgb,var(--rarity) 45%,transparent);animation:winner-breathe 1.4s ease-in-out infinite; }
+.roulette.finished .roulette-track { transform:translateX(-2475px); }
+@keyframes winner-breathe { 50%{filter:brightness(1.18)} }
+
+/* Primordial arena V0.2 */
+.battle-page { --battle-speed:1; }.battle-page.screen-shake { animation:screen-shake calc(.28s / var(--battle-speed)) linear; }
+@keyframes screen-shake { 20%{transform:translateX(-4px)}40%{transform:translate(4px,-2px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)} }
+.battle-top { height:64px;padding:0 3vw;background:#11140fee; }.arena { height:calc(100dvh - 64px);padding:0 20vw 7vh;isolation:isolate;background:#273630; }
+.arena-sky { inset:0 0 50%;background:linear-gradient(#233f49 0,#66745b 72%,#a77b4d);overflow:hidden; }
+.arena-sky:before { content:'';position:absolute;width:170px;height:170px;border-radius:50%;right:20%;top:12%;background:#e2a85a;box-shadow:0 0 70px #df7f3c88;opacity:.55; }
+.arena-sky:after { height:48%;background:linear-gradient(150deg,transparent 40%,#1c2c25 41%) 0 0/220px 100%,linear-gradient(210deg,transparent 42%,#2b3d30 43%) 80px 0/270px 100%; }
+.arena-volcano { width:320px;height:210px;right:13%;background:linear-gradient(135deg,#29322d,#151d1a); }.arena-volcano:after { content:'';position:absolute;left:47%;top:0;width:6%;height:68%;background:linear-gradient(#f08a43,#a73d25,transparent);filter:blur(3px); }
+.cloud { position:absolute;width:190px;height:22px;border-radius:50%;background:#e4dcc133;filter:blur(9px); }.cloud-one{left:7%;top:18%}.cloud-two{right:4%;top:42%;transform:scale(.65)}
+.arena-midground { position:absolute;z-index:0;inset:35% 0 31%;background:linear-gradient(transparent,#17271eaa); }.arena-midground>i { position:absolute;bottom:0;width:125px;height:180px;background:#18291f;clip-path:polygon(45% 0,58% 48%,100% 39%,67% 59%,91% 82%,56% 69%,53% 100%,39% 100%,38% 67%,5% 84%,29% 57%,0 43%,40% 49%); }.arena-midground>i:nth-child(1){left:3%;transform:scale(1.4)}.arena-midground>i:nth-child(2){left:40%;transform:scale(.8)}.arena-midground>i:nth-child(3){right:2%;transform:scale(1.15)}.arena-midground .bones { position:absolute;right:29%;bottom:4px;width:90px;height:28px;border:5px solid #b5a77e;border-radius:50%;border-top-color:transparent;opacity:.5; }
+.arena-ground { inset:69% 0 0;background:linear-gradient(#4d5a3d,#2d3929 45%,#202a20),repeating-linear-gradient(170deg,transparent 0 46px,#0f160f33 47px 48px); }.arena-ground:before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 5%,#b0955b44,transparent 58%); }.arena-ground>i { position:absolute;bottom:0;width:80px;height:42px;background:#18271d;clip-path:polygon(0 100%,16% 22%,25% 100%,45% 0,53% 100%,75% 28%,83% 100%);opacity:.8; }.arena-ground>i:nth-child(1){left:5%}.arena-ground>i:nth-child(2){left:52%;transform:scale(.65)}.arena-ground>i:nth-child(3){right:5%;transform:scale(1.2)}
+.fighter { width:clamp(125px,11vw,170px);z-index:2; }.fighter-ui { position:absolute;width:clamp(210px,22vw,310px);bottom:calc(100% + 18px);margin:0;padding:.65rem .75rem;background:#10140fdd;border:1px solid #ffffff12;border-radius:12px;box-shadow:0 8px 25px #0004; }.fighter.player .fighter-ui{left:0}.fighter.enemy .fighter-ui{left:0}.fighter-ui>div:first-child { display:flex;justify-content:space-between;gap:.5rem;height:auto;background:none;border-radius:0;overflow:visible;margin:0; }.fighter-ui strong { font-size:.76rem; }.fighter-ui>div:first-child span { color:#949b8e;font-size:.65rem; }.fighter-ui .health-bar { height:6px;margin:.38rem 0;background:#3a201c; }.fighter-ui small { color:#aeb3a7;font-size:.6rem; }.fighter .warrior { animation:breathe calc(2.5s / var(--battle-speed)) ease-in-out infinite; }
+.battle-hud { position:absolute;z-index:6;left:3vw;right:3vw;top:18px;display:flex;justify-content:space-between;pointer-events:none; }.battle-hud .fighter-ui { position:relative;inset:auto;width:min(310px,32vw); }.battle-hud .enemy-hud { text-align:right; }.battle-hud .enemy-hud .health-bar i { margin-left:auto; }
+.fighter.player .warrior.attacking,.fighter.enemy .warrior.attacking { animation:lunge-right calc(.58s / var(--battle-speed)) cubic-bezier(.22,.8,.35,1)!important; }.fighter .warrior.shooting { animation:shoot calc(.58s / var(--battle-speed)) ease!important; }.warrior.hit { animation:hit calc(.46s / var(--battle-speed)) ease!important; }.warrior.dodging { animation:dodge calc(.55s / var(--battle-speed)) ease!important; }.warrior.blocking { animation:block calc(.5s / var(--battle-speed)) ease!important; }.warrior.ko { animation:ko calc(.8s / var(--battle-speed)) ease forwards!important; }
+@keyframes lunge-right { 0%{transform:translateX(0) rotate(0)}18%{transform:translateX(-10px) rotate(-4deg)}55%{transform:translateX(clamp(150px,24vw,340px)) rotate(8deg) scale(1.06)}68%{transform:translateX(clamp(145px,23vw,330px)) rotate(-4deg)}100%{transform:translateX(0)} }
+@keyframes shoot { 25%{transform:translateX(-7px) rotate(-5deg)}55%{transform:translateX(4px) rotate(3deg)} }
+@keyframes hit { 25%{transform:translateX(-14px) rotate(-7deg) scale(.96);filter:brightness(2) drop-shadow(0 22px 12px #0008)}55%{transform:translateX(8px) rotate(3deg)} }
+@keyframes dodge { 25%{transform:translateX(-55px) translateY(-10px) rotate(-5deg)}60%{transform:translateX(-60px) translateY(-4px)} }
+@keyframes block { 40%{transform:translateX(-8px) rotate(-8deg) scale(.98);filter:brightness(1.4)} }
+@keyframes ko { 35%{transform:translateX(-25px) rotate(-10deg)}to{transform:rotate(-76deg) translate(-36px,20px);opacity:.72} }
+.projectile { position:absolute;z-index:5;left:30%;bottom:25%;width:45%;height:3px;animation:projectile-flight calc(.55s / var(--battle-speed)) ease-in both; }.projectile i { display:block;width:42px;height:3px;background:#ead9b8;box-shadow:-16px 0 10px #e7b95b; }.projectile i:after{content:'';position:absolute;right:-4px;top:-5px;border-left:10px solid #d1c3a8;border-block:6px solid transparent}.projectile i:before{content:'';position:absolute;left:-10px;top:-5px;border-right:10px solid #a86d3a;border-block:6px solid transparent}
+@keyframes projectile-flight { from{transform:translateX(0);opacity:0}15%{opacity:1}to{transform:translateX(100%);opacity:0} }
+.impact-zone { top:61%; }.impact-flash { position:absolute;left:50%;top:50%;width:1px;height:1px; }.impact-flash i { position:absolute;width:55px;height:4px;background:#fff0b5;transform-origin:left;box-shadow:0 0 10px #ff9d40;animation:spark calc(.35s / var(--battle-speed)) ease-out both; }.impact-flash i:nth-child(2){transform:rotate(120deg)}.impact-flash i:nth-child(3){transform:rotate(240deg)}
+@keyframes spark { from{opacity:1;scale:.2}to{opacity:0;scale:1.3} }
+.impact-zone em { display:block;color:#ffd46f;font-style:normal;font-weight:900;font-size:.72rem;letter-spacing:.2em;text-shadow:0 2px 8px #6f220f;animation:damage-pop calc(.65s / var(--battle-speed)) ease both; }.dust { position:absolute;top:50px;left:50%;display:flex;gap:7px; }.dust i { width:8px;height:5px;border-radius:50%;background:#b29a68;animation:dust calc(.55s / var(--battle-speed)) ease-out both; }.dust i:nth-child(2){animation-delay:.05s}.dust i:nth-child(3){animation-delay:.1s}@keyframes dust{to{transform:translate(var(--dx,18px),-25px) scale(1.6);opacity:0}}
+
+.result-sheet { width:min(100%,520px);text-align:center;padding:1.6rem 2rem 2rem; }.result-mark { width:58px;height:58px;border-radius:50%;display:grid;place-items:center;margin:-3.2rem auto 1rem;background:#e6bd65;color:#21180b;box-shadow:0 12px 35px #0008; }.result-mark svg{width:28px}.result-sheet.enemy .result-mark{background:#4d554b;color:#d5d8cf}.result-sheet h1{font-size:clamp(2.6rem,7vw,4.5rem)}.result-sheet>p strong{color:#e8e5da}.result-rewards { grid-template-columns:repeat(4,1fr); }.result-rewards span { flex-direction:column;gap:.15rem;padding:.65rem .3rem; }.result-rewards b{font-size:1.1rem}.result-rewards small{color:#7f857a;font-size:.58rem}.result-callout,.campaign-result { display:flex;align-items:center;gap:.55rem;text-align:left;border-radius:10px;padding:.65rem .8rem;margin:.45rem 0;background:#252a21;color:#dfd5ba;font-size:.78rem}.result-callout svg,.campaign-result svg{width:17px;color:#e5bb5e}.campaign-result{margin-bottom:1rem;background:#171b16}
+
+@media (max-width:1000px) {
+  .skill-list{grid-template-columns:repeat(3,1fr)}
+  .hero-warrior>.eyebrow{order:0}.hero-avatar{order:1}.hero-name{order:2;margin:.5rem 0 1rem}.mobile-stats{order:3}.resource-row{order:4}.adventure-button{order:5}
+  .hero-avatar{height:38vh;min-height:290px}.hero-avatar .warrior{width:min(72%,270px)}
+  .mobile-gear{width:100%;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.mobile-gear .equipment-card{min-width:0;min-height:330px}.arena{padding-inline:15vw}.fighter{width:clamp(120px,15vw,150px)}
+}
+@media (max-width:700px) {
+  .equipment-card{min-height:310px}.card-art-wrap,.equipment-card .equipment-art{height:135px}.equipment-card-copy{padding:.7rem}.equipment-card-copy p{font-size:.66rem}.card-stats span{font-size:.61rem}.card-equip{margin-inline:.55rem}
+  .skill-list{display:flex;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:.5rem}.skill-list button{min-width:210px;scroll-snap-align:start}
+  .loot-hero{grid-template-columns:115px 1fr}.loot-hero .equipment-art{width:115px;height:105px}.loot-detail{grid-template-columns:1fr}.reward-card{padding:1.1rem}.roulette{height:176px}
+  .arena{padding:0 10vw 11vh}.fighter{width:125px}.battle-hud{left:3vw;right:3vw;top:12px}.battle-hud .fighter-ui{width:44vw;padding:.45rem}.fighter-ui strong{font-size:.63rem}.fighter-ui>div:first-child span{font-size:.55rem}.fighter-ui small{font-size:.52rem}.impact-zone{top:58%}
+  @keyframes lunge-right { 0%{transform:translateX(0)}18%{transform:translateX(-7px) rotate(-4deg)}55%{transform:translateX(31vw) rotate(8deg) scale(1.06)}68%{transform:translateX(29vw) rotate(-4deg)}100%{transform:translateX(0)} }
+  .result-rewards{grid-template-columns:repeat(2,1fr)}.result-sheet{padding:1.4rem}.recycle-gains{grid-template-columns:1fr}
+}
+@media (max-width:370px) {
+  .hero-avatar{height:250px;min-height:250px}.hero-avatar .warrior{width:190px}.equipment-card-copy p{display:none}.equipment-card{min-height:275px}.card-art-wrap,.equipment-card .equipment-art{height:120px}.arena{padding-inline:8vw}.fighter{width:105px}.battle-hud .fighter-ui{width:45vw}.battle-top{grid-template-columns:1fr auto}.loot-hero{grid-template-columns:90px 1fr}.loot-hero .equipment-art{width:90px}
+}

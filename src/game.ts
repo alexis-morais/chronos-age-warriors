@@ -43,24 +43,46 @@ export function equipmentLevelFromXp(xp: number) {
   return { level, progress: remaining, needed: level === GAME.maxEquipmentLevel ? 0 : EQUIPMENT_XP[level] }
 }
 
+export function equipmentStats(id: string, level: number): Partial<Stats> {
+  const stats: Partial<Stats> = {}
+  const add = (key: keyof Stats, value: number) => { stats[key] = (stats[key] ?? 0) + value }
+  if (id === 'flint-club') add('strength', level)
+  if (id === 'bone-spear') add('speed', level)
+  if (['obsidian-axe', 'bone-harness'].includes(id)) { add('strength', level); add('hp', 5 * level) }
+  if (id === 'hunter-bow') { add('speed', level); add('hp', 5 * level) }
+  if (id === 'smilodon-fangs') { add('strength', level); add('speed', level) }
+  if (['mammoth-spear', 'mammoth-plate'].includes(id)) { add('strength', level); add('hp', 10 * level) }
+  if (id === 'volcanic-hammer') { add('strength', 2 * level); add('hp', 5 * level) }
+  if (id === 'volcanic-shell') { add('strength', level); add('hp', 15 * level) }
+  if (id === 'tyrant-claw') { add('strength', 2 * level); add('speed', level) }
+  if (id === 'titan-heart') { add('strength', 2 * level); add('speed', level); add('hp', 5 * level) }
+  if (id === 'hunter-hides') add('hp', 10 * level)
+  if (id === 'white-titan-fur') { add('strength', level); add('hp', 20 * level) }
+  if (id === 'primordial-titan-skin') { add('dodge', level); add('hp', 25 * level) }
+  return stats
+}
+
+export function compareEquipmentStats(candidateId: string, candidateLevel: number, currentId: string, currentLevel: number) {
+  const candidate = equipmentStats(candidateId, candidateLevel), current = equipmentStats(currentId, currentLevel)
+  return (['strength', 'dodge', 'speed', 'hp'] as (keyof Stats)[]).map((stat) => ({ stat, candidate: candidate[stat] ?? 0, current: current[stat] ?? 0, difference: (candidate[stat] ?? 0) - (current[stat] ?? 0) })).filter(({ candidate: value, current: old }) => value !== 0 || old !== 0)
+}
+
+export function equipItem(save: SaveData, itemId: string): SaveData {
+  const item = equipment.find((entry) => entry.id === itemId)
+  if (!item || !save.owned[itemId]) return save
+  const next = structuredClone(save)
+  if (item.type === 'weapon') next.equippedWeapon = itemId
+  else next.equippedArmor = itemId
+  return next
+}
+
 export function effectiveStats(save: SaveData): Stats {
   const result = { ...save.warrior.stats }
   const apply = (id: string) => {
     const owned = save.owned[id]
     if (!owned) return
-    const level = owned.level
-    if (id === 'flint-club') result.strength += level
-    if (id === 'bone-spear') result.speed += level
-    if (['obsidian-axe', 'bone-harness'].includes(id)) { result.strength += level; result.hp += 5 * level }
-    if (id === 'hunter-bow') { result.speed += level; result.hp += 5 * level }
-    if (id === 'smilodon-fangs') { result.strength += level; result.speed += level }
-    if (['mammoth-spear', 'mammoth-plate'].includes(id)) { result.strength += level; result.hp += 10 * level }
-    if (['volcanic-hammer', 'volcanic-shell'].includes(id)) { result.strength += id === 'volcanic-hammer' ? 2 * level : level; result.hp += (id === 'volcanic-hammer' ? 5 : 15) * level }
-    if (id === 'tyrant-claw') { result.strength += 2 * level; result.speed += level }
-    if (id === 'titan-heart') { result.strength += 2 * level; result.speed += level; result.hp += 5 * level }
-    if (id === 'hunter-hides') result.hp += 10 * level
-    if (id === 'white-titan-fur') { result.strength += level; result.hp += 20 * level }
-    if (id === 'primordial-titan-skin') { result.dodge += level; result.hp += 25 * level }
+    const bonuses = equipmentStats(id, owned.level)
+    for (const [key, value] of Object.entries(bonuses) as [keyof Stats, number][]) result[key] += value
   }
   apply(save.equippedWeapon)
   apply(save.equippedArmor)

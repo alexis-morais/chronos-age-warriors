@@ -7,6 +7,19 @@ export const skills = [
   'Élan', 'Frein Temporel', 'Désarmement', 'Opportuniste', 'Vampirisme',
 ]
 
+export const skillDescriptions: Record<string, string> = {
+  'Double Frappe': 'Peut enchaîner une seconde attaque.', 'Frappe Dévastatrice': 'Peut déclencher un coup nettement plus puissant.',
+  'Précision': 'Réduit les chances d’esquive adverses.', 'Brise-Armure': 'Contourne une partie des protections.',
+  'Rage': 'Augmente les dégâts quand les PV diminuent.', 'Premier Sang': 'Renforce la première attaque du combat.',
+  'Saignement': 'Peut infliger des dégâts persistants.', 'Peau Dure': 'Réduit les dégâts directs reçus.',
+  'Parade': 'Peut fortement amortir une attaque.', 'Riposte': 'Peut répondre après une attaque subie.',
+  'Second Souffle': 'Évite une première mise K.O. et restaure des PV.', 'Instinct de Survie': 'Renforce la défense à faibles PV.',
+  'Endurci': 'Améliore la résistance aux effets prolongés.', 'Réflexes': 'Accroît les chances d’éviter une attaque.',
+  'Accélération': 'Augmente la fréquence des actions.', 'Élan': 'Augmente légèrement les chances de critique.',
+  'Frein Temporel': 'Peut ralentir brièvement l’adversaire.', 'Désarmement': 'Peut atténuer le prochain coup adverse.',
+  'Opportuniste': 'Augmente les dégâts contre une cible affaiblie.', 'Vampirisme': 'Rend une part des dégâts infligés sous forme de PV.',
+}
+
 export const equipment: EquipmentDefinition[] = [
   { id: 'flint-club', name: 'Massue de silex', type: 'weapon', rarity: 'Commun', bonus: '+1 Force / niveau', effect: '5 % de chance de +20 % dégâts', art: 'club' },
   { id: 'bone-spear', name: 'Lance d’os', type: 'weapon', rarity: 'Commun', bonus: '+1 Vitesse / niveau', effect: 'Première attaque +10 %', art: 'spear' },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { RARITY_CHANCES } from './config'
-import { addWarriorXp, damageForStrength, dodgeChance, equipmentLevelFromXp, initialStats, rollChest, seededRng, simulateBattle, speedWeight, xpForLevel } from './game'
+import { addWarriorXp, compareEquipmentStats, damageForStrength, dodgeChance, equipmentLevelFromXp, equipmentStats, equipItem, initialStats, rollChest, seededRng, simulateBattle, speedWeight, xpForLevel } from './game'
 import { dailyReset, freshSave, loadSave, persistSave, SAVE_KEY } from './storage'
 import type { Fighter } from './types'
 
@@ -49,6 +49,24 @@ describe('progression', () => {
     expect(save.pendingLevelChoice).toBe(true)
     save.warrior.skills.push('Rage')
     expect(save.warrior.skills).toContain('Rage')
+  })
+})
+
+describe('comparaison et choix d’équipement', () => {
+  it('calcule les bonus réels et les différences sans note artificielle', () => {
+    expect(equipmentStats('obsidian-axe', 1)).toEqual({ strength: 1, hp: 5 })
+    expect(compareEquipmentStats('obsidian-axe', 1, 'flint-club', 4)).toEqual([
+      { stat: 'strength', candidate: 1, current: 4, difference: -3 },
+      { stat: 'hp', candidate: 5, current: 0, difference: 5 },
+    ])
+  })
+  it('équipe un objet possédé sans muter la sauvegarde source et stocker reste neutre', () => {
+    const save = freshSave(); save.owned['obsidian-axe'] = { level: 1, xp: 0, kills: 0 }
+    const stored = structuredClone(save)
+    const equipped = equipItem(save, 'obsidian-axe')
+    expect(equipped.equippedWeapon).toBe('obsidian-axe')
+    expect(save.equippedWeapon).toBe('flint-club')
+    expect(stored).toEqual(save)
   })
 })
 

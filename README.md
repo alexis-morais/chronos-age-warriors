@@ -1,4 +1,4 @@
-# Chronos Age Warriors — V0.1
+# Chronos Age Warriors — V0.2
 
 Jeu d’arène automatique mobile-first dans lequel un Warrior unique traverse l’Ère Primordiale. Le build, l’équipement et vingt compétences passives influencent des combats spectaculaires dont le résultat reste déterminé par un moteur seedé indépendant de l’interface.
 
@@ -38,6 +38,15 @@ Scripts disponibles :
 - moteur de combat déterministe, timeline d’événements, animations, vitesse ×1/×2/×3 et passage immédiat au résultat ;
 - niveaux Warrior, choix attribut/compétence au niveau 5, trophée du Boss et récompense de fin d’ère ;
 - sauvegarde locale versionnée et compteurs quotidiens.
+
+## Refonte V0.2
+
+- Avatar entièrement redessiné avec couches modulaires pour le corps, les cheveux, six armures portées et neuf armes visibles.
+- Illustrations SVG individuelles pour chaque équipement, cartes de collection enrichies et silhouettes verrouillées.
+- Arène reconstruite en plans successifs, Warriors ramenés à environ 20–25 % de sa hauteur et HUD compact en partie haute.
+- Séquences visuelles pour anticipation, déplacement, projectile, impact, critique, esquive, parade, poussière et K.O.
+- Fiches de loot complètes avec comparaison des statistiques réelles, choix Équiper/Stocker et progression avant/après des doublons recyclés.
+- Présentation consultable des vingt compétences et iconographie d’interface Lucide harmonisée.
 
 ## Reporté après la V0.1
 

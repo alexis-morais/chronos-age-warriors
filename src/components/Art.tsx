@@ -1,49 +1,55 @@
 import type { Appearance, EquipmentDefinition } from '../types'
 
-export function EquipmentArt({ item, compact = false }: { item: EquipmentDefinition; compact?: boolean }) {
-  const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 5, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
-  return (
-    <svg className={`equipment-art ${compact ? 'compact' : ''}`} viewBox="0 0 160 130" role="img" aria-label={`Illustration — ${item.name}`}>
-      <defs>
-        <radialGradient id={`glow-${item.id}`}><stop stopColor="currentColor" stopOpacity=".32"/><stop offset="1" stopColor="currentColor" stopOpacity="0"/></radialGradient>
-      </defs>
-      <circle cx="80" cy="65" r="58" fill={`url(#glow-${item.id})`}/>
-      {item.art === 'club' && <><path {...common} strokeWidth="12" d="M55 108 92 36"/><path fill="currentColor" d="m78 46 17-28 28 20-17 29Z"/><path d="m91 28 8 12m7-15 2 18" stroke="#0d100e" strokeWidth="3"/></>}
-      {['spear','mammoth'].includes(item.art) && <><path {...common} d="m43 112 69-89"/><path fill="currentColor" d="m101 30 24-18-8 29Z"/>{item.art === 'mammoth' && <path {...common} strokeWidth="3" d="M38 106c23 7 37 1 48-11"/>}</>}
-      {item.art === 'axe' && <><path {...common} strokeWidth="7" d="m53 111 43-85"/><path fill="currentColor" d="M77 22q28-13 47 9-10 25-42 25Z"/></>}
-      {item.art === 'bow' && <><path {...common} d="M55 19q80 46 1 94"/><path {...common} strokeWidth="2" d="m55 19 1 94m-1-46 72-2"/><path fill="currentColor" d="m128 65-17-8v16Z"/></>}
-      {item.art === 'fangs' && <><path fill="currentColor" d="M42 24q20 44 16 86 28-21 25-77Zm48 5q23 43 17 81 31-25 25-75Z"/><path {...common} stroke="#111" strokeWidth="2" d="M55 40q14 25 12 48m38-45q13 21 10 43"/></>}
-      {item.art === 'hammer' && <><path {...common} strokeWidth="11" d="m57 113 42-74"/><path fill="currentColor" d="m62 16 65 31-17 35-65-31Z"/><path stroke="#ffb24c" strokeWidth="4" d="m71 28 8 18 15-4 3 21 17 6"/></>}
-      {item.art === 'claw' && <><path {...common} strokeWidth="8" d="M45 104q36-30 72-65"/><path fill="currentColor" d="M82 55q7-37 25-42 5 24-3 35 15-25 32-23-2 25-22 40Z"/></>}
-      {item.art === 'heart' && <><path fill="currentColor" d="M80 116 28 62Q16 24 51 16q21-4 29 19 9-23 30-19 35 8 22 46Z"/><path {...common} stroke="#e5c7ff" strokeWidth="3" d="M43 60h23l10-24 12 50 10-26h21"/></>}
-      {item.type === 'armor' && item.art !== 'titan' && <><path fill="currentColor" fillOpacity=".78" d="m48 28 32-13 32 13 17 25-20 15-5 46H56l-5-46-20-15Z"/><path {...common} strokeWidth="3" d="M80 17v94M48 31l18 28h28l18-28"/></>}
-      {item.art === 'titan' && <><path fill="currentColor" d="m45 25 35-14 35 14 19 34-25 13-5 44H56l-5-44-25-13Z"/><path {...common} stroke="#c9a0ff" strokeWidth="3" d="m45 34 35 24 35-24M80 13v101"/><circle cx="80" cy="59" r="9" fill="#d9bcff"/></>}
-    </svg>
-  )
+const line = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+
+function WeaponIllustration({ art }: { art: string }) {
+  if (art === 'club') return <g transform="rotate(18 80 65)"><path d="M75 111 91 51" stroke="#68452d" strokeWidth="13" strokeLinecap="round"/><path d="m68 59 12-40 28-7 21 23-15 37-27 7Z" fill="#77766e" stroke="#282824" strokeWidth="5"/><path d="m77 58 38 7M83 48l36 5" stroke="#c5a36a" strokeWidth="6"/><path d="m84 27 12 15 10-18m-7 34 13-16" {...line} stroke="#aaa89d" strokeWidth="3"/></g>
+  if (art === 'spear') return <g transform="rotate(35 80 65)"><path d="M80 119V31" stroke="#76513a" strokeWidth="8"/><path d="m80 8 18 29-18 16-18-16Z" fill="#e4d4b3" stroke="#514738" strokeWidth="4"/><path d="M68 44q12 12 24 0m-23 9q11 11 22 0" {...line} stroke="#b47b48" strokeWidth="4"/><path d="m80 12 4 22-8 8" {...line} stroke="#fff1cf" strokeWidth="2"/></g>
+  if (art === 'axe') return <g transform="rotate(28 80 65)"><path d="M77 118V36" stroke="#493429" strokeWidth="10"/><path d="M78 27Q106 5 137 24q-8 33-51 42l-10-19Z" fill="#191c22" stroke="#090b0f" strokeWidth="5"/><path d="M91 25q23-11 38 2-9 9-37 17" {...line} stroke="#777d93" strokeWidth="3"/><path d="M67 49h24m-23 9h21" stroke="#a36e48" strokeWidth="5"/></g>
+  if (art === 'bow') return <g><path d="M51 13q73 52 2 105" {...line} stroke="#8e5c35" strokeWidth="9"/><path d="M51 13 53 118" stroke="#e4d5bd" strokeWidth="2"/><path d="M31 69h91" stroke="#d8c7aa" strokeWidth="3"/><path d="m129 69-23-11v22Z" fill="#c2b494"/><path d="M48 30q17 14 6 30m-2 19q14 15 0 28" {...line} stroke="#c28e4c" strokeWidth="3"/></g>
+  if (art === 'fangs') return <g><g transform="rotate(-15 55 68)"><path d="M34 17q43 24 41 92-13 15-26 3 10-43-20-77Z" fill="#efe1bd" stroke="#50483c" strokeWidth="5"/><path d="M43 34q20 22 20 57" {...line} stroke="#fff8df" strokeWidth="3"/><path d="M43 94h27" stroke="#8b5736" strokeWidth="10"/></g><g transform="translate(53) rotate(15 55 68)"><path d="M34 17q43 24 41 92-13 15-26 3 10-43-20-77Z" fill="#efe1bd" stroke="#50483c" strokeWidth="5"/><path d="M43 34q20 22 20 57" {...line} stroke="#fff8df" strokeWidth="3"/><path d="M43 94h27" stroke="#8b5736" strokeWidth="10"/></g></g>
+  if (art === 'mammoth') return <g transform="rotate(35 80 65)"><path d="M80 124V34" stroke="#493429" strokeWidth="10"/><path d="M80 4q31 20 18 45L80 65 62 49Q49 24 80 4Z" fill="#f1dfb2" stroke="#5b4936" strokeWidth="5"/><path d="M68 54h24m-26 9h28" stroke="#c28b4b" strokeWidth="5"/><path d="M78 10q12 18 3 40" {...line} stroke="#fff5d9" strokeWidth="3"/><circle cx="80" cy="69" r="7" fill="#dfb354"/></g>
+  if (art === 'hammer') return <g transform="rotate(25 80 65)"><path d="M78 121V56" stroke="#5f3a25" strokeWidth="13"/><path d="M28 18h104l-8 48H36Z" fill="#272426" stroke="#100f10" strokeWidth="6"/><path d="m43 24 14 17 13-9 13 25 15-19 17 9" {...line} stroke="#f0642e" strokeWidth="5"/><path d="m51 23 7 11m44 7 9 9" stroke="#ffb34f" strokeWidth="3"/></g>
+  if (art === 'claw') return <g transform="rotate(-12 80 65)"><path d="m39 111 40-49" stroke="#562f24" strokeWidth="15"/><path d="M69 71Q70 25 99 7q7 27-5 48 18-31 42-35-2 34-31 57 23-17 42-6-14 27-60 37Z" fill="#bb8c4c" stroke="#352218" strokeWidth="5"/><path d="M87 69q14-31 40-42M94 84q20-17 42-12" {...line} stroke="#f2ce75" strokeWidth="3"/><circle cx="73" cy="89" r="8" fill="#8d241f"/></g>
+  return <g><path d="M80 120 32 66Q17 33 45 19q23-11 35 14 13-25 36-14 28 14 12 47Z" fill="#15121c" stroke="#08070b" strokeWidth="6"/><path d="M80 109 45 64q-10-22 8-30 18-7 27 16 10-23 28-16 18 8 7 30Z" fill="#44225f"/><path d="m42 65 25-2 10-29 12 51 10-24h22" {...line} stroke="#c18bff" strokeWidth="4"/><circle cx="49" cy="30" r="2" fill="#fff"/><circle cx="119" cy="38" r="1.5" fill="#fff"/><circle cx="107" cy="91" r="2" fill="#aa74ff"/></g>
+}
+
+function ArmorIllustration({ art }: { art: string }) {
+  if (art === 'hide') return <g><path d="m36 30 44-18 44 18 20 36-25 13-7 40H48l-7-40-25-13Z" fill="#765137" stroke="#2c2118" strokeWidth="5"/><path d="m39 31 18-15 11 13 15-16 16 14 18-10 8 19-19 19-19-8-15 12-23-13Z" fill="#a7815c"/><path d="m49 82 20-13 19 10 24-15m-56 45 9-22m37 22-8-23" {...line} stroke="#d5b27f" strokeWidth="4"/></g>
+  if (art === 'bones') return <g><path d="m43 31 37-17 37 17 16 32-21 15-7 41H55l-7-41-21-15Z" fill="#5e4936" stroke="#291f18" strokeWidth="5"/><path d="M49 33 108 105M111 33 52 105" stroke="#d9cfb4" strokeWidth="10"/><path d="M78 21v91M42 62h76" stroke="#eee5cc" strokeWidth="8"/><circle cx="80" cy="62" r="12" fill="#c8b995" stroke="#51493b" strokeWidth="4"/></g>
+  if (art === 'plate') return <g><path d="m31 36 49-24 49 24 18 31-26 14-7 39H46l-7-39-26-14Z" fill="#5b4939" stroke="#211b17" strokeWidth="6"/><path d="m40 36 25 18 15-34 15 34 25-18 9 27-28 9-7 37H66l-7-37-28-9Z" fill="#8c7861"/><path d="m33 42 25-17 9 27m60-10-25-17-9 27" {...line} stroke="#e9dab8" strokeWidth="8"/><path d="M80 20v90" stroke="#d6b976" strokeWidth="4"/></g>
+  if (art === 'shell') return <g><path d="m31 35 49-21 49 21 19 35-27 14-8 36H47l-8-36-27-14Z" fill="#272427" stroke="#110f11" strokeWidth="6"/><path d="m34 41 25 11 20-29 21 28 28-11-12 34-22 6 8 28H58l8-28-21-8Z" fill="#3d3739"/><path d="m61 27 8 31-16 18 21 5-5 28m31-80-10 29 17 17-20 7 5 26" {...line} stroke="#f26330" strokeWidth="5"/><path d="m65 52 11 11 9-24m7 40 9 13" stroke="#ffb34d" strokeWidth="3"/></g>
+  if (art === 'fur') return <g><path d="m24 40 56-27 56 27 17 32-25 9-10 40H42L32 81 7 72Z" fill="#dedbd2" stroke="#595a58" strokeWidth="6"/><path d="m24 40 18-21 15 12 23-19 21 18 20-12 15 22-18 20-19-8-20 10-18-11-19 12Z" fill="#f4f1e8"/><path d="m50 68 12 18-8 25m56-43L98 86l8 25M80 49v65" {...line} stroke="#a7abb0" strokeWidth="4"/></g>
+  return <g><path d="m25 35 55-23 55 23 20 36-30 14-8 36H43l-8-36L5 71Z" fill="#111019" stroke="#050408" strokeWidth="6"/><path d="m33 38 25 11 22-29 22 29 25-11-12 38-21 7 11 27H55l11-27-21-7Z" fill="#30203f"/><path d="m45 43 35 25 35-25M80 20v94" {...line} stroke="#9a62cf" strokeWidth="4"/><circle cx="80" cy="68" r="10" fill="#b786ec"/><circle cx="49" cy="28" r="2" fill="#fff"/><circle cx="120" cy="51" r="1.5" fill="#fff"/></g>
+}
+
+export function EquipmentArt({ item, compact = false, silhouette = false }: { item: EquipmentDefinition; compact?: boolean; silhouette?: boolean }) {
+  return <svg className={`equipment-art ${compact ? 'compact' : ''} ${silhouette ? 'silhouette' : ''}`} viewBox="0 0 160 130" role="img" aria-label={silhouette ? `Silhouette verrouillée — ${item.type === 'weapon' ? 'arme' : 'armure'}` : `Illustration — ${item.name}`}><defs><radialGradient id={`glow-${item.id}`}><stop stopColor="currentColor" stopOpacity=".2"/><stop offset="1" stopColor="currentColor" stopOpacity="0"/></radialGradient></defs><circle cx="80" cy="65" r="62" fill={`url(#glow-${item.id})`}/>{item.type === 'weapon' ? <WeaponIllustration art={item.art}/> : <ArmorIllustration art={item.art}/>}</svg>
+}
+
+function WornArmor({ armor }: { armor?: string }) {
+  if (armor === 'bone-harness') return <><path d="m70 139 79 69m0-69-79 69M109 127v94" stroke="#ded2b5" strokeWidth="12" strokeLinecap="round"/><circle cx="109" cy="174" r="15" fill="#b7a98a"/></>
+  if (armor === 'mammoth-plate') return <><path d="M59 139q50-35 100 0l-13 86H72Z" fill="#75624d"/><path d="m63 146-20 16 22 27m90-43 20 16-22 27" stroke="#e8d7ad" strokeWidth="14" strokeLinecap="round"/><path d="M109 132v91" stroke="#c9a969" strokeWidth="6"/></>
+  if (armor === 'volcanic-shell') return <><path d="M60 138q49-33 98 0l-12 87H73Z" fill="#302b2d"/><path d="m70 145 25 28-12 44m65-72-25 28 12 44" {...line} stroke="#ee6332" strokeWidth="7"/><path d="m91 144 18 26 17-27" {...line} stroke="#ffab45" strokeWidth="4"/></>
+  if (armor === 'white-titan-fur') return <><path d="M55 142q54-45 108 0l-11 84H66Z" fill="#d9d8d1"/><path d="m58 145 14-25 18 14 19-20 19 19 19-14 16 26-19 19-18-9-17 13-19-13-17 10Z" fill="#f3efe5"/><path d="m78 176 31 16 31-16" {...line} stroke="#969ba0" strokeWidth="5"/></>
+  if (armor === 'primordial-titan-skin') return <><path d="M58 139q51-37 102 0l-12 87H70Z" fill="#17131f"/><path d="m69 145 40 28 40-28M109 130v93" {...line} stroke="#8f5fc4" strokeWidth="6"/><circle cx="109" cy="174" r="10" fill="#b47ae7"/></>
+  return <><path d="M60 139q49-32 98 0l-12 87H73Z" fill="#684a34"/><path d="m64 143 18-14 15 14 15-16 16 15 20-13 10 18-20 16-25-8-20 10-23-17Z" fill="#9a7550"/></>
+}
+
+function HeldWeapon({ weapon }: { weapon?: string }) {
+  const id = weapon ?? 'flint-club'
+  if (id === 'hunter-bow') return <g className="weapon-layer"><path d="M8 8q51 48 1 104" {...line} stroke="#936039" strokeWidth="7"/><path d="M8 8 9 112" stroke="#ead9bd" strokeWidth="2"/><path d="M-2 61h54" stroke="#d9c9b0" strokeWidth="3"/><path d="m58 61-14-8v16Z" fill="#d4c6aa"/></g>
+  if (id === 'volcanic-hammer') return <g className="weapon-layer"><path d="M12 35v91" stroke="#5e3c27" strokeWidth="12"/><path d="M-23 5h70l-6 41h-58Z" fill="#282426" stroke="#100f10" strokeWidth="5"/><path d="m-12 10 12 16 13-8 11 22 11-16" {...line} stroke="#f06430" strokeWidth="4"/></g>
+  if (id === 'smilodon-fangs') return <g className="weapon-layer"><path d="M-8 9q33 29 27 84-10 13-19 2Q9 55-13 23Z" fill="#eadab5" stroke="#4c4438" strokeWidth="4"/><path d="M22 2q31 31 22 82-9 11-18 1 11-37-9-69Z" fill="#f3e5c1" stroke="#4c4438" strokeWidth="4"/></g>
+  if (id === 'tyrant-claw') return <g className="weapon-layer"><path d="M7 42v85" stroke="#5f3426" strokeWidth="13"/><path d="M-12 44Q-10 4 15-8q4 22-5 40 16-25 35-25-3 28-29 47 22-11 37 2-15 21-48 25Z" fill="#c3924c" stroke="#38231a" strokeWidth="4"/></g>
+  if (id === 'titan-heart') return <g className="weapon-layer"><path d="M12 61v66" stroke="#33243e" strokeWidth="11"/><path d="M12 69-21 35Q-33 10-11 1 5-6 12 11 20-6 36 1q22 9 10 34Z" fill="#25152f" stroke="#0c0910" strokeWidth="5"/><path d="m-15 35 18-1 7-19 9 34 8-16h14" {...line} stroke="#bc7bfb" strokeWidth="3"/></g>
+  if (id === 'obsidian-axe') return <g className="weapon-layer"><path d="M10 37v90" stroke="#493328" strokeWidth="10"/><path d="M8 36Q31 9 59 24q-5 31-45 44L5 51Z" fill="#15171d" stroke="#07080b" strokeWidth="5"/><path d="M18 34q17-12 32-6" {...line} stroke="#787e96" strokeWidth="2"/></g>
+  const mammoth = id === 'mammoth-spear', spear = id === 'bone-spear' || mammoth
+  if (spear) return <g className="weapon-layer"><path d="M10 25v108" stroke="#67432d" strokeWidth="9"/><path d={mammoth ? 'M10-14q26 18 15 43L10 45-5 29Q-16 6 10-14Z' : 'm10-8 18 31-18 17-18-17Z'} fill="#ead9b3" stroke="#514638" strokeWidth="4"/><path d="M-2 34h24m-22 9h20" stroke="#b87843" strokeWidth="4"/></g>
+  return <g className="weapon-layer"><path d="M9 42v87" stroke="#68452d" strokeWidth="12"/><path d="m-10 48 8-37 28-8 22 24-14 37-28 7Z" fill={id === 'flint-club' ? '#77766e' : '#3b3046'} stroke="#282824" strokeWidth="5"/><path d="M-3 48h39m-37 9h34" stroke="#c19a61" strokeWidth="5"/></g>
 }
 
 export function WarriorAvatar({ appearance, weapon, armor, enemy = false, className = '' }: { appearance: Appearance; weapon?: string; armor?: string; enemy?: boolean; className?: string }) {
-  const skin = enemy ? '#82634f' : appearance.skin
-  const hair = enemy ? '#201b17' : appearance.hairColor
-  const armorColor = armor?.includes('titan') ? '#4b2d70' : armor?.includes('volcanic') ? '#7d2e22' : armor?.includes('mammoth') ? '#6a6253' : armor?.includes('bone') ? '#b9aa87' : '#5a3925'
-  return (
-    <svg className={`warrior ${className}`} viewBox="0 0 220 260" role="img" aria-label={enemy ? 'Adversaire' : 'Warrior'}>
-      <ellipse cx="110" cy="238" rx="66" ry="12" fill="#000" opacity=".25"/>
-      <g className="warrior-body">
-        <path d="M70 123q40-30 80 0l10 75-50 22-50-22Z" fill={armorColor} stroke="#1a1712" strokeWidth="5"/>
-        <path d="m68 136-28 38 17 12 31-34m64-16 28 38-17 12-31-34" fill={skin} stroke="#1a1712" strokeWidth="7" strokeLinecap="round"/>
-        <path d="m83 205-8 34m62-34 8 34" stroke="#211b16" strokeWidth="22" strokeLinecap="round"/>
-        <circle cx="110" cy="88" r="48" fill={skin} stroke="#1a1712" strokeWidth="5"/>
-        {appearance.hair === 'Crête' && <path d="M76 57q31-51 70-18l-8 25q-28-15-62 5Z" fill={hair}/>} 
-        {appearance.hair === 'Tresses' && <path d="M66 75q0-49 44-49t44 49l-14-14-8 48-15-44-13 46-17-46-10 39Z" fill={hair}/>} 
-        {appearance.hair === 'Sauvage' && <path d="m63 71 8-38 20 9 16-25 17 23 25-10 6 43-20-15-23 4-26-7Z" fill={hair}/>} 
-        <path d="M88 89h12m20 0h12" stroke="#211914" strokeWidth="6" strokeLinecap="round"/>
-        <path d="M99 108q11 8 22 0" fill="none" stroke="#6d392d" strokeWidth="4" strokeLinecap="round"/>
-        <path d="M72 132q38 26 76 0" fill="none" stroke="#d9b66e" strokeWidth="8" opacity=".7"/>
-        <g className="held-weapon" transform="translate(146 122) rotate(12)">
-          {weapon?.includes('bow') ? <><path d="M8 6q45 45 0 92" fill="none" stroke="#d7ae72" strokeWidth="6"/><path d="M8 6v92" stroke="#eee2c4" strokeWidth="2"/></> : weapon?.includes('hammer') ? <><path d="M11 19v91" stroke="#6c4931" strokeWidth="10"/><rect width="52" height="30" rx="5" fill="#a8422d" stroke="#2b1813" strokeWidth="5"/></> : <><path d="M11 14v99" stroke="#826144" strokeWidth="9"/><path d="m-3 23 15-23 16 24Z" fill={weapon?.includes('titan') ? '#9d66e8' : '#c5b59d'} stroke="#251d18" strokeWidth="4"/></>}
-        </g>
-      </g>
-    </svg>
-  )
+  const skin = enemy ? '#88654e' : appearance.skin, hair = enemy ? '#241d18' : appearance.hairColor
+  return <svg className={`warrior ${className}`} viewBox="0 0 220 270" role="img" aria-label={enemy ? 'Adversaire' : 'Warrior'}><ellipse className="warrior-shadow" cx="110" cy="250" rx="57" ry="10" fill="#000" opacity=".28"/><g className="body-layer"><path d="m82 207-5 34" stroke="#2b211b" strokeWidth="25" strokeLinecap="round"/><path d="m138 207 5 34" stroke="#2b211b" strokeWidth="25" strokeLinecap="round"/><path d="m73 241 23 2m28 0 24-2" stroke="#171310" strokeWidth="16" strokeLinecap="round"/><path d="m67 151-28 36" stroke={skin} strokeWidth="18" strokeLinecap="round"/><path d="m153 151 28 36" stroke={skin} strokeWidth="18" strokeLinecap="round"/><circle cx="38" cy="189" r="10" fill={skin}/><circle cx="182" cy="189" r="10" fill={skin}/><WornArmor armor={armor}/><circle cx="109" cy="91" r="48" fill={skin} stroke="#2a1e18" strokeWidth="5"/><path d="M82 92q10-6 19 0m17 0q10-6 19 0" {...line} stroke="#2b201b" strokeWidth="5"/><ellipse cx="92" cy="94" rx="4" ry="5" fill="#1a1512"/><ellipse cx="127" cy="94" rx="4" ry="5" fill="#1a1512"/><path d="M99 114q11 9 22 0" {...line} stroke="#704034" strokeWidth="4"/>{appearance.hair === 'Crête' && <path d="M66 75q5-51 43-53 38 2 45 48l-17-13-15 8-18-7-21 13Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}{appearance.hair === 'Tresses' && <><path d="M64 82q-2-56 45-59 48 2 47 59l-15-18-15 6-17-10-18 9-13-7Z" fill={hair} stroke="#241b16" strokeWidth="4"/><path d="m69 67-6 58m88-58 7 58" stroke={hair} strokeWidth="12" strokeLinecap="round"/></>}{appearance.hair === 'Sauvage' && <path d="m62 77 3-43 22 8 18-26 17 24 26-11 9 48-19-17-16 8-17-10-22 13Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}<path d="M63 145q46 30 93 0" {...line} stroke="#d2aa65" strokeWidth="7" opacity=".8"/><g className="weapon-arm" transform="translate(157 145) rotate(8)"><path d="M0 8 16 42" stroke={skin} strokeWidth="16" strokeLinecap="round"/><g transform="translate(13 30)"><HeldWeapon weapon={weapon}/></g><circle cx="16" cy="42" r="10" fill={skin}/></g></g></svg>
 }
