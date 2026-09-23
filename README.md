@@ -1,4 +1,4 @@
-# Chronos Age Warriors — V0.2
+# Chronos Age Warriors — V0.3
 
 Jeu d’arène automatique mobile-first dans lequel un Warrior unique traverse l’Ère Primordiale. Le build, l’équipement et vingt compétences passives influencent des combats spectaculaires dont le résultat reste déterminé par un moteur seedé indépendant de l’interface.
 
@@ -25,7 +25,7 @@ Scripts disponibles :
 - `src/data.ts` décrit équipements, compétences, ennemis et badges.
 - `src/storage.ts` fournit une abstraction de sauvegarde `localStorage` versionnée et le reset quotidien local.
 - `src/App.tsx` orchestre les écrans et les boucles de jeu.
-- `src/components/Art.tsx` produit les avatars et illustrations SVG modulaires originales.
+- `src/components/Art.tsx` assemble l’avatar SVG modulaire, les armes portées et les planches de référence fournies.
 
 ## Systèmes présents
 
@@ -47,6 +47,14 @@ Scripts disponibles :
 - Séquences visuelles pour anticipation, déplacement, projectile, impact, critique, esquive, parade, poussière et K.O.
 - Fiches de loot complètes avec comparaison des statistiques réelles, choix Équiper/Stocker et progression avant/après des doublons recyclés.
 - Présentation consultable des vingt compétences et iconographie d’interface Lucide harmonisée.
+
+## Intégration artistique V0.3
+
+- Logo, équipements, ennemis et décors utilisent directement les planches validées de `public/art-direction`.
+- Hub, création et arène reprennent la lumière, les matières et la composition des références sans remplacer la structure fonctionnelle existante.
+- Warrior redressé et affiné vers une silhouette adulte, avec barbe optionnelle, armures modulaires et arme réellement tenue en main.
+- Ennemis cadrés depuis la planche Primordiale et animations de combat renforcées autour de l’arme, des impacts et des déplacements.
+- Les SVG internes restent utilisés pour les silhouettes d’objets verrouillés et les versions portées, adaptées aux contraintes de lisibilité et d’animation du jeu.
 
 ## Reporté après la V0.1
 

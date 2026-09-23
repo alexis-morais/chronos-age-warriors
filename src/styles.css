@@ -305,10 +305,67 @@ fieldset legend { font-size:.85rem; font-weight:700; margin-bottom:.6rem; }
   .equipment-card{min-height:310px}.card-art-wrap,.equipment-card .equipment-art{height:135px}.equipment-card-copy{padding:.7rem}.equipment-card-copy p{font-size:.66rem}.card-stats span{font-size:.61rem}.card-equip{margin-inline:.55rem}
   .skill-list{display:flex;flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:.5rem}.skill-list button{min-width:210px;scroll-snap-align:start}
   .loot-hero{grid-template-columns:115px 1fr}.loot-hero .equipment-art{width:115px;height:105px}.loot-detail{grid-template-columns:1fr}.reward-card{padding:1.1rem}.roulette{height:176px}
-  .arena{padding:0 10vw 11vh}.fighter{width:125px}.battle-hud{left:3vw;right:3vw;top:12px}.battle-hud .fighter-ui{width:44vw;padding:.45rem}.fighter-ui strong{font-size:.63rem}.fighter-ui>div:first-child span{font-size:.55rem}.fighter-ui small{font-size:.52rem}.impact-zone{top:58%}
+  .arena{padding:0 10vw 11vh}.fighter{width:105px}.battle-hud{left:3vw;right:3vw;top:12px}.battle-hud .fighter-ui{width:44vw;padding:.45rem}.fighter-ui strong{font-size:.63rem}.fighter-ui>div:first-child span{font-size:.55rem}.fighter-ui small{font-size:.52rem}.impact-zone{top:58%}
   @keyframes lunge-right { 0%{transform:translateX(0)}18%{transform:translateX(-7px) rotate(-4deg)}55%{transform:translateX(31vw) rotate(8deg) scale(1.06)}68%{transform:translateX(29vw) rotate(-4deg)}100%{transform:translateX(0)} }
   .result-rewards{grid-template-columns:repeat(2,1fr)}.result-sheet{padding:1.4rem}.recycle-gains{grid-template-columns:1fr}
 }
 @media (max-width:370px) {
-  .hero-avatar{height:250px;min-height:250px}.hero-avatar .warrior{width:190px}.equipment-card-copy p{display:none}.equipment-card{min-height:275px}.card-art-wrap,.equipment-card .equipment-art{height:120px}.arena{padding-inline:8vw}.fighter{width:105px}.battle-hud .fighter-ui{width:45vw}.battle-top{grid-template-columns:1fr auto}.loot-hero{grid-template-columns:90px 1fr}.loot-hero .equipment-art{width:90px}
+  .hero-avatar{height:250px;min-height:250px}.hero-avatar .warrior{width:190px}.equipment-card-copy p{display:none}.equipment-card{min-height:275px}.card-art-wrap,.equipment-card .equipment-art{height:120px}.arena{padding-inline:8vw}.fighter{width:92px}.battle-hud .fighter-ui{width:45vw}.battle-top{grid-template-columns:1fr auto}.loot-hero{grid-template-columns:90px 1fr}.loot-hero .equipment-art{width:90px}
+}
+
+/* V0.3 — asset-driven art direction */
+body { background:#0d0e0d; }
+.mini-brand img { width:118px;height:46px;object-fit:contain;object-position:center;filter:drop-shadow(0 2px 5px #000); }
+.mini-brand i { display:none; }
+.brand { width:min(62%,520px);left:50%;top:4%;transform:translateX(-50%); }
+.brand img { width:100%;height:auto;display:block;filter:drop-shadow(0 8px 16px #0008); }
+
+.creation-shell { background:#d9c7a7;color:#2a2119; }
+.creation-art { background-color:#8a7356;background-image:linear-gradient(#1c1711aa,#1c171166),url('/art-direction/customization-male-reference.png');background-size:cover;background-position:center; }
+.creation-art[data-gender='Femme'] { background-image:linear-gradient(#1c1711aa,#1c171166),url('/art-direction/customization-female-reference.png'); }
+.creation-panel { background:linear-gradient(145deg,#eadbc0,#cdb58f);color:#2b2118;border-left:1px solid #7d6647; }
+.creation-panel h1,.creation-panel p,.creation-panel .field,.creation-panel legend { color:#34271c; }
+.creation-panel .eyebrow { color:#7b4322; }.creation-panel .field input,.creation-panel .segmented { background:#f5ead6;border-color:#8f795c;color:#251b14; }
+.creation-panel .segmented button { color:#65543f; }.creation-panel .segmented button.active { background:#4c3525;color:#fff3dc; }
+.creation-panel .primary { background:linear-gradient(#6d4529,#3d281d);color:#fff1d3;box-shadow:0 7px 0 #251710; }
+.creation-art .avatar-stage { background:radial-gradient(circle,#e0bb7b99 0 34%,transparent 35%); }
+
+.reference-art { overflow:hidden;position:relative;background:radial-gradient(circle,currentColor 0,transparent 62%); }
+.reference-art>span { position:absolute;left:0;top:0;width:100%;height:132%;display:block;background-repeat:no-repeat;background-position:var(--sprite-x) var(--sprite-y);filter:drop-shadow(0 9px 6px #0009); }
+.reference-art .weapon-reference-sprite { background-image:url('/art-direction/weapons-reference.png');background-size:300% 300%; }
+.reference-art .armor-reference-sprite { height:140%;background-image:url('/art-direction/armors-reference.png');background-size:300% 200%; }
+.reference-art.compact>span { height:145%; }
+.equipment-card .reference-art { padding:0;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--rarity) 12%,transparent),transparent 62%); }
+.equipment-card:hover .reference-art { transform:none; }.equipment-card:hover .reference-art>span { transform:scale(1.035); }
+
+.hub-page { position:relative;isolation:isolate;background-image:linear-gradient(90deg,#090a09aa,#11130f55 48%,#090a09aa),url('/art-direction/arena-primordial-reference.png');background-size:cover;background-position:center; }
+.hub-page:before { content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#0d0e0d22,#0d0e0d77); }
+.gear-gallery,.stats-panel { backdrop-filter:blur(6px);background:#0c0e0caa; }.hero-warrior:before { border-color:#e9bd6222; }
+.sun-disc { background:radial-gradient(circle,#f4c66b 0 2%,#59431c66 3% 47%,transparent 48%); }
+.hero-avatar .warrior { filter:drop-shadow(0 24px 10px #000b); }
+.adventure-button { background-image:linear-gradient(90deg,#271c10aa,#51351566),url('/art-direction/arena-primordial-reference.png');background-size:cover;background-position:center 72%;border-color:#e9b958;box-shadow:0 0 0 1px #000,0 7px 24px #000b; }
+
+.arena { background-image:linear-gradient(#15202a22,#17201811),url('/art-direction/arena-primordial-reference.png');background-size:cover;background-position:center bottom; }
+.arena-sky,.arena-midground,.arena-ground { display:none; }
+.arena:after { content:'';position:absolute;z-index:1;inset:auto 0 0;height:16%;pointer-events:none;background:linear-gradient(transparent,#07110d88),url('/art-direction/arena-combat-reference.png');background-size:cover;background-position:center bottom;mix-blend-mode:multiply;opacity:.42; }
+.battle-hud .fighter-ui { background:#151719e8;border:2px solid #3d454b;border-radius:10px;box-shadow:0 3px 0 #070808; }
+.fighter-ui .health-bar { border:2px solid #080a0a;height:12px;background:#241115;box-shadow:inset 0 1px 2px #000; }.fighter-ui .health-bar i { background:linear-gradient(#5dea50,#189532);border-radius:4px; }.enemy-hud .health-bar i { background:linear-gradient(#ff4d3d,#b20f13); }
+.fighter .warrior { filter:drop-shadow(0 12px 4px #37281755); }
+.enemy-reference { position:relative;overflow:hidden;height:auto;aspect-ratio:1/1.25;background:none; }
+.enemy-reference>img { width:100%;height:100%;object-fit:contain;object-position:center bottom;mix-blend-mode:multiply;filter:saturate(1.15) contrast(1.05);mask-image:radial-gradient(ellipse 58% 61% at 50% 55%,#000 52%,transparent 78%); }
+.fighter.enemy { transform:scaleX(-1); }.fighter.enemy .enemy-reference>img { transform:scaleX(-1); }
+.warrior.attacking .weapon-layer { transform-box:fill-box;transform-origin:12px 58px;animation:weapon-swing calc(.58s / var(--battle-speed)) cubic-bezier(.2,.8,.3,1); }
+@keyframes weapon-swing { 0%,18%{transform:rotate(-18deg)}55%{transform:rotate(62deg)}100%{transform:rotate(0)} }
+.warrior.shooting .weapon-layer { transform-box:fill-box;transform-origin:12px 58px;animation:bow-aim calc(.58s / var(--battle-speed)) ease; }
+@keyframes bow-aim { 30%,65%{transform:rotate(-34deg) translate(-4px,-2px)} }
+.weapon-hand { filter:drop-shadow(0 1px 0 #2d1d14); }
+.female-warrior .body-layer { transform:scale(.96) translate(4px,4px);transform-origin:center bottom; }
+
+.map-scene { background-image:linear-gradient(#18313a44,#18251bcc),url('/art-direction/arena-primordial-reference.png');background-size:cover;background-position:center; }
+.map-scene .volcano,.map-scene .mountains { display:none; }
+
+@media (max-width:700px) {
+  .mini-brand img{width:94px;height:42px;object-fit:contain;object-position:center}.mini-brand span{display:none}
+  .creation-art{background-position:center 20%}.brand{width:70%;top:1rem}.creation-panel{border-left:0;border-top:1px solid #7d6647}
+  .arena{background-position:center bottom}.arena:after{height:13%}.battle-hud .fighter-ui{border-width:1px}.fighter-ui .health-bar{height:9px}
 }

@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { Appearance, EquipmentDefinition } from '../types'
 
 const line = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
@@ -24,7 +25,12 @@ function ArmorIllustration({ art }: { art: string }) {
 }
 
 export function EquipmentArt({ item, compact = false, silhouette = false }: { item: EquipmentDefinition; compact?: boolean; silhouette?: boolean }) {
-  return <svg className={`equipment-art ${compact ? 'compact' : ''} ${silhouette ? 'silhouette' : ''}`} viewBox="0 0 160 130" role="img" aria-label={silhouette ? `Silhouette verrouillée — ${item.type === 'weapon' ? 'arme' : 'armure'}` : `Illustration — ${item.name}`}><defs><radialGradient id={`glow-${item.id}`}><stop stopColor="currentColor" stopOpacity=".2"/><stop offset="1" stopColor="currentColor" stopOpacity="0"/></radialGradient></defs><circle cx="80" cy="65" r="62" fill={`url(#glow-${item.id})`}/>{item.type === 'weapon' ? <WeaponIllustration art={item.art}/> : <ArmorIllustration art={item.art}/>}</svg>
+  const weaponIndex: Record<string, number> = { club: 0, spear: 1, axe: 2, bow: 3, fangs: 4, mammoth: 5, hammer: 6, claw: 7, heart: 8 }
+  const armorIndex: Record<string, number> = { hide: 0, bones: 1, plate: 2, shell: 3, fur: 4, titan: 5 }
+  const index = item.type === 'weapon' ? weaponIndex[item.art] : armorIndex[item.art]
+  const cols = 3, rows = item.type === 'weapon' ? 3 : 2, col = index % cols, row = Math.floor(index / cols)
+  if (!silhouette) return <div className={`equipment-art reference-art ${compact ? 'compact' : ''}`} role="img" aria-label={`Illustration — ${item.name}`}><span className={item.type === 'weapon' ? 'weapon-reference-sprite' : 'armor-reference-sprite'} style={{ '--sprite-x': `${col * 50}%`, '--sprite-y': `${row * 100 / (rows - 1)}%` } as CSSProperties}/></div>
+  return <svg className={`equipment-art ${compact ? 'compact' : ''} silhouette`} viewBox="0 0 160 130" role="img" aria-label={`Silhouette verrouillée — ${item.type === 'weapon' ? 'arme' : 'armure'}`}><circle cx="80" cy="65" r="62" fill="currentColor" opacity=".08"/>{item.type === 'weapon' ? <WeaponIllustration art={item.art}/> : <ArmorIllustration art={item.art}/>}</svg>
 }
 
 function WornArmor({ armor }: { armor?: string }) {
@@ -51,5 +57,35 @@ function HeldWeapon({ weapon }: { weapon?: string }) {
 
 export function WarriorAvatar({ appearance, weapon, armor, enemy = false, className = '' }: { appearance: Appearance; weapon?: string; armor?: string; enemy?: boolean; className?: string }) {
   const skin = enemy ? '#88654e' : appearance.skin, hair = enemy ? '#241d18' : appearance.hairColor
-  return <svg className={`warrior ${className}`} viewBox="0 0 220 270" role="img" aria-label={enemy ? 'Adversaire' : 'Warrior'}><ellipse className="warrior-shadow" cx="110" cy="250" rx="57" ry="10" fill="#000" opacity=".28"/><g className="body-layer"><path d="m82 207-5 34" stroke="#2b211b" strokeWidth="25" strokeLinecap="round"/><path d="m138 207 5 34" stroke="#2b211b" strokeWidth="25" strokeLinecap="round"/><path d="m73 241 23 2m28 0 24-2" stroke="#171310" strokeWidth="16" strokeLinecap="round"/><path d="m67 151-28 36" stroke={skin} strokeWidth="18" strokeLinecap="round"/><path d="m153 151 28 36" stroke={skin} strokeWidth="18" strokeLinecap="round"/><circle cx="38" cy="189" r="10" fill={skin}/><circle cx="182" cy="189" r="10" fill={skin}/><WornArmor armor={armor}/><circle cx="109" cy="91" r="48" fill={skin} stroke="#2a1e18" strokeWidth="5"/><path d="M82 92q10-6 19 0m17 0q10-6 19 0" {...line} stroke="#2b201b" strokeWidth="5"/><ellipse cx="92" cy="94" rx="4" ry="5" fill="#1a1512"/><ellipse cx="127" cy="94" rx="4" ry="5" fill="#1a1512"/><path d="M99 114q11 9 22 0" {...line} stroke="#704034" strokeWidth="4"/>{appearance.hair === 'Crête' && <path d="M66 75q5-51 43-53 38 2 45 48l-17-13-15 8-18-7-21 13Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}{appearance.hair === 'Tresses' && <><path d="M64 82q-2-56 45-59 48 2 47 59l-15-18-15 6-17-10-18 9-13-7Z" fill={hair} stroke="#241b16" strokeWidth="4"/><path d="m69 67-6 58m88-58 7 58" stroke={hair} strokeWidth="12" strokeLinecap="round"/></>}{appearance.hair === 'Sauvage' && <path d="m62 77 3-43 22 8 18-26 17 24 26-11 9 48-19-17-16 8-17-10-22 13Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}<path d="M63 145q46 30 93 0" {...line} stroke="#d2aa65" strokeWidth="7" opacity=".8"/><g className="weapon-arm" transform="translate(157 145) rotate(8)"><path d="M0 8 16 42" stroke={skin} strokeWidth="16" strokeLinecap="round"/><g transform="translate(13 30)"><HeldWeapon weapon={weapon}/></g><circle cx="16" cy="42" r="10" fill={skin}/></g></g></svg>
+  return <svg className={`warrior ${appearance.gender === 'Femme' ? 'female-warrior' : 'male-warrior'} ${className}`} viewBox="0 0 220 270" role="img" aria-label={enemy ? 'Adversaire' : 'Warrior'}>
+    <ellipse className="warrior-shadow" cx="110" cy="252" rx="55" ry="9" fill="#000" opacity=".3"/>
+    <g className="body-layer">
+      <path d="m83 204-5 38m59-38 5 38" stroke="#30251e" strokeWidth="23" strokeLinecap="round"/>
+      <path d="m72 244 28 1m21 0 29-1" stroke="#171310" strokeWidth="15" strokeLinecap="round"/>
+      <path d="M66 143q44-27 88 0l-8 82H74Z" fill="#6b4a32" stroke="#2d2119" strokeWidth="5"/>
+      <path d="M77 208h65l-6 19H84Z" fill="#3d2b22"/><path d="M107 145v77" stroke="#c39a5d" strokeWidth="5" opacity=".75"/>
+      <path d="m69 151-30 45" stroke={skin} strokeWidth="18" strokeLinecap="round"/><circle cx="36" cy="201" r="10" fill={skin}/>
+      <WornArmor armor={armor}/>
+      <path d="M75 143q35 24 70 0" {...line} stroke="#dfb96d" strokeWidth="6" opacity=".8"/>
+      <circle cx="110" cy="92" r="39" fill={skin} stroke="#2a1e18" strokeWidth="5"/>
+      <path d="M83 89q10-8 19-1m16 0q10-7 20 1" {...line} stroke="#2b201b" strokeWidth="5"/>
+      <ellipse cx="94" cy="96" rx="3.5" ry="4.5" fill="#17120f"/><ellipse cx="127" cy="96" rx="3.5" ry="4.5" fill="#17120f"/>
+      <path d="m108 98-3 13 8 1M100 122q10 5 20 0" {...line} stroke="#704034" strokeWidth="3.5"/>
+      {appearance.hair === 'Crête' && <path d="M75 79q4-46 34-52 32 4 38 46l-16-13-14 6-15-7-18 13Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}
+      {appearance.hair === 'Tresses' && <><path d="M73 81q0-49 36-54 39 3 39 52l-14-17-14 7-13-8-17 9-11-7Z" fill={hair} stroke="#241b16" strokeWidth="4"/><path d="m78 68-5 61m72-61 6 61" stroke={hair} strokeWidth="10" strokeLinecap="round"/></>}
+      {appearance.hair === 'Sauvage' && <path d="m72 80 4-40 18 5 14-25 15 22 22-10 4 45-16-15-15 8-14-9-19 12Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}
+      {appearance.gender === 'Homme' && appearance.beard && <path d="M82 109q5 35 28 42 24-8 29-42l-15 13-14-5-13 5Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}
+      <g className="weapon-arm" transform="translate(151 145) rotate(8)">
+        <path d="M0 8 18 47" stroke={skin} strokeWidth="18" strokeLinecap="round"/>
+        <g transform="translate(15 35)"><HeldWeapon weapon={weapon}/></g>
+        <circle className="weapon-hand" cx="18" cy="47" r="11" fill={skin}/>
+      </g>
+    </g>
+  </svg>
+}
+
+export function EnemyAvatar({ variant = 0, className = '' }: { variant?: number; className?: string }) {
+  const enemies = ['tribal-hunter', 'tribal-warrior', 'cave-brute', 'bone-lancer', 'shaman', 'raptor', 'smilodon', 'mammoth-guardian']
+  const art = enemies[Math.abs(variant) % enemies.length]
+  return <div className={`warrior enemy-reference ${className}`} role="img" aria-label="Ennemi primordial"><img src={`/art-direction/enemies/${art}.png`} alt=""/></div>
 }

@@ -8,7 +8,7 @@ export const localDate = (date = new Date()) => date.toLocaleDateString('sv-SE')
 export function freshSave(seed = Date.now()): SaveData {
   return {
     version: SAVE_VERSION, created: false,
-    warrior: { name: '', appearance: { gender: 'Homme', skin: '#b97852', hair: 'Crête', hairColor: '#211914' }, level: 1, xp: 0, stats: initialStats(seededRng(seed)), skills: [] },
+    warrior: { name: '', appearance: { gender: 'Homme', skin: '#b97852', hair: 'Crête', hairColor: '#211914', beard: false }, level: 1, xp: 0, stats: initialStats(seededRng(seed)), skills: [] },
     coins: 300,
     owned: { 'flint-club': { level: 1, xp: 0, kills: 0 }, 'hunter-hides': { level: 1, xp: 0, kills: 0 } },
     equippedWeapon: 'flint-club', equippedArmor: 'hunter-hides', campaignNode: 1, defeatedNodes: [], campaignRemaining: 10,

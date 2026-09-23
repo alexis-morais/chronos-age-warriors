@@ -11,6 +11,7 @@ export interface Appearance {
   skin: string
   hair: 'Crête' | 'Tresses' | 'Sauvage'
   hairColor: string
+  beard?: boolean
 }
 
 export interface EquipmentDefinition {
