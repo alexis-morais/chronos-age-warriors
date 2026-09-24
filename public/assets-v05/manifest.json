@@ -1,0 +1,267 @@
+{
+  "version": "v05-production",
+  "player": {
+    "male": {
+      "massue-silex": {
+        "idle": "/assets-v05/player/male/massue-silex/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/massue-silex/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/massue-silex/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/massue-silex/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/massue-silex/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/massue-silex/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/massue-silex/hurt.png",
+        "dodge": "/assets-v05/player/male/massue-silex/dodge.png",
+        "ko": "/assets-v05/player/male/massue-silex/ko.png"
+      },
+      "lance-os": {
+        "idle": "/assets-v05/player/male/lance-os/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/lance-os/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/lance-os/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/lance-os/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/lance-os/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/lance-os/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/lance-os/hurt.png",
+        "dodge": "/assets-v05/player/male/lance-os/dodge.png",
+        "ko": "/assets-v05/player/male/lance-os/ko.png"
+      },
+      "hache-obsidienne": {
+        "idle": "/assets-v05/player/male/hache-obsidienne/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/hache-obsidienne/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/hache-obsidienne/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/hache-obsidienne/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/hache-obsidienne/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/hache-obsidienne/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/hache-obsidienne/hurt.png",
+        "dodge": "/assets-v05/player/male/hache-obsidienne/dodge.png",
+        "ko": "/assets-v05/player/male/hache-obsidienne/ko.png"
+      },
+      "arc-chasseur": {
+        "idle": "/assets-v05/player/male/arc-chasseur/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/arc-chasseur/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/arc-chasseur/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/arc-chasseur/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/arc-chasseur/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/arc-chasseur/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/arc-chasseur/hurt.png",
+        "dodge": "/assets-v05/player/male/arc-chasseur/dodge.png",
+        "ko": "/assets-v05/player/male/arc-chasseur/ko.png"
+      },
+      "crocs-smilodon": {
+        "idle": "/assets-v05/player/male/crocs-smilodon/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/crocs-smilodon/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/crocs-smilodon/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/crocs-smilodon/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/crocs-smilodon/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/crocs-smilodon/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/crocs-smilodon/hurt.png",
+        "dodge": "/assets-v05/player/male/crocs-smilodon/dodge.png",
+        "ko": "/assets-v05/player/male/crocs-smilodon/ko.png"
+      },
+      "lance-mammouth": {
+        "idle": "/assets-v05/player/male/lance-mammouth/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/lance-mammouth/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/lance-mammouth/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/lance-mammouth/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/lance-mammouth/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/lance-mammouth/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/lance-mammouth/hurt.png",
+        "dodge": "/assets-v05/player/male/lance-mammouth/dodge.png",
+        "ko": "/assets-v05/player/male/lance-mammouth/ko.png"
+      },
+      "marteau-volcanique": {
+        "idle": "/assets-v05/player/male/marteau-volcanique/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/marteau-volcanique/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/marteau-volcanique/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/marteau-volcanique/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/marteau-volcanique/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/marteau-volcanique/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/marteau-volcanique/hurt.png",
+        "dodge": "/assets-v05/player/male/marteau-volcanique/dodge.png",
+        "ko": "/assets-v05/player/male/marteau-volcanique/ko.png"
+      },
+      "griffe-tyran": {
+        "idle": "/assets-v05/player/male/griffe-tyran/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/griffe-tyran/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/griffe-tyran/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/griffe-tyran/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/griffe-tyran/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/griffe-tyran/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/griffe-tyran/hurt.png",
+        "dodge": "/assets-v05/player/male/griffe-tyran/dodge.png",
+        "ko": "/assets-v05/player/male/griffe-tyran/ko.png"
+      },
+      "coeur-titan": {
+        "idle": "/assets-v05/player/male/coeur-titan/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/male/coeur-titan/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/male/coeur-titan/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/male/coeur-titan/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/male/coeur-titan/attack.png",
+        "attack-to-recovery": "/assets-v05/player/male/coeur-titan/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/male/coeur-titan/hurt.png",
+        "dodge": "/assets-v05/player/male/coeur-titan/dodge.png",
+        "ko": "/assets-v05/player/male/coeur-titan/ko.png"
+      }
+    },
+    "female": {
+      "massue-silex": {
+        "idle": "/assets-v05/player/female/massue-silex/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/massue-silex/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/massue-silex/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/massue-silex/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/massue-silex/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/massue-silex/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/massue-silex/hurt.png",
+        "dodge": "/assets-v05/player/female/massue-silex/dodge.png",
+        "ko": "/assets-v05/player/female/massue-silex/ko.png"
+      },
+      "lance-os": {
+        "idle": "/assets-v05/player/female/lance-os/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/lance-os/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/lance-os/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/lance-os/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/lance-os/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/lance-os/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/lance-os/hurt.png",
+        "dodge": "/assets-v05/player/female/lance-os/dodge.png",
+        "ko": "/assets-v05/player/female/lance-os/ko.png"
+      },
+      "hache-obsidienne": {
+        "idle": "/assets-v05/player/female/hache-obsidienne/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/hache-obsidienne/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/hache-obsidienne/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/hache-obsidienne/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/hache-obsidienne/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/hache-obsidienne/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/hache-obsidienne/hurt.png",
+        "dodge": "/assets-v05/player/female/hache-obsidienne/dodge.png",
+        "ko": "/assets-v05/player/female/hache-obsidienne/ko.png"
+      },
+      "arc-chasseur": {
+        "idle": "/assets-v05/player/female/arc-chasseur/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/arc-chasseur/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/arc-chasseur/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/arc-chasseur/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/arc-chasseur/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/arc-chasseur/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/arc-chasseur/hurt.png",
+        "dodge": "/assets-v05/player/female/arc-chasseur/dodge.png",
+        "ko": "/assets-v05/player/female/arc-chasseur/ko.png"
+      },
+      "crocs-smilodon": {
+        "idle": "/assets-v05/player/female/crocs-smilodon/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/crocs-smilodon/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/crocs-smilodon/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/crocs-smilodon/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/crocs-smilodon/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/crocs-smilodon/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/crocs-smilodon/hurt.png",
+        "dodge": "/assets-v05/player/female/crocs-smilodon/dodge.png",
+        "ko": "/assets-v05/player/female/crocs-smilodon/ko.png"
+      },
+      "lance-mammouth": {
+        "idle": "/assets-v05/player/female/lance-mammouth/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/lance-mammouth/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/lance-mammouth/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/lance-mammouth/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/lance-mammouth/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/lance-mammouth/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/lance-mammouth/hurt.png",
+        "dodge": "/assets-v05/player/female/lance-mammouth/dodge.png",
+        "ko": "/assets-v05/player/female/lance-mammouth/ko.png"
+      },
+      "marteau-volcanique": {
+        "idle": "/assets-v05/player/female/marteau-volcanique/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/marteau-volcanique/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/marteau-volcanique/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/marteau-volcanique/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/marteau-volcanique/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/marteau-volcanique/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/marteau-volcanique/hurt.png",
+        "dodge": "/assets-v05/player/female/marteau-volcanique/dodge.png",
+        "ko": "/assets-v05/player/female/marteau-volcanique/ko.png"
+      },
+      "griffe-tyran": {
+        "idle": "/assets-v05/player/female/griffe-tyran/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/griffe-tyran/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/griffe-tyran/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/griffe-tyran/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/griffe-tyran/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/griffe-tyran/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/griffe-tyran/hurt.png",
+        "dodge": "/assets-v05/player/female/griffe-tyran/dodge.png",
+        "ko": "/assets-v05/player/female/griffe-tyran/ko.png"
+      },
+      "coeur-titan": {
+        "idle": "/assets-v05/player/female/coeur-titan/idle.png",
+        "idle-to-anticipation": "/assets-v05/player/female/coeur-titan/idle-to-anticipation.png",
+        "anticipation": "/assets-v05/player/female/coeur-titan/anticipation.png",
+        "anticipation-to-attack": "/assets-v05/player/female/coeur-titan/anticipation-to-attack.png",
+        "attack": "/assets-v05/player/female/coeur-titan/attack.png",
+        "attack-to-recovery": "/assets-v05/player/female/coeur-titan/attack-to-recovery.png",
+        "hurt": "/assets-v05/player/female/coeur-titan/hurt.png",
+        "dodge": "/assets-v05/player/female/coeur-titan/dodge.png",
+        "ko": "/assets-v05/player/female/coeur-titan/ko.png"
+      }
+    }
+  },
+  "hub": {
+    "male": "/assets-v05/hub/hub-male.png",
+    "female": "/assets-v05/hub/hub-female.png",
+    "idleAnimation": {
+      "translateYpx": [
+        -3,
+        3
+      ],
+      "durationMs": 3400,
+      "easing": "ease-in-out"
+    }
+  },
+  "arena": {
+    "background": "/assets-v05/arena/primordial/background-full.png",
+    "ground": "/assets-v05/arena/primordial/ground.png",
+    "foreground": "/assets-v05/arena/primordial/foreground.png",
+    "contactShadow": "/assets-v05/arena/primordial/contact-shadow.png",
+    "bossShadow": "/assets-v05/arena/primordial/contact-shadow-boss.png"
+  },
+  "icons": {
+    "navigation": {
+      "hub": "/assets-v05/icons/navigation/hub.png",
+      "collection": "/assets-v05/icons/navigation/collection.png",
+      "training": "/assets-v05/icons/navigation/training.png",
+      "chest": "/assets-v05/icons/navigation/chest.png",
+      "duel": "/assets-v05/icons/navigation/duel.png",
+      "pv": "/assets-v05/icons/navigation/pv.png",
+      "xp": "/assets-v05/icons/navigation/xp.png",
+      "badge": "/assets-v05/icons/navigation/badge.png",
+      "coins": "/assets-v05/icons/navigation/coins.png",
+      "force": "/assets-v05/icons/navigation/force.png",
+      "dodge": "/assets-v05/icons/navigation/dodge.png",
+      "speed": "/assets-v05/icons/navigation/speed.png",
+      "shield": "/assets-v05/icons/navigation/shield.png",
+      "equipment": "/assets-v05/icons/navigation/equipment.png",
+      "adventure": "/assets-v05/icons/navigation/adventure.png"
+    },
+    "system": {
+      "lock": "/assets-v05/icons/system/lock.png",
+      "settings": "/assets-v05/icons/system/settings.png",
+      "info": "/assets-v05/icons/system/info.png",
+      "confirm": "/assets-v05/icons/system/confirm.png"
+    }
+  },
+  "chest": {
+    "closed": "/assets-v05/chest/closed.png",
+    "open": "/assets-v05/chest/open.png",
+    "glow": "/assets-v05/chest/open-glow.png"
+  },
+  "effects": {
+    "slash-light": "/assets-v05/combat-effects/slash-light.png",
+    "projectile-heavy": "/assets-v05/combat-effects/projectile-heavy.png",
+    "impact-star": "/assets-v05/combat-effects/impact-star.png",
+    "impact-ground": "/assets-v05/combat-effects/impact-ground.png",
+    "dust": "/assets-v05/combat-effects/dust.png",
+    "critical-stars": "/assets-v05/combat-effects/critical-stars.png",
+    "impact-blue": "/assets-v05/combat-effects/impact-blue.png",
+    "dodge-trail": "/assets-v05/combat-effects/dodge-trail.png",
+    "projectile-arrow": "/assets-v05/combat-effects/projectile-arrow.png"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "recommendedGroundY": 0.82,
+  "humanRenderedHeightRatio": [
+    0.13,
+    0.16
+  ],
+  "bossRenderedHeightRatio": [
+    0.2,
+    0.24
+  ],
+  "layers": [
+    "background-full.png",
+    "ground.png",
+    "fighters",
+    "foreground.png"
+  ],
+  "note": "ground.png already contains a visible dirt combat floor; foreground should never cover more than the very bottom of feet."
+}

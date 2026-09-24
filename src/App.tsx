@@ -1,18 +1,19 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Activity, Archive, Badge, Boxes, ChevronLeft, Coins, Dumbbell, Gauge, Heart, Home, Lock, Map, PackageOpen, Shield, Sparkles, Swords, Target, Trophy, X, Zap } from 'lucide-react'
+import { Activity, ChevronLeft, Sparkles, Trophy, X } from 'lucide-react'
 import { GAME } from './config'
 import { badges, equipment, skillDescriptions, skills } from './data'
 import { addWarriorXp, compareEquipmentStats, effectiveStats, equipmentLevelFromXp, equipmentStats, equipItem, generateEnemy, grantEquipmentXp, rollChest, seededRng, simulateBattle, xpForLevel } from './game'
 import { loadSave, persistSave } from './storage'
 import type { BattleResult, EquipmentDefinition, Fighter, OwnedEquipment, Rarity, SaveData, StatKey, View } from './types'
-import { EquipmentArt, ProductionEnemy, ProductionWarrior, WarriorAvatar } from './components/Art'
-import { assetsV04, enemyIds, equipmentAsset, preloadBattleAssets, resolveEnemyId, spriteStates, weaponIds, weaponMotion, type EnemyId, type SpriteState } from './art/assetsV04'
+import { EquipmentArt, GameIcon, HubPortrait, ProductionEnemy, ProductionWarrior, WarriorAvatar } from './components/Art'
+import { assetsV04, enemyIds, resolveEnemyId, spriteStates, type EnemyId, type SpriteState } from './art/assetsV04'
+import { assetsV05, equipmentAsset, playerStates, playerWeapons, preloadBattleAssetsV05, weaponMotion, type PlayerState } from './art/assetsV05'
 import { finalBattleFrame } from './art/battleVisual'
 
-const nav: { id: View; label: string; icon: typeof Home }[] = [
-  { id: 'hub', label: 'Hub', icon: Home }, { id: 'collection', label: 'Collection', icon: Boxes },
-  { id: 'training', label: 'Entraînement', icon: Dumbbell }, { id: 'chest', label: 'Coffre', icon: PackageOpen },
-  { id: 'duel', label: 'Duel', icon: Swords },
+const nav: { id: View; label: string; icon: string }[] = [
+  { id: 'hub', label: 'Hub', icon: 'hub' }, { id: 'collection', label: 'Collection', icon: 'collection' },
+  { id: 'training', label: 'Entraînement', icon: 'training' }, { id: 'chest', label: 'Coffre', icon: 'chest' },
+  { id: 'duel', label: 'Duel', icon: 'duel' },
 ]
 
 const rarityClass = (rarity: Rarity) => `rarity-${rarity.toLowerCase().replace(' ', '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`
@@ -23,12 +24,11 @@ function unlock(save: SaveData, id: string) {
   if (!save.badges.some((badge) => badge.id === id)) save.badges.push({ id, unlockedAt: new Date().toISOString() })
 }
 
-const statMeta = { strength: { label: 'Force', icon: Swords }, dodge: { label: 'Esquive', icon: Target }, speed: { label: 'Vitesse', icon: Gauge }, hp: { label: 'PV', icon: Heart } }
+const statMeta = { strength: { label: 'Force', icon: 'force' }, dodge: { label: 'Esquive', icon: 'dodge' }, speed: { label: 'Vitesse', icon: 'speed' }, hp: { label: 'PV', icon: 'pv' } }
 const formatStats = (item: EquipmentDefinition, level: number) => Object.entries(equipmentStats(item.id, level)).map(([key, value]) => `+${value} ${statMeta[key as keyof typeof statMeta].label}`)
 
 function Stat({ type, value }: { type: 'strength' | 'dodge' | 'speed'; value: number }) {
-  const Icon = statMeta[type].icon
-  return <div className="stat"><Icon/><span>{statMeta[type].label}</span><strong>{value}</strong></div>
+  return <div className="stat"><GameIcon group="stats" name={statMeta[type].icon}/><span>{statMeta[type].label}</span><strong>{value}</strong></div>
 }
 
 function EquipmentCard({ item, save, onClick, onEquip }: { item: EquipmentDefinition; save: SaveData; onClick: () => void; onEquip?: () => void }) {
@@ -36,11 +36,11 @@ function EquipmentCard({ item, save, onClick, onEquip }: { item: EquipmentDefini
   const equipped = [save.equippedWeapon, save.equippedArmor].includes(item.id)
   const progress = owned ? equipmentLevelFromXp(owned.xp) : null
   return <article className={`equipment-card ${rarityClass(item.rarity)} ${!owned ? 'locked' : ''}`}>
-    <button className="card-main" onClick={onClick}>{!owned && <Lock className="lock" size={20}/>}<div className="card-art-wrap"><EquipmentArt item={item} silhouette={!owned}/><span className="rarity-pip"/></div>
+    <button className="card-main" onClick={onClick}>{!owned && <GameIcon group="system" name="lock" className="lock"/>}<div className="card-art-wrap"><EquipmentArt item={item} silhouette={!owned}/><span className="rarity-pip"/></div>
       <div className="equipment-card-copy"><div className="card-kicker"><span className="rarity-label">{item.rarity}</span>{owned && <small>NIV. {owned.level}</small>}</div><strong>{owned ? item.name : item.type === 'weapon' ? 'Arme inconnue' : 'Armure inconnue'}</strong>
         {owned && <><div className="card-stats">{formatStats(item, owned.level).map((bonus) => <span key={bonus}>{bonus}</span>)}</div><p>{item.effect}</p>{progress && <div className="xp-line"><span>XP</span><div className="tiny-progress"><i style={{ width: progress.needed ? `${progress.progress / progress.needed * 100}%` : '100%' }}/></div><b>{progress.needed ? `${progress.progress}/${progress.needed}` : 'MAX'}</b></div>}</>}
       </div></button>
-    {owned && onEquip && <button className={`card-equip ${equipped ? 'is-equipped' : ''}`} disabled={equipped} onClick={onEquip}>{equipped ? <><Shield/> Équipé</> : 'Équiper'}</button>}
+    {owned && onEquip && <button className={`card-equip ${equipped ? 'is-equipped' : ''}`} disabled={equipped} onClick={onEquip}>{equipped ? <><GameIcon group="navigation" name="shield"/> Équipé</> : 'Équiper'}</button>}
   </article>
 }
 
@@ -66,7 +66,7 @@ function Creation({ save, setSave }: { save: SaveData; setSave: (save: SaveData)
 }
 
 function Header({ save, view, setView }: { save: SaveData; view: View; setView: (view: View) => void }) {
-  return <header className="topbar"><button className="mini-brand" onClick={() => setView('hub')}><img src={assetsV04.logo} alt="Chronos Age Warriors"/><span>ÈRE PRIMORDIALE</span></button><div className="topbar-title">{view === 'adventure' && <button className="icon-button" onClick={() => setView('hub')}><ChevronLeft/></button>}<strong>{view === 'chest' ? 'Coffres' : view.charAt(0).toUpperCase() + view.slice(1)}</strong></div><div className="currency"><Coins size={18}/><strong>{save.coins}</strong></div></header>
+  return <header className="topbar"><button className="mini-brand" onClick={() => setView('hub')}><img src={assetsV04.logo} alt="Chronos Age Warriors"/><span>ÈRE PRIMORDIALE</span></button><div className="topbar-title">{view === 'adventure' && <button className="icon-button" onClick={() => setView('hub')}><ChevronLeft/></button>}<strong>{view === 'chest' ? 'Coffres' : view.charAt(0).toUpperCase() + view.slice(1)}</strong></div><div className="currency"><GameIcon group="stats" name="coins"/><strong>{save.coins}</strong></div></header>
 }
 
 function Hub({ save, setView, setDetail }: { save: SaveData; setView: (view: View) => void; setDetail: (item: EquipmentDefinition) => void }) {
@@ -74,13 +74,13 @@ function Hub({ save, setView, setDetail }: { save: SaveData; setView: (view: Vie
   const weapon = itemById(save.equippedWeapon), armor = itemById(save.equippedArmor)
   return <div className="hub-page page-enter">
     <section className="gear-gallery desktop-only"><span className="eyebrow">ARSENAL</span><h2>Relics du Warrior</h2><div className="shelf"><EquipmentCard item={weapon} save={save} onClick={() => setDetail(weapon)}/><EquipmentCard item={armor} save={save} onClick={() => setDetail(armor)}/></div><button className="text-button" onClick={() => setView('collection')}>Voir la collection <ChevronLeft size={16}/></button></section>
-    <section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="hero-name"><div><h1>{save.warrior.name}</h1><span>Niveau {save.warrior.level}</span></div><div className="level-ring">{save.warrior.level}</div></div><div className="hero-avatar"><div className="sun-disc"/><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon}/></div>
-      <div className="mobile-stats mobile-only"><div className="hp-row"><span><Heart/> PV</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div></div>
-      <div className="resource-row mobile-only"><span><Coins size={18}/>{save.coins}</span><span><Zap size={18}/>{save.campaignRemaining} / 10</span></div>
-      <button className="adventure-button" onClick={() => setView('adventure')}><Map/><span><small>CAMPAGNE</small>AVENTURE</span><i>→</i></button>
+    <section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="hero-name"><div><h1>{save.warrior.name}</h1><span>Niveau {save.warrior.level}</span></div><div className="level-ring">{save.warrior.level}</div></div><div className="hero-avatar"><HubPortrait appearance={save.warrior.appearance}/></div>
+      <div className="mobile-stats mobile-only"><div className="hp-row"><span><GameIcon group="stats" name="pv"/> PV</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div></div>
+      <div className="resource-row mobile-only"><span><GameIcon group="stats" name="coins"/>{save.coins}</span><span><GameIcon group="stats" name="xp"/>{save.campaignRemaining} / 10</span></div>
+      <button className="adventure-button" onClick={() => setView('adventure')}><GameIcon group="navigation" name="adventure"/><span><small>CAMPAGNE</small>AVENTURE</span><i>→</i></button>
     </section>
-    <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><Heart/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{save.warrior.xp} / {xpForLevel(save.warrior.level)}</b></span><div className="progress"><i style={{ width: `${save.warrior.xp / xpForLevel(save.warrior.level) * 100}%` }}/></div></div><div className="daily"><span><Coins/> {save.coins} pièces</span><span><Zap/> {save.campaignRemaining} / 10 Campagne</span></div></div></section>
-    <section className="hub-bottom"><div className="skill-panel"><div className="section-title"><div><span className="eyebrow">PASSIFS</span><h2>Compétences</h2></div><span>{save.warrior.skills.length} / 20</span></div><div className="skill-list">{skills.map((skill) => { const owned = save.warrior.skills.includes(skill); return <button className={owned ? 'owned' : 'locked-skill'} title={skillDescriptions[skill]} key={skill}>{owned ? <Zap/> : <Lock/>}<span><strong>{owned ? skill : 'Compétence verrouillée'}</strong><small>{owned ? skillDescriptions[skill] : 'À découvrir en progressant'}</small></span></button> })}</div></div>
+    <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><GameIcon group="stats" name="pv"/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{save.warrior.xp} / {xpForLevel(save.warrior.level)}</b></span><div className="progress"><i style={{ width: `${save.warrior.xp / xpForLevel(save.warrior.level) * 100}%` }}/></div></div><div className="daily"><span><GameIcon group="stats" name="coins"/> {save.coins} pièces</span><span><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 Campagne</span></div></div></section>
+    <section className="hub-bottom"><div className="skill-panel"><div className="section-title"><div><span className="eyebrow">PASSIFS</span><h2>Compétences</h2></div><span>{save.warrior.skills.length} / 20</span></div><div className="skill-list">{skills.map((skill) => { const owned = save.warrior.skills.includes(skill); return <button className={owned ? 'owned' : 'locked-skill'} title={skillDescriptions[skill]} key={skill}>{owned ? <GameIcon group="stats" name="xp"/> : <GameIcon group="system" name="lock"/>}<span><strong>{owned ? skill : 'Compétence verrouillée'}</strong><small>{owned ? skillDescriptions[skill] : 'À découvrir en progressant'}</small></span></button> })}</div></div>
       <div className="mobile-gear mobile-only"><EquipmentCard item={weapon} save={save} onClick={() => setDetail(weapon)}/><EquipmentCard item={armor} save={save} onClick={() => setDetail(armor)}/></div></section>
   </div>
 }
@@ -89,26 +89,26 @@ function Collection({ save, setSave, setDetail }: { save: SaveData; setSave: (sa
   const [tab, setTab] = useState<'equipment' | 'badges'>('equipment')
   const [type, setType] = useState<'weapon' | 'armor'>('weapon')
   const unlocked = new Set(save.badges.map((badge) => badge.id))
-  return <div className="content-page page-enter"><div className="page-heading"><span className="eyebrow">ARCHIVES DU TEMPS</span><h1>Collection</h1><p>{Object.keys(save.owned).length} reliques découvertes sur {equipment.length}</p></div><div className="big-tabs"><button className={tab === 'equipment' ? 'active' : ''} onClick={() => setTab('equipment')}><Archive/>Équipements</button><button className={tab === 'badges' ? 'active' : ''} onClick={() => setTab('badges')}><Badge/>Badges</button></div>
-    {tab === 'equipment' ? <><div className="filter-row"><button className={type === 'weapon' ? 'active' : ''} onClick={() => setType('weapon')}>Armes</button><button className={type === 'armor' ? 'active' : ''} onClick={() => setType('armor')}>Armures</button></div><div className="collection-grid">{equipment.filter((item) => item.type === type).map((item) => <EquipmentCard key={item.id} item={item} save={save} onClick={() => setDetail(item)} onEquip={save.owned[item.id] ? () => setSave(equipItem(save, item.id)) : undefined}/>)}</div></> : <div className="badge-grid">{badges.map(([id, name, description]) => <div className={`badge-card ${unlocked.has(id) ? 'unlocked' : ''}`} key={id}><div className="badge-medal"><Trophy/></div><div><strong>{name}</strong><span>{description}</span></div>{!unlocked.has(id) && <Lock size={18}/>}</div>)}</div>}
+  return <div className="content-page page-enter"><div className="page-heading"><span className="eyebrow">ARCHIVES DU TEMPS</span><h1>Collection</h1><p>{Object.keys(save.owned).length} reliques découvertes sur {equipment.length}</p></div><div className="big-tabs"><button className={tab === 'equipment' ? 'active' : ''} onClick={() => setTab('equipment')}><GameIcon group="navigation" name="equipment"/>Équipements</button><button className={tab === 'badges' ? 'active' : ''} onClick={() => setTab('badges')}><GameIcon group="stats" name="badge"/>Badges</button></div>
+    {tab === 'equipment' ? <><div className="filter-row"><button className={type === 'weapon' ? 'active' : ''} onClick={() => setType('weapon')}>Armes</button><button className={type === 'armor' ? 'active' : ''} onClick={() => setType('armor')}>Armures</button></div><div className="collection-grid">{equipment.filter((item) => item.type === type).map((item) => <EquipmentCard key={item.id} item={item} save={save} onClick={() => setDetail(item)} onEquip={save.owned[item.id] ? () => setSave(equipItem(save, item.id)) : undefined}/>)}</div></> : <div className="badge-grid">{badges.map(([id, name, description]) => <div className={`badge-card ${unlocked.has(id) ? 'unlocked' : ''}`} key={id}><div className="badge-medal"><GameIcon group="stats" name="badge"/></div><div><strong>{name}</strong><span>{description}</span></div>{!unlocked.has(id) && <GameIcon group="system" name="lock"/>}</div>)}</div>}
   </div>
 }
 
-type ChestReward = ReturnType<typeof rollChest>
-interface LootContext { reward: ChestReward; before?: OwnedEquipment; after?: OwnedEquipment; equipped?: EquipmentDefinition; equippedLevel?: number }
+export type ChestReward = ReturnType<typeof rollChest>
+export interface LootContext { reward: ChestReward; before?: OwnedEquipment; after?: OwnedEquipment; equipped?: EquipmentDefinition; equippedLevel?: number }
 
 function StatChips({ item, level }: { item: EquipmentDefinition; level: number }) {
   return <div className="loot-stat-chips">{formatStats(item, level).map((bonus) => <span key={bonus}>{bonus}</span>)}</div>
 }
 
-function LootReveal({ loot, onEquip, onStore }: { loot: LootContext; onEquip: () => void; onStore: () => void }) {
+export function LootReveal({ loot, onEquip, onStore }: { loot: LootContext; onEquip: () => void; onStore: () => void }) {
   const reward = loot.reward
   if (reward.kind === 'skill') return <div className="reward-card rarity-mythique"><span className="eyebrow">COMPÉTENCE MYTHIQUE</span><div className="skill-orb"><Sparkles/></div><h2>{reward.skill}</h2><p>Nouvelle compétence passive acquise.</p><button className="primary wide" onClick={onStore}>CONTINUER</button></div>
   const item = reward.item
   if (reward.duplicate && reward.recycle) {
     const beforeLevel = loot.before?.level ?? 1, afterLevel = loot.after?.level ?? beforeLevel
     const beforeProgress = loot.before ? equipmentLevelFromXp(loot.before.xp) : null, afterProgress = loot.after ? equipmentLevelFromXp(loot.after.xp) : null
-    return <div className={`reward-card duplicate-reveal ${rarityClass(item.rarity)}`}><span className="eyebrow">DÉJÀ POSSÉDÉ · RECYCLÉ</span><div className="loot-hero"><EquipmentArt item={item}/><div><span className="rarity-label">{item.rarity}</span><h2>{item.name}</h2><b>Niveau {afterLevel}{afterLevel > beforeLevel ? ' · NIVEAU GAGNÉ' : ''}</b></div></div><div className="recycle-gains"><span><Coins/>+{reward.recycle.coins} pièces</span><span><Activity/>+{reward.recycle.xp} XP équipement</span></div>{beforeProgress && afterProgress && <div className="xp-before-after"><div className="xp-label"><span>Avant · niv. {beforeLevel}</span><b>{beforeProgress.progress}/{beforeProgress.needed || 'MAX'}</b></div><div className="tiny-progress before"><i style={{ width: beforeProgress.needed ? `${beforeProgress.progress / beforeProgress.needed * 100}%` : '100%' }}/></div><div className="xp-label"><span>Après · niv. {afterLevel}</span><b>{afterProgress.progress}/{afterProgress.needed || 'MAX'}</b></div><div className="tiny-progress"><i style={{ width: afterProgress.needed ? `${afterProgress.progress / afterProgress.needed * 100}%` : '100%' }}/></div></div>}<button className="primary wide" onClick={onStore}>CONTINUER</button></div>
+    return <div className={`reward-card duplicate-reveal ${rarityClass(item.rarity)}`}><span className="eyebrow">DÉJÀ POSSÉDÉ · RECYCLÉ</span><div className="loot-hero"><EquipmentArt item={item}/><div><span className="rarity-label">{item.rarity}</span><h2>{item.name}</h2><b>Niveau {afterLevel}{afterLevel > beforeLevel ? ' · NIVEAU GAGNÉ' : ''}</b></div></div><div className="recycle-gains"><span><GameIcon group="stats" name="coins"/>+{reward.recycle.coins} pièces</span><span><Activity/>+{reward.recycle.xp} XP équipement</span></div>{beforeProgress && afterProgress && <div className="xp-before-after"><div className="xp-label"><span>Avant · niv. {beforeLevel}</span><b>{beforeProgress.progress}/{beforeProgress.needed || 'MAX'}</b></div><div className="tiny-progress before"><i style={{ width: beforeProgress.needed ? `${beforeProgress.progress / beforeProgress.needed * 100}%` : '100%' }}/></div><div className="xp-label"><span>Après · niv. {afterLevel}</span><b>{afterProgress.progress}/{afterProgress.needed || 'MAX'}</b></div><div className="tiny-progress"><i style={{ width: afterProgress.needed ? `${afterProgress.progress / afterProgress.needed * 100}%` : '100%' }}/></div></div>}<button className="primary wide" onClick={onStore}>CONTINUER</button></div>
   }
   const comparison = loot.equipped ? compareEquipmentStats(item.id, 1, loot.equipped.id, loot.equippedLevel ?? 1) : []
   return <div className={`reward-card new-loot ${rarityClass(item.rarity)}`}><span className="eyebrow">NOUVEL OBJET</span><div className="loot-hero"><EquipmentArt item={item}/><div><span className="rarity-label">{item.rarity}</span><h2>{item.name}</h2><b>{item.type === 'weapon' ? 'Arme' : 'Armure'} · Niveau 1</b></div></div><div className="loot-detail"><section><small>BONUS AU NIVEAU 1</small><StatChips item={item} level={1}/><small>EFFET SPÉCIAL</small><p>{item.effect}</p>{comparison.length > 0 && <div className="stat-differences">{comparison.map(({ stat, difference }) => <span className={difference > 0 ? 'up' : difference < 0 ? 'down' : 'equal'} key={stat}>{difference > 0 ? '↑' : difference < 0 ? '↓' : '='} {statMeta[stat].label} {difference !== 0 && `${difference > 0 ? '+' : ''}${difference}`}</span>)}</div>}</section>{loot.equipped && <section className="comparison"><small>ÉQUIPÉ ACTUELLEMENT</small><div className="comparison-title"><EquipmentArt item={loot.equipped} compact/><div><strong>{loot.equipped.name}</strong><span>{loot.equipped.rarity} · Niveau {loot.equippedLevel}</span></div></div><StatChips item={loot.equipped} level={loot.equippedLevel ?? 1}/><p>{loot.equipped.effect}</p></section>}</div><div className="reward-actions"><button className="primary" onClick={onEquip}>ÉQUIPER</button><button className="secondary" onClick={onStore}>STOCKER</button></div></div>
@@ -116,6 +116,12 @@ function LootReveal({ loot, onEquip, onStore }: { loot: LootContext; onEquip: ()
 
 function Chests({ save, setSave }: { save: SaveData; setSave: (save: SaveData) => void }) {
   const [spinning, setSpinning] = useState(false), [loot, setLoot] = useState<LootContext | null>(null), [strip, setStrip] = useState<EquipmentDefinition[]>([])
+  useEffect(() => {
+    if (!loot) return
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setLoot(null) }
+    window.addEventListener('keydown', close)
+    return () => window.removeEventListener('keydown', close)
+  }, [loot])
   const open = () => {
     if (save.coins < GAME.chestCost || spinning) return
     const result = rollChest(Math.random, save.owned, save.warrior.skills)
@@ -135,11 +141,11 @@ function Chests({ save, setSave }: { save: SaveData; setSave: (save: SaveData) =
     setTimeout(() => { setSpinning(false); setLoot({ reward: result, before, after, equipped, equippedLevel }); setSave(next) }, 4400)
   }
   const equipReward = () => { if (!loot || loot.reward.kind !== 'equipment') return; setSave(equipItem(save, loot.reward.item.id)); setLoot(null) }
-  return <div className="chest-page content-page page-enter"><div className="page-heading centered"><span className="eyebrow">AUTEL DES POSSIBLES</span><h1>Coffre primordial</h1><p>Le destin est scellé avant que la roulette ne s’élance.</p></div><div className={`chest ${spinning ? 'opening' : ''}`}><div className="chest-lid"/><div className="chest-body"><i/></div><div className="chest-glow"/></div>
+  return <div className="chest-page content-page page-enter"><div className="page-heading centered"><span className="eyebrow">AUTEL DES POSSIBLES</span><h1>Coffre primordial</h1><p>Le destin est scellé avant que la roulette ne s’élance.</p></div><div className={`chest chest-v05 ${spinning ? 'opening' : ''}`}><img className="chest-main" src={spinning ? assetsV05.chest.open : assetsV05.chest.closed} alt={spinning ? 'Coffre primordial ouvert' : 'Coffre primordial fermé'}/>{spinning && <img className="chest-glow" src={assetsV05.chest.glow} alt=""/>}</div>
     {(spinning || loot) && <div className={`roulette ${spinning ? 'spinning' : 'finished'}`}><div className="roulette-marker"/><div className="roulette-track">{strip.map((item, index) => <div className={`roulette-card ${rarityClass(item.rarity)} ${!spinning && index === 15 ? 'winner' : ''}`} key={`${item.id}-${index}`}><EquipmentArt item={item} compact/><strong>{item.name}</strong><span>{item.rarity}</span></div>)}</div></div>}
-    {!loot && <button className="primary chest-button" onClick={open} disabled={save.coins < GAME.chestCost || spinning}>{spinning ? 'LE TEMPS SE PLIE…' : <><PackageOpen/> OUVRIR · {GAME.chestCost} <Coins size={17}/></>}</button>}
+    {!loot && <button className="primary chest-button" onClick={open} disabled={save.coins < GAME.chestCost || spinning}>{spinning ? 'LE TEMPS SE PLIE…' : <><GameIcon group="navigation" name="chest"/> OUVRIR · {GAME.chestCost} <GameIcon group="stats" name="coins"/></>}</button>}
     {save.coins < GAME.chestCost && !spinning && <p className="hint">Il te faut encore {GAME.chestCost - save.coins} pièces.</p>}
-    {loot && <LootReveal loot={loot} onEquip={equipReward} onStore={() => setLoot(null)}/>} 
+    {loot && <div className="loot-modal" role="dialog" aria-modal="true" aria-label="Récompense du coffre"><div className="loot-modal-panel"><LootReveal loot={loot} onEquip={equipReward} onStore={() => setLoot(null)}/></div></div>} 
     <div className="odds"><span>Commun 43,49 %</span><span>Peu commun 40 %</span><span>Rare 15 %</span><span>Épique 1 %</span><span>Légendaire 0,5 %</span><span>Mythique 0,01 %</span></div>
   </div>
 }
@@ -147,8 +153,8 @@ function Chests({ save, setSave }: { save: SaveData; setSave: (save: SaveData) =
 function Adventure({ save, startBattle }: { save: SaveData; startBattle: (mode: 'campaign', node: number) => void }) {
   const [walking, setWalking] = useState<number | null>(null)
   const choose = (node: number) => { if (node !== save.campaignNode || walking || save.campaignRemaining <= 0) return; setWalking(node); setTimeout(() => startBattle('campaign', node), 850) }
-  return <div className="adventure-page page-enter"><div className="adventure-copy"><span className="eyebrow">CARTE I · ÈRE PRIMORDIALE</span><h1>La Vallée des Titans</h1><p>La puissance qui sommeille au volcan déforme la faune et les guerriers.</p><span className="daily-pill"><Zap/> {save.campaignRemaining} / 10 combats récompensés</span></div><div className="map-scene"><div className="volcano"/><div className="mountains"/><div className="map-path"/>
-    {Array.from({ length: 20 }, (_, i) => i + 1).map((node) => { const done = save.defeatedNodes.includes(node), accessible = node === save.campaignNode, elite = [5,10,15].includes(node), boss = node === 20; return <button key={node} onClick={() => choose(node)} style={{ '--x': `${12 + ((node - 1) % 5) * 19 + (Math.floor((node - 1) / 5) % 2 ? 6 : 0)}%`, '--y': `${82 - Math.floor((node - 1) / 5) * 23}%` } as React.CSSProperties} className={`map-node ${done ? 'done' : ''} ${accessible ? 'accessible' : ''} ${elite ? 'elite' : ''} ${boss ? 'boss' : ''}`}><span>{boss ? <Trophy/> : elite ? <Swords/> : node}</span>{node > save.campaignNode && <Lock className="node-lock"/>}{accessible && <div className={`map-avatar ${walking === node ? 'walking' : ''}`}><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon}/></div>}</button> })}
+  return <div className="adventure-page page-enter"><div className="adventure-copy"><span className="eyebrow">CARTE I · ÈRE PRIMORDIALE</span><h1>La Vallée des Titans</h1><p>La puissance qui sommeille au volcan déforme la faune et les guerriers.</p><span className="daily-pill"><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 combats récompensés</span></div><div className="map-scene"><div className="volcano"/><div className="mountains"/><div className="map-path"/>
+    {Array.from({ length: 20 }, (_, i) => i + 1).map((node) => { const done = save.defeatedNodes.includes(node), accessible = node === save.campaignNode, elite = [5,10,15].includes(node), boss = node === 20; return <button key={node} onClick={() => choose(node)} style={{ '--x': `${12 + ((node - 1) % 5) * 19 + (Math.floor((node - 1) / 5) % 2 ? 6 : 0)}%`, '--y': `${82 - Math.floor((node - 1) / 5) * 23}%` } as React.CSSProperties} className={`map-node ${done ? 'done' : ''} ${accessible ? 'accessible' : ''} ${elite ? 'elite' : ''} ${boss ? 'boss' : ''}`}><span>{boss ? <Trophy/> : elite ? <GameIcon group="navigation" name="force"/> : node}</span>{node > save.campaignNode && <GameIcon group="system" name="lock" className="node-lock"/>}{accessible && <div className={`map-avatar ${walking === node ? 'walking' : ''}`}><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon}/></div>}</button> })}
   </div><div className="map-legend"><span><i className="standard"/>Standard</span><span><i className="elite"/>Élite</span><span><i className="boss"/>Boss</span></div></div>
 }
 
@@ -156,8 +162,9 @@ interface ActiveBattle { result: BattleResult; mode: 'training' | 'campaign'; no
 interface BattleSummary { xp: number; coins: number; weaponXp: number; armorXp: number; levelUp: number; badges: string[]; campaignProgress?: string }
 function Battle({ save, setSave, active, onExit }: { save: SaveData; setSave: (save: SaveData) => void; active: ActiveBattle; onExit: () => void }) {
   const [index, setIndex] = useState(-1), [done, setDone] = useState(false), [settled, setSettled] = useState(false), [summary, setSummary] = useState<BattleSummary | null>(null)
-  const [playerState, setPlayerState] = useState<SpriteState>('idle'), [enemyState, setEnemyState] = useState<SpriteState>('idle'), [ready, setReady] = useState(false)
+  const [playerState, setPlayerState] = useState<PlayerState>('idle'), [enemyState, setEnemyState] = useState<SpriteState>('idle'), [ready, setReady] = useState(false), [hitPause, setHitPause] = useState(false)
   const event = index >= 0 ? active.result.events[index] : undefined
+  const isCritical = event?.type === 'damage' && active.result.events[index - 1]?.type === 'critical'
   const requestedEnemy = import.meta.env.DEV ? new URLSearchParams(window.location.search).get('enemy') : null
   const enemyId = requestedEnemy && enemyIds.includes(requestedEnemy as EnemyId)
     ? requestedEnemy as EnemyId
@@ -176,33 +183,50 @@ function Battle({ save, setSave, active, onExit }: { save: SaveData; setSave: (s
     setSummary({ xp, coins, weaponXp: active.mode === 'training' && won ? 1 : 0, armorXp: active.mode === 'training' && won ? 1 : 0, levelUp: next.warrior.level - previousLevel, badges: next.badges.filter((badge) => !previousBadges.has(badge.id)).map((badge) => badges.find(([id]) => id === badge.id)?.[1] ?? badge.id), campaignProgress: active.mode === 'campaign' ? (won ? `Nœud ${active.node} terminé${active.node < 20 ? ` · prochain : ${active.node + 1}` : ' · Ère achevée'}` : `Nœud ${active.node} à retenter`) : undefined })
     setSave(next); setSettled(true)
   }
-  useEffect(() => { let live = true; preloadBattleAssets(save.warrior.appearance.gender === 'Femme' ? 'female' : 'male', save.equippedWeapon, enemyId).then(() => { if (live) setReady(true) }); return () => { live = false } }, [save.warrior.appearance.gender, save.equippedWeapon, enemyId])
+  useEffect(() => { let live = true; preloadBattleAssetsV05(save.warrior.appearance.gender === 'Femme' ? 'female' : 'male', save.equippedWeapon, enemyId).then(() => { if (live) setReady(true) }); return () => { live = false } }, [save.warrior.appearance.gender, save.equippedWeapon, enemyId])
   useEffect(() => {
     if (!ready || done) { if (done) settle(); return }
     const timers: number[] = []
     const later = (fn: () => void, delay: number) => timers.push(window.setTimeout(fn, delay / save.speed))
     if (index < 0) { later(() => setIndex(0), 260); return () => timers.forEach(clearTimeout) }
     if (!event) { setDone(true); return }
-    const recentAttack = active.result.events.slice(Math.max(0, index - 2), index).reverse().find((entry) => entry.type === 'attack')
-    const continuesStrike = Boolean(recentAttack && ['critical', 'damage', 'bleed'].includes(event.type))
+    const recentAttack = active.result.events.slice(Math.max(0, index - 3), index).reverse().find((entry) => entry.type === 'attack')
+    const continuesStrike = Boolean(recentAttack && ['critical', 'damage', 'bleed', 'skill'].includes(event.type))
     if (!continuesStrike) { setPlayerState('idle'); setEnemyState('idle') }
-    const setActor = (state: SpriteState) => event.actor === 'player' ? setPlayerState(state) : setEnemyState(state)
-    const setTarget = (state: SpriteState) => event.target === 'player' ? setPlayerState(state) : setEnemyState(state)
     let duration = 520
     if (event.type === 'attack') {
       const motion = event.actor === 'player' ? weaponMotion(save.equippedWeapon) : 'heavy'
-      const anticipation = motion === 'heavy' ? 220 : motion === 'claw' ? 160 : motion === 'spear' ? 170 : 180
-      const contact = motion === 'heavy' ? 690 : motion === 'spear' ? 545 : motion === 'axe' ? 595 : motion === 'claw' ? 455 : motion === 'ranged' ? 730 : 600
-      setActor('anticipation'); later(() => setActor('attack'), anticipation); duration = contact
+      const anticipation = motion === 'heavy' ? 250 : motion === 'claw' ? 155 : motion === 'spear' ? 175 : 205
+      const contact = motion === 'heavy' ? 790 : motion === 'spear' ? 620 : motion === 'axe' ? 680 : motion === 'claw' ? 530 : motion === 'ranged' ? 780 : 690
+      if (event.actor === 'player') {
+        setPlayerState('idle-to-anticipation')
+        later(() => setPlayerState('anticipation'), 78)
+        later(() => setPlayerState('anticipation-to-attack'), anticipation)
+        later(() => setPlayerState('attack'), anticipation + 88)
+      } else {
+        setEnemyState('anticipation'); later(() => setEnemyState('attack'), anticipation)
+      }
+      duration = contact
     }
     else if (event.type === 'critical') { duration = 100 }
-    else if (event.type === 'dodge') { setActor('dodge'); duration = 540 }
-    else if (event.type === 'damage' || event.type === 'bleed') { setTarget('hurt'); duration = 440 }
-    else if (event.type === 'skill' && event.label === 'Parade') { setActor('dodge'); duration = 480 }
-    else if (event.type === 'ko') { setTarget('ko'); setActor('victory'); duration = 620 }
+    else if (event.type === 'dodge') {
+      if (event.actor === 'player') setPlayerState('dodge'); else setEnemyState('dodge')
+      if (event.target === 'player') { later(() => setPlayerState('attack-to-recovery'), 110); later(() => setPlayerState('idle'), 390) }
+      else { later(() => setEnemyState('idle'), 330) }
+      duration = 560
+    }
+    else if (event.type === 'damage' || event.type === 'bleed') {
+      if (event.target === 'player') setPlayerState('hurt'); else setEnemyState('hurt')
+      setHitPause(true); later(() => setHitPause(false), isCritical ? 52 : 34)
+      if (event.actor === 'player') { later(() => setPlayerState('attack-to-recovery'), 120); later(() => setPlayerState('idle'), 330) }
+      else { later(() => setEnemyState('idle'), 280) }
+      duration = 460
+    }
+    else if (event.type === 'skill' && event.label === 'Parade') { if (event.actor === 'player') setPlayerState('dodge'); else setEnemyState('dodge'); duration = 480 }
+    else if (event.type === 'ko') { if (event.target === 'player') setPlayerState('ko'); else setEnemyState('ko'); if (event.actor === 'player') setPlayerState('victory'); else setEnemyState('victory'); duration = 720 }
     later(() => { if (index >= active.result.events.length - 1) setDone(true); else setIndex((current) => current + 1) }, duration)
     return () => timers.forEach(clearTimeout)
-  }, [index, done, ready, save.speed, save.equippedWeapon, event, active.result.events.length])
+  }, [index, done, ready, save.speed, save.equippedWeapon, event, active.result.events, isCritical])
   const skip = () => {
     const final = finalBattleFrame(active.result)
     setPlayerState(final.playerState); setEnemyState(final.enemyState); setIndex(final.index)
@@ -210,20 +234,20 @@ function Battle({ save, setSave, active, onExit }: { save: SaveData; setSave: (s
   }
   const playerHp = event?.playerHp ?? effectiveStats(save).hp, enemyHp = event?.enemyHp ?? active.result.enemy.stats.hp
   const setSpeed = (speed: 1 | 2 | 3) => { const next = clone(save); next.speed = speed; setSave(next) }
-  const isCritical = event?.type === 'damage' && active.result.events[index - 1]?.type === 'critical'
   const ranged = save.equippedWeapon === 'hunter-bow' && event?.actor === 'player' && event.type === 'attack'
-  return <div className={`battle-page ${isCritical ? 'screen-shake' : ''} ${ready ? 'assets-ready' : 'assets-loading'}`} style={{ '--battle-speed': save.speed } as React.CSSProperties}><div className="battle-top"><div><span className="eyebrow">{active.mode === 'training' ? 'ENTRAÎNEMENT' : `NŒUD ${active.node}`}</span><strong>Arène Primordiale</strong></div><div className="speed-control">{([1,2,3] as const).map((speed) => <button className={save.speed === speed ? 'active' : ''} onClick={() => setSpeed(speed)} key={speed}>×{speed}</button>)}</div><button className="skip" onClick={skip}>Passer</button></div>
-    <div className={`arena event-${event?.type ?? 'idle'} actor-${event?.actor ?? 'player'}`}><img className="arena-layer arena-background" src={assetsV04.arena.background} alt=""/><img className="arena-layer arena-ground-v04" src={assetsV04.arena.ground} alt=""/><div className="battle-hud"><div className="fighter-ui player-hud"><div><strong>{save.warrior.name}</strong><span>Niv. {save.warrior.level}</span></div><div className="health-bar"><i style={{ width: `${playerHp / effectiveStats(save).hp * 100}%` }}/></div><small>{playerHp} / {effectiveStats(save).hp} PV</small></div><div className="fighter-ui enemy-hud"><div><strong>{active.result.enemy.name}</strong><span>Niv. {active.enemyLevel}</span></div><div className="health-bar"><i style={{ width: `${enemyHp / active.result.enemy.stats.hp * 100}%` }}/></div><small>{enemyHp} / {active.result.enemy.stats.hp} PV</small></div></div><div className={`fighter player phase-${playerState} motion-${weaponMotion(save.equippedWeapon)}`}><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon} state={playerState}/></div>
-      {ranged && playerState === 'attack' && <div className="projectile"><img src={assetsV04.effects.projectile} alt=""/></div>}<div className={`impact-zone ${isCritical ? 'is-critical' : ''}`}>{event?.type === 'damage' && <><img className="production-impact" src={isCritical ? assetsV04.effects.critical : assetsV04.effects.impact} alt=""/><span className={isCritical ? 'critical' : ''}>−{event.value}</span>{isCritical && <em>CRITIQUE</em>}</>}{['skill','dodge','heal','bleed'].includes(event?.type ?? '') && <b>{event?.label ?? event?.type}</b>}{event?.type === 'dodge' && <img className="production-dodge" src={assetsV04.effects.dodge} alt=""/>}</div>
-      <div className={`fighter enemy phase-${enemyState} ${enemyId === 'mammoth' ? 'boss-fighter' : ''}`}><ProductionEnemy enemyId={enemyId} state={enemyState} boss={active.node === 20}/></div><img className="arena-layer arena-foreground" src={assetsV04.arena.foreground} alt=""/></div>
-    {done && settled && summary && <div className="result-overlay"><div className={`result-sheet ${active.result.winner}`}><div className="result-mark">{active.result.winner === 'player' ? <Trophy/> : <Shield/>}</div><span className="eyebrow">COMBAT TERMINÉ</span><h1>{active.result.winner === 'player' ? 'VICTOIRE' : 'DÉFAITE'}</h1><p>contre <strong>{active.result.enemy.name}</strong></p><div className="result-rewards"><span><Zap/><b>+{summary.xp}</b><small>XP Warrior</small></span><span><Coins/><b>+{summary.coins}</b><small>Pièces</small></span><span><Swords/><b>+{summary.weaponXp}</b><small>XP arme</small></span><span><Shield/><b>+{summary.armorXp}</b><small>XP armure</small></span></div>{summary.levelUp > 0 && <div className="result-callout"><Sparkles/> Niveau {save.warrior.level} atteint</div>}{summary.badges.map((badge) => <div className="result-callout" key={badge}><Badge/> Badge débloqué : {badge}</div>)}{summary.campaignProgress && <div className="campaign-result"><Map/><span>{summary.campaignProgress}</span></div>}<button className="primary wide" onClick={onExit}>CONTINUER</button></div></div>}
+  const impactEffect = isCritical ? assetsV05.effects.criticalStars : weaponMotion(save.equippedWeapon) === 'heavy' ? assetsV05.effects.impactGround : assetsV05.effects.impactStar
+  return <div className={`battle-page ${isCritical ? 'screen-shake' : ''} ${hitPause ? 'hit-pause' : ''} ${ready ? 'assets-ready' : 'assets-loading'}`} style={{ '--battle-speed': save.speed } as React.CSSProperties}><div className="battle-top"><div><span className="eyebrow">{active.mode === 'training' ? 'ENTRAÎNEMENT' : `NŒUD ${active.node}`}</span><strong>Arène Primordiale</strong></div><div className="speed-control">{([1,2,3] as const).map((speed) => <button className={save.speed === speed ? 'active' : ''} onClick={() => setSpeed(speed)} key={speed}>×{speed}</button>)}</div><button className="skip" onClick={skip}>Passer</button></div>
+    <div className={`arena event-${event?.type ?? 'idle'} actor-${event?.actor ?? 'player'}`}><img className="arena-layer arena-background" src={assetsV05.arena.background} alt=""/><img className="arena-layer arena-ground-v05" src={assetsV05.arena.ground} alt=""/><div className="battle-hud"><div className="fighter-ui player-hud"><div><strong>{save.warrior.name}</strong><span>Niv. {save.warrior.level}</span></div><div className="health-bar"><i style={{ width: `${playerHp / effectiveStats(save).hp * 100}%` }}/></div><small>{playerHp} / {effectiveStats(save).hp} PV</small></div><div className="fighter-ui enemy-hud"><div><strong>{active.result.enemy.name}</strong><span>Niv. {active.enemyLevel}</span></div><div className="health-bar"><i style={{ width: `${enemyHp / active.result.enemy.stats.hp * 100}%` }}/></div><small>{enemyHp} / {active.result.enemy.stats.hp} PV</small></div></div><div className={`fighter player phase-${playerState} motion-${weaponMotion(save.equippedWeapon)}`}><img className="contact-shadow" src={assetsV05.arena.contactShadow} alt=""/><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon} state={playerState}/></div>
+      {ranged && ['anticipation-to-attack','attack'].includes(playerState) && <div className="projectile"><img src={assetsV05.effects.projectileArrow} alt=""/></div>}<div className={`impact-zone ${isCritical ? 'is-critical' : ''}`}>{event?.type === 'damage' && <><img className="production-impact" src={impactEffect} alt=""/><span className={isCritical ? 'critical' : ''}>−{event.value}</span>{isCritical && <em>CRITIQUE</em>}</>}{['skill','dodge','heal','bleed'].includes(event?.type ?? '') && <b>{event?.label ?? event?.type}</b>}{event?.type === 'dodge' && <img className="production-dodge" src={assetsV05.effects.dodgeTrail} alt=""/>}</div>
+      <div className={`fighter enemy phase-${enemyState} ${enemyId === 'mammoth' ? 'boss-fighter' : ''}`}><img className="contact-shadow" src={enemyId === 'mammoth' ? assetsV05.arena.bossShadow : assetsV05.arena.contactShadow} alt=""/><ProductionEnemy enemyId={enemyId} state={enemyState} boss={active.node === 20}/></div><img className="arena-layer arena-foreground" src={assetsV05.arena.foreground} alt=""/></div>
+    {done && settled && summary && <div className="result-overlay"><div className={`result-sheet ${active.result.winner}`}><div className="result-mark">{active.result.winner === 'player' ? <Trophy/> : <GameIcon group="navigation" name="shield"/>}</div><span className="eyebrow">COMBAT TERMINÉ</span><h1>{active.result.winner === 'player' ? 'VICTOIRE' : 'DÉFAITE'}</h1><p>contre <strong>{active.result.enemy.name}</strong></p><div className="result-rewards"><span><GameIcon group="stats" name="xp"/><b>+{summary.xp}</b><small>XP Warrior</small></span><span><GameIcon group="stats" name="coins"/><b>+{summary.coins}</b><small>Pièces</small></span><span><GameIcon group="navigation" name="force"/><b>+{summary.weaponXp}</b><small>XP arme</small></span><span><GameIcon group="navigation" name="shield"/><b>+{summary.armorXp}</b><small>XP armure</small></span></div>{summary.levelUp > 0 && <div className="result-callout"><Sparkles/> Niveau {save.warrior.level} atteint</div>}{summary.badges.map((badge) => <div className="result-callout" key={badge}><GameIcon group="stats" name="badge"/> Badge débloqué : {badge}</div>)}{summary.campaignProgress && <div className="campaign-result"><GameIcon group="navigation" name="adventure"/><span>{summary.campaignProgress}</span></div>}<button className="primary wide" onClick={onExit}>CONTINUER</button></div></div>}
   </div>
 }
 
 function LevelChoice({ save, setSave }: { save: SaveData; setSave: (save: SaveData) => void }) {
   const chooseStat = (stat: StatKey) => { const next = clone(save); next.warrior.stats[stat] += stat === 'hp' ? 40 : 2; next.pendingLevelChoice = false; setSave(next) }
   const chooseSkill = () => { const pool = skills.filter((skill) => !save.warrior.skills.includes(skill)); const next = clone(save); if (pool.length) next.warrior.skills.push(pool[Math.floor(Math.random() * pool.length)]); next.pendingLevelChoice = false; setSave(next) }
-  return <div className="modal-backdrop"><section className="level-choice"><span className="eyebrow">NIVEAU {save.warrior.level}</span><h2>Le temps t’accorde une faveur</h2><p>Choisis un attribut ou laisse le hasard éveiller une compétence.</p><div className="choice-grid">{([['strength','+2 Force'],['dodge','+2 Esquive'],['speed','+2 Vitesse'],['hp','+40 PV']] as [StatKey,string][]).map(([stat,label]) => <button onClick={() => chooseStat(stat)} key={stat}>{label}</button>)}<button className="skill-choice" onClick={chooseSkill}><Zap/>Compétence aléatoire</button></div></section></div>
+  return <div className="modal-backdrop"><section className="level-choice"><span className="eyebrow">NIVEAU {save.warrior.level}</span><h2>Le temps t’accorde une faveur</h2><p>Choisis un attribut ou laisse le hasard éveiller une compétence.</p><div className="choice-grid">{([['strength','+2 Force'],['dodge','+2 Esquive'],['speed','+2 Vitesse'],['hp','+40 PV']] as [StatKey,string][]).map(([stat,label]) => <button onClick={() => chooseStat(stat)} key={stat}>{label}</button>)}<button className="skill-choice" onClick={chooseSkill}><GameIcon group="stats" name="xp"/>Compétence aléatoire</button></div></section></div>
 }
 
 function TrophyChoice({ save, setSave }: { save: SaveData; setSave: (save: SaveData) => void }) {
@@ -254,23 +278,29 @@ function SpriteLabFigure({ children, label, state }: { children: React.ReactNode
 function SpriteLab() {
   const appearance = (gender: 'Homme' | 'Femme') => ({ gender, skin: '#c68a63', hair: 'Sauvage' as const, hairColor: '#211914' })
   const [grid, setGrid] = useState(true), [boxes, setBoxes] = useState(true), [baseline, setBaseline] = useState(true)
-  return <main className={`sprite-lab ${grid ? 'show-grid' : ''} ${boxes ? 'show-boxes' : ''} ${baseline ? 'show-baseline' : ''}`}><header><span className="eyebrow">OUTIL DE DÉVELOPPEMENT</span><h1>Sprite Lab V0.4.1</h1><p>Chaque case doit rester transparente, sans texte d’atlas ni fragment voisin.</p><div className="sprite-lab-controls"><label><input type="checkbox" checked={grid} onChange={(event) => setGrid(event.target.checked)}/> Quadrillage</label><label><input type="checkbox" checked={boxes} onChange={(event) => setBoxes(event.target.checked)}/> Bounding box</label><label><input type="checkbox" checked={baseline} onChange={(event) => setBaseline(event.target.checked)}/> Baseline</label></div></header>
+  return <main className={`sprite-lab ${grid ? 'show-grid' : ''} ${boxes ? 'show-boxes' : ''} ${baseline ? 'show-baseline' : ''}`}><header><span className="eyebrow">OUTIL DE DÉVELOPPEMENT</span><h1>Sprite Lab V0.5</h1><p>Canvas joueur 512×512 constant, transitions incluses et groundY contrôlé.</p><div className="sprite-lab-controls"><label><input type="checkbox" checked={grid} onChange={(event) => setGrid(event.target.checked)}/> Quadrillage</label><label><input type="checkbox" checked={boxes} onChange={(event) => setBoxes(event.target.checked)}/> Bounding box</label><label><input type="checkbox" checked={baseline} onChange={(event) => setBaseline(event.target.checked)}/> Baseline</label></div></header>
     <section><h2>Équipements</h2><div className="sprite-lab-grid equipment">{equipment.map((item) => <SpriteLabFigure key={item.id} label={item.id} state={item.type}><img src={equipmentAsset(item.id, item.type)} alt=""/></SpriteLabFigure>)}</div></section>
-    {(['Homme','Femme'] as const).map((gender) => <section key={gender}><h2>Warrior {gender}</h2><div className="sprite-lab-grid">{weaponIds.flatMap((weapon) => spriteStates.filter((state) => !['hurt','victory'].includes(state)).map((state) => <SpriteLabFigure key={`${gender}-${weapon}-${state}`} label={weapon} state={state}><ProductionWarrior appearance={appearance(gender)} weapon={weapon} state={state}/></SpriteLabFigure>))}</div></section>)}
+    {(['Homme','Femme'] as const).map((gender) => <section key={gender}><h2>Warrior {gender}</h2><div className="sprite-lab-grid player-v05-lab">{playerWeapons.flatMap((weapon) => playerStates.map((state) => <SpriteLabFigure key={`${gender}-${weapon}-${state}`} label={weapon} state={state}><ProductionWarrior appearance={appearance(gender)} weapon={weapon} state={state}/></SpriteLabFigure>))}</div></section>)}
     <section><h2>Ennemis</h2><div className="sprite-lab-grid">{enemyIds.flatMap((enemy) => spriteStates.filter((state) => !['victory'].includes(state)).map((state) => <SpriteLabFigure key={`${enemy}-${state}`} label={enemy} state={state}><ProductionEnemy enemyId={enemy} state={state}/></SpriteLabFigure>))}</div></section>
-    <section><h2>Effets</h2><div className="sprite-lab-grid effects">{Object.entries(assetsV04.effects).map(([name, src]) => <SpriteLabFigure key={name} label={name}><img src={src} alt=""/></SpriteLabFigure>)}</div></section>
+    <section><h2>Ombres de contact</h2><div className="sprite-lab-grid effects">{[assetsV05.arena.contactShadow, assetsV05.arena.bossShadow].map((src) => <SpriteLabFigure key={src} label={src.includes('boss') ? 'boss' : 'standard'}><img src={src} alt=""/></SpriteLabFigure>)}</div></section>
+    <section><h2>Effets</h2><div className="sprite-lab-grid effects">{Object.entries(assetsV05.effects).map(([name, src]) => <SpriteLabFigure key={name} label={name}><img src={src} alt=""/></SpriteLabFigure>)}</div></section>
   </main>
 }
 
 export default function App() {
+  const qaMode = import.meta.env.DEV && new URLSearchParams(window.location.search).has('qaCreated')
   const [save, setSaveState] = useState<SaveData>(() => {
     const loaded = loadSave()
-    if (!import.meta.env.DEV || !new URLSearchParams(window.location.search).has('qaCreated')) return loaded
-    return { ...loaded, created: true, warrior: { ...loaded.warrior, name: loaded.warrior.name || 'Warrior QA' } }
+    const query = new URLSearchParams(window.location.search)
+    if (!import.meta.env.DEV || !query.has('qaCreated')) return loaded
+    const qaWeapon = query.get('qaWeapon'), qaGender = query.get('qaGender')
+    const weapon = qaWeapon && equipment.some((item) => item.type === 'weapon' && item.id === qaWeapon) ? qaWeapon : loaded.equippedWeapon
+    const owned = loaded.owned[weapon] ? loaded.owned : { ...loaded.owned, [weapon]: { level: 1, xp: 0, kills: 0 } }
+    return { ...loaded, created: !query.has('qaCreation'), coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, warrior: { ...loaded.warrior, name: loaded.warrior.name || 'Warrior QA', appearance: { ...loaded.warrior.appearance, gender: qaGender === 'female' ? 'Femme' : qaGender === 'male' ? 'Homme' : loaded.warrior.appearance.gender } } }
   }), [view, setView] = useState<View>('hub'), [detail, setDetail] = useState<EquipmentDefinition | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(null)
   const initial = useRef(true)
   const setSave = (next: SaveData) => setSaveState(next)
-  useEffect(() => { if (initial.current) initial.current = false; persistSave(save) }, [save])
+  useEffect(() => { if (initial.current) initial.current = false; if (!qaMode) persistSave(save) }, [save, qaMode])
   useEffect(() => { window.scrollTo({ top: 0 }) }, [view])
   const startBattle = (mode: 'training' | 'campaign', node = 0) => {
     if ((mode === 'training' && save.trainingRemaining <= 0) || (mode === 'campaign' && save.campaignRemaining <= 0)) return
@@ -284,14 +314,14 @@ export default function App() {
     if (view === 'collection') return <Collection save={save} setSave={setSave} setDetail={setDetail}/>
     if (view === 'chest') return <Chests save={save} setSave={setSave}/>
     if (view === 'adventure') return <Adventure save={save} startBattle={startBattle}/>
-    if (view === 'training') return <div className="mode-page training-page page-enter"><div className="mode-visual"><div className="training-ring"><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon}/></div></div><div className="mode-copy"><span className="eyebrow">ARÈNE QUOTIDIENNE</span><h1>Entraînement</h1><p>Affronte des Warriors de ton niveau. Chaque victoire renforce ton équipement et aiguise ton instinct.</p><div className="remaining"><strong>{save.trainingRemaining}</strong><span>combats récompensés<br/>restants sur 100</span></div><div className="training-rewards"><span><Zap/>+1 XP Warrior</span><span><Coins/>+1 pièce</span><span><Shield/>+1 XP par équipement</span></div><button className="primary wide" disabled={save.trainingRemaining <= 0} onClick={() => startBattle('training')}>TROUVER UN ADVERSAIRE</button></div></div>
-    if (view === 'duel') return <div className="soon page-enter"><div className="duel-emblem"><Swords/></div><span className="eyebrow">PORTAIL VERROUILLÉ</span><h1>Duel asynchrone</h1><p>Prochainement</p><span>Prépare ton build. Les autres Warriors arrivent d’une autre ligne du temps.</span></div>
+    if (view === 'training') return <div className="mode-page training-page page-enter"><div className="mode-visual"><div className="training-ring"><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon}/></div></div><div className="mode-copy"><span className="eyebrow">ARÈNE QUOTIDIENNE</span><h1>Entraînement</h1><p>Affronte des Warriors de ton niveau. Chaque victoire renforce ton équipement et aiguise ton instinct.</p><div className="remaining"><strong>{save.trainingRemaining}</strong><span>combats récompensés<br/>restants sur 100</span></div><div className="training-rewards"><span><GameIcon group="stats" name="xp"/>+1 XP Warrior</span><span><GameIcon group="stats" name="coins"/>+1 pièce</span><span><GameIcon group="navigation" name="shield"/>+1 XP par équipement</span></div><button className="primary wide" disabled={save.trainingRemaining <= 0} onClick={() => startBattle('training')}>TROUVER UN ADVERSAIRE</button></div></div>
+    if (view === 'duel') return <div className="soon page-enter"><div className="duel-emblem"><GameIcon group="navigation" name="duel"/></div><span className="eyebrow">PORTAIL VERROUILLÉ</span><h1>Duel asynchrone</h1><p>Prochainement</p><span>Prépare ton build. Les autres Warriors arrivent d’une autre ligne du temps.</span></div>
     return null
   }, [view, save])
   if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('spriteLab')) return <SpriteLab/>
   if (!save.created) return <Creation save={save} setSave={setSave}/>
   if (view === 'battle' && activeBattle) return <Battle save={save} setSave={setSave} active={activeBattle} onExit={() => { setView(activeBattle.mode === 'campaign' ? 'adventure' : 'training'); setActiveBattle(null) }}/>
-  return <div className="app-shell"><Header save={save} view={view} setView={setView}/><main className="main-content">{content}</main><nav className="bottom-nav" aria-label="Navigation principale">{nav.map(({ id, label, icon: Icon }) => <button aria-label={label} className={view === id ? 'active' : ''} onClick={() => setView(id)} key={id}><Icon/><span>{label}</span></button>)}</nav>
-    {detail && <div className="modal-backdrop" onClick={() => setDetail(null)}><section className={`detail-sheet ${rarityClass(detail.rarity)}`} onClick={(event) => event.stopPropagation()}><button className="close" onClick={() => setDetail(null)}><X/></button><EquipmentArt item={detail}/><span className="rarity-label">{detail.rarity}</span><h2>{detail.name}</h2><p className="bonus">{detail.bonus}</p><p>{detail.effect}</p>{save.owned[detail.id] ? <><div className="detail-level"><span>Niveau {save.owned[detail.id].level}</span><span>{save.owned[detail.id].xp} XP cumulée</span></div><button className="primary wide" disabled={[save.equippedWeapon, save.equippedArmor].includes(detail.id)} onClick={() => { equip(detail); setDetail(null) }}>{[save.equippedWeapon, save.equippedArmor].includes(detail.id) ? 'ÉQUIPÉ' : 'ÉQUIPER'}</button></> : <div className="locked-copy"><Lock/>À découvrir dans un coffre</div>}</section></div>}
+  return <div className="app-shell"><Header save={save} view={view} setView={setView}/><main className="main-content">{content}</main><nav className="bottom-nav" aria-label="Navigation principale">{nav.map(({ id, label, icon }) => <button aria-label={label} className={view === id ? 'active' : ''} onClick={() => setView(id)} key={id}><GameIcon group="navigation" name={icon}/><span>{label}</span></button>)}</nav>
+    {detail && <div className="modal-backdrop" onClick={() => setDetail(null)}><section className={`detail-sheet ${rarityClass(detail.rarity)}`} onClick={(event) => event.stopPropagation()}><button className="close" onClick={() => setDetail(null)}><X/></button><EquipmentArt item={detail}/><span className="rarity-label">{detail.rarity}</span><h2>{detail.name}</h2><p className="bonus">{detail.bonus}</p><p>{detail.effect}</p>{save.owned[detail.id] ? <><div className="detail-level"><span>Niveau {save.owned[detail.id].level}</span><span>{save.owned[detail.id].xp} XP cumulée</span></div><button className="primary wide" disabled={[save.equippedWeapon, save.equippedArmor].includes(detail.id)} onClick={() => { equip(detail); setDetail(null) }}>{[save.equippedWeapon, save.equippedArmor].includes(detail.id) ? 'ÉQUIPÉ' : 'ÉQUIPER'}</button></> : <div className="locked-copy"><GameIcon group="system" name="lock"/>À découvrir dans un coffre</div>}</section></div>}
     {save.pendingLevelChoice && <LevelChoice save={save} setSave={setSave}/>} {save.bossTrophyPending && <TrophyChoice save={save} setSave={setSave}/>}</div>
 }

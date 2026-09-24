@@ -405,8 +405,8 @@ body { background:#0d0e0d; }
 .brand img { width:100%;height:auto;display:block;filter:drop-shadow(0 8px 16px #0008); }
 
 .creation-shell { background:#d9c7a7;color:#2a2119; }
-.creation-art { background-color:#8a7356;background-image:linear-gradient(#1c171199,#1c171144),url('/assets-v04/customization/male-customization.png');background-size:cover;background-position:center; }
-.creation-art[data-gender='Femme'] { background-image:linear-gradient(#1c171199,#1c171144),url('/assets-v04/customization/female-customization.png'); }
+.creation-art { background-color:#8a7356;background-image:linear-gradient(#1c171199,#1c171144),url('/assets-v05/customization/male/customization-options.png');background-size:cover;background-position:center; }
+.creation-art[data-gender='Femme'] { background-image:linear-gradient(#1c171199,#1c171144),url('/assets-v05/customization/female/customization-options.png'); }
 .creation-panel { background:linear-gradient(145deg,#eadbc0,#cdb58f);color:#2b2118;border-left:1px solid #7d6647; }
 .creation-panel h1,.creation-panel p,.creation-panel .field,.creation-panel legend { color:#34271c; }
 .creation-panel .eyebrow { color:#7b4322; }.creation-panel .field input,.creation-panel .segmented { background:#f5ead6;border-color:#8f795c;color:#251b14; }
@@ -419,12 +419,12 @@ body { background:#0d0e0d; }
 .equipment-card .production-art { padding:0;background:radial-gradient(circle at 50% 45%,color-mix(in srgb,var(--rarity) 12%,transparent),transparent 62%); }
 .equipment-card:hover .production-art { transform:none; }.equipment-card:hover .production-art>img { transform:scale(1.035); }
 
-.hub-page { position:relative;isolation:isolate;background-image:linear-gradient(90deg,#090a09c7,#11130f66 48%,#090a09c7),url('/assets-v04/arena/primordial-background.png');background-size:cover;background-position:center; }
+.hub-page { position:relative;isolation:isolate;background-image:linear-gradient(90deg,#090a09c7,#11130f66 48%,#090a09c7),url('/assets-v05/arena/primordial/background-full.png');background-size:cover;background-position:center; }
 .hub-page:before { content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,#0d0e0d22,#0d0e0d77); }
 .gear-gallery,.stats-panel { backdrop-filter:blur(6px);background:#0c0e0caa; }.hero-warrior:before { border-color:#e9bd6222; }
 .sun-disc { background:radial-gradient(circle,#f4c66b 0 2%,#59431c66 3% 47%,transparent 48%); }
 .hero-avatar .warrior { filter:drop-shadow(0 24px 10px #000b); }
-.adventure-button { background-image:linear-gradient(90deg,#271c10aa,#51351566),url('/assets-v04/arena/primordial-ground.png');background-size:cover;background-position:center 72%;border-color:#e9b958;box-shadow:0 0 0 1px #000,0 7px 24px #000b; }
+.adventure-button { background-image:linear-gradient(90deg,#271c10aa,#51351566),url('/assets-v05/arena/primordial/ground.png');background-size:cover;background-position:center 72%;border-color:#e9b958;box-shadow:0 0 0 1px #000,0 7px 24px #000b; }
 
 .arena { background:#172018; }
 .arena-sky,.arena-midground,.arena-ground { display:none; }
@@ -440,7 +440,7 @@ body { background:#0d0e0d; }
 .weapon-hand { filter:drop-shadow(0 1px 0 #2d1d14); }
 .female-warrior .body-layer { transform:scale(.96) translate(4px,4px);transform-origin:center bottom; }
 
-.map-scene { background-image:linear-gradient(#18313a44,#18251bcc),url('/assets-v04/arena/primordial-background.png');background-size:cover;background-position:center; }
+.map-scene { background-image:linear-gradient(#18313a44,#18251bcc),url('/assets-v05/arena/primordial/background-full.png');background-size:cover;background-position:center; }
 .map-scene .volcano,.map-scene .mountains { display:none; }
 
 @media (max-width:700px) {
@@ -507,3 +507,99 @@ body { background:#0d0e0d; }
   .fighter.enemy.boss-fighter .enemy-sprite>img { max-width:48vw; }
 }
 @media (max-width:370px) { .arena { padding-inline:calc(25% - 46px); }.fighter { height:105px; }.hero-avatar .warrior-sprite{width:min(70%,245px)} }
+
+/* V0.5 — production portraits, official UI and fixed-canvas combat. */
+.game-icon { width:1.25em;height:1.25em;object-fit:contain;flex:0 0 auto;vertical-align:-.22em;filter:drop-shadow(0 1px 2px #0008); }
+.bottom-nav .game-icon { width:24px;height:24px;opacity:.62;transition:opacity .18s ease,transform .18s ease; }
+.bottom-nav button.active .game-icon { opacity:1;transform:translateY(-1px); }
+.stat .game-icon,.hp-display .game-icon { grid-row:1/3;width:22px;height:22px; }
+.currency .game-icon,.resource-row .game-icon,.daily .game-icon { width:20px;height:20px; }
+.lock.game-icon,.node-lock.game-icon { width:20px;height:20px; }
+
+.creation-art { background-image:linear-gradient(#1c1711a8,#1c171150),url('/assets-v05/customization/male/customization-options.png'); }
+.creation-art[data-gender='Femme'] { background-image:linear-gradient(#1c1711a8,#1c171150),url('/assets-v05/customization/female/customization-options.png'); }
+
+.hub-page { background-image:linear-gradient(90deg,#080a09e8,#10130f96 50%,#080a09e8),url('/assets-v05/arena/primordial/background-full.png'); }
+.hero-warrior:before,.sun-disc,.sun-disc:after { display:none!important; }
+.hero-warrior { background:linear-gradient(180deg,#0c151327,transparent 55%); }
+.hero-avatar { height:54vh;min-height:430px;isolation:isolate; }
+.hero-avatar:before { content:'';position:absolute;width:74%;height:70%;bottom:5%;border-radius:50%;background:radial-gradient(ellipse,#d89b3a20 0,transparent 68%);filter:blur(18px); }
+.hub-portrait { position:relative;z-index:2;width:min(88%,440px);height:100%;display:grid;place-items:end center;animation:hub-breathe 3.4s ease-in-out infinite alternate; }
+.hub-portrait img { display:block;width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 25px 18px #0009); }
+@keyframes hub-breathe { from{transform:translate3d(0,-3px,0)}to{transform:translate3d(0,3px,0)} }
+.hub-page .gear-gallery { grid-column:3;grid-row:1;background:#090c0bbd;border:0;border-left:1px solid var(--line); }
+.hub-page .stats-panel { grid-column:1;grid-row:1;background:#090c0bbd;border:0;border-right:1px solid var(--line); }
+.hub-page .hero-warrior { grid-column:2;grid-row:1; }
+.hub-page .hub-bottom { grid-row:2; }
+.shelf .equipment-card { min-height:245px; }.shelf .card-art-wrap,.shelf .equipment-card .equipment-art{height:118px}.shelf .equipment-card-copy p{display:none}
+.adventure-button>.game-icon { width:27px;height:27px; }
+.map-scene { background-image:linear-gradient(#18313a35,#18251b99),url('/assets-v05/arena/primordial/background-full.png'); }
+
+.chest-v05 { width:min(310px,72vw);height:245px;margin:1rem auto 0;position:relative;transform:none; }
+.chest-v05 .chest-main,.chest-v05 .chest-glow { position:absolute;inset:0;width:100%;height:100%;object-fit:contain; }
+.chest-v05 .chest-main { z-index:2;filter:drop-shadow(0 22px 18px #000a); }
+.chest-v05 .chest-glow { z-index:1;animation:chest-glow-v05 .7s ease-out both; }
+.chest-v05.opening .chest-main { animation:chest-open-v05 .42s cubic-bezier(.2,.8,.3,1) both; }
+@keyframes chest-open-v05 { 35%{transform:translate3d(0,-5px,0) scale(.98)}70%{transform:translate3d(0,2px,0) scale(1.025)} }
+@keyframes chest-glow-v05 { from{opacity:0;transform:scale(.78)}to{opacity:1;transform:scale(1.05)} }
+.loot-modal { position:fixed;z-index:200;inset:0;display:grid;place-items:center;padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom));background:#070907d9;backdrop-filter:blur(14px);animation:page-in .22s ease both; }
+.loot-modal-panel { width:min(760px,100%);max-height:calc(100dvh - 2rem);overflow:auto;overscroll-behavior:contain;border-radius:24px;box-shadow:0 30px 90px #000; }
+.loot-modal .reward-card { width:100%;margin:0;background:linear-gradient(145deg,#22271f,#11140f); }
+
+.arena { --ground-y:18%;padding:0!important;display:block;isolation:isolate;background:#172018; }
+.arena-background { z-index:0; }.arena-ground-v05 { z-index:1; }.arena-foreground { z-index:2; }
+.fighter { position:absolute!important;margin:0!important;translate:-50% 0;z-index:3;will-change:transform,opacity; }
+.fighter.player { left:25%;bottom:var(--ground-y);width:clamp(450px,59vh,540px);height:clamp(450px,59vh,540px); }
+.fighter.enemy { left:75%;bottom:var(--ground-y);width:clamp(105px,14.5vh,140px);height:clamp(105px,14.5vh,140px); }
+.fighter.enemy.boss-fighter { left:75%;bottom:var(--ground-y);width:clamp(165px,23vh,230px);height:clamp(165px,23vh,230px); }
+.fighter .warrior-sprite,.fighter .enemy-sprite { position:absolute;inset:0;z-index:2;width:100%;height:100%;animation:battle-idle calc(3.2s / var(--battle-speed)) ease-in-out infinite; }
+.fighter.player .player-v05 { --sprite-scale:1; }
+.fighter.player .player-v05.weapon-lance-os{--sprite-scale:1.18}.fighter.player .player-v05.weapon-arc-chasseur{--sprite-scale:1.12}.fighter.player .player-v05.weapon-crocs-smilodon{--sprite-scale:1.05}.fighter.player .player-v05.weapon-lance-mammouth{--sprite-scale:1.28}.fighter.player .player-v05.weapon-marteau-volcanique{--sprite-scale:1.4}.fighter.player .player-v05.weapon-griffe-tyran{--sprite-scale:1.73}.fighter.player .player-v05.weapon-coeur-titan{--sprite-scale:2.75}
+.fighter.player .player-v05>img { position:absolute;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;object-fit:contain;object-position:center bottom;transform:translate3d(0,9.77%,0) scale(var(--sprite-scale))!important;transform-origin:50% 90.23%;filter:drop-shadow(0 7px 3px #24140860); }
+.fighter.enemy .enemy-sprite>img { position:absolute;left:50%;bottom:0;width:auto;height:100%;max-width:24vw;transform:translate3d(-50%,0,0) scaleX(-1); }
+.contact-shadow { position:absolute;z-index:1;left:50%;bottom:-3%;translate:-50% 0;width:29%;height:auto;opacity:.62;pointer-events:none;filter:none!important; }
+.fighter.enemy .contact-shadow { width:125%;bottom:-9%; }.fighter.enemy.boss-fighter .contact-shadow { width:145%;bottom:-10%; }
+.impact-zone { z-index:6; }.production-impact,.production-dodge { width:110px;height:110px;object-fit:contain; }.arena-foreground{pointer-events:none}
+.projectile { z-index:5; }.projectile img{content:url('/assets-v05/combat-effects/projectile-arrow.png')}
+.hit-pause .fighter,.hit-pause .fighter * { animation-play-state:paused!important; }
+
+@keyframes heavy-lunge { 0%{transform:translate3d(-8px,0,0)}38%{transform:translate3d(17vw,0,0)}72%,100%{transform:translate3d(37vw,0,0)} }
+@keyframes spear-lunge { 0%{transform:translate3d(-5px,0,0)}42%{transform:translate3d(14vw,0,0)}70%,100%{transform:translate3d(32vw,0,0)} }
+@keyframes axe-lunge { 0%{transform:translate3d(-7px,0,0) rotate(-2deg)}45%{transform:translate3d(17vw,0,0)}72%,100%{transform:translate3d(36vw,0,0) rotate(2deg)} }
+@keyframes claw-dash { 0%{transform:translate3d(-9px,0,0)}35%{transform:translate3d(20vw,0,0)}62%,100%{transform:translate3d(40vw,0,0)} }
+@keyframes arcane-lunge { 45%,100%{transform:translate3d(30vw,-2px,0);opacity:.94} }
+@keyframes enemy-lunge { 0%{transform:translate3d(8px,0,0)}45%{transform:translate3d(-17vw,0,0)}72%,100%{transform:translate3d(-37vw,0,0)} }
+@keyframes recover-player { from{transform:translate3d(37vw,0,0)}to{transform:translate3d(0,0,0)} }
+@keyframes recover-spear { from{transform:translate3d(32vw,0,0)}to{transform:translate3d(0,0,0)} }
+@keyframes recover-axe { from{transform:translate3d(36vw,0,0)}to{transform:translate3d(0,0,0)} }
+@keyframes recover-claw { from{transform:translate3d(40vw,0,0)}to{transform:translate3d(0,0,0)} }
+@keyframes recover-arcane { from{transform:translate3d(30vw,-2px,0)}to{transform:translate3d(0,0,0)} }
+.fighter.player.phase-attack-to-recovery { animation:recover-player calc(.32s / var(--battle-speed)) ease-in-out both; }
+.fighter.player.motion-spear.phase-attack-to-recovery { animation-name:recover-spear;animation-duration:calc(.25s / var(--battle-speed)); }
+.fighter.player.motion-axe.phase-attack-to-recovery { animation-name:recover-axe; }
+.fighter.player.motion-claw.phase-attack-to-recovery { animation-name:recover-claw;animation-duration:calc(.22s / var(--battle-speed)); }
+.fighter.player.motion-arcane.phase-attack-to-recovery { animation-name:recover-arcane; }
+.fighter.player.phase-ko { animation:ko-settle calc(.7s / var(--battle-speed)) ease-out both!important; }
+
+.sprite-lab-grid.player-v05-lab figure { height:270px; }
+.sprite-lab-grid.player-v05-lab .warrior-sprite { width:210px;height:210px;justify-self:center; }
+.sprite-lab-grid.player-v05-lab .warrior-sprite>img { width:100%;height:100%;object-fit:contain; }
+
+@media (max-width:1000px) {
+  .hub-page .hero-warrior,.hub-page .hub-bottom { grid-column:1; }.hub-page .hero-warrior{grid-row:1}.hub-page .hub-bottom{grid-row:2}
+  .hero-avatar { height:390px;min-height:390px; }.hub-portrait{width:min(82%,330px)}
+}
+@media (max-width:700px) {
+  .hero-avatar { height:330px;min-height:330px; }.hub-portrait{width:min(82%,285px)}
+  .fighter.player { width:clamp(450px,59vh,505px);height:clamp(450px,59vh,505px); }
+  .fighter.enemy { width:clamp(105px,14.5vh,125px);height:clamp(105px,14.5vh,125px); }
+  .fighter.enemy.boss-fighter { width:clamp(145px,21vh,190px);height:clamp(145px,21vh,190px); }
+  .loot-modal-panel{max-height:calc(100dvh - 1rem)}.loot-modal .reward-card{padding:1rem}.loot-modal .loot-hero{grid-template-columns:100px 1fr}.loot-modal .loot-hero .equipment-art{width:100px;height:92px}.loot-modal .loot-detail{gap:.55rem}.loot-modal .loot-detail section{padding:.7rem}.loot-modal .reward-actions{position:sticky;bottom:0;background:#151914;padding-top:.6rem}
+}
+@media (max-width:370px) {
+  .hero-avatar{height:290px;min-height:290px}.hub-portrait{width:240px}.chest-v05{height:210px}
+  .fighter.player{width:470px;height:470px}.fighter.enemy{width:105px;height:105px}
+}
+@media (prefers-reduced-motion:reduce) {
+  .hub-portrait{animation:none}.fighter,.fighter *{animation-duration:.01ms!important}.screen-shake{animation:none!important}
+}

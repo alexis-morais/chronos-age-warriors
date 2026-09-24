@@ -1,5 +1,5 @@
 import type { Appearance, EquipmentDefinition } from '../types'
-import { enemySprite, equipmentAsset, resolveEnemyId, warriorSprite, weaponMotion, type EnemyId, type SpriteState } from '../art/assetsV04'
+import { enemySprite, equipmentAsset, gameIcon, hubPortrait, playerSprite, resolveEnemyId, resolvePlayerWeapon, weaponMotion, type EnemyId, type PlayerState, type SpriteState } from '../art/assetsV05'
 
 const line = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 
@@ -84,10 +84,19 @@ export function EnemyAvatar({ variant = 0, className = '' }: { variant?: number;
   return <ProductionEnemy variant={variant} className={className}/>
 }
 
-export function ProductionWarrior({ appearance, weapon, state = 'idle', className = '' }: { appearance: Appearance; weapon?: string; state?: SpriteState; className?: string }) {
+export function ProductionWarrior({ appearance, weapon, state = 'idle', className = '' }: { appearance: Appearance; weapon?: string; state?: PlayerState; className?: string }) {
   const sex = appearance.gender === 'Femme' ? 'female' : 'male'
-  const src = warriorSprite(sex, weapon, state)
-  return <div className={`warrior-sprite motion-${weaponMotion(weapon)} state-${state} ${className}`} role="img" aria-label={`Warrior ${appearance.gender}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
+  const src = playerSprite(sex, weapon, state)
+  return <div className={`warrior-sprite player-v05 weapon-${resolvePlayerWeapon(weapon)} motion-${weaponMotion(weapon)} state-${state} ${className}`} role="img" aria-label={`Warrior ${appearance.gender}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
+}
+
+export function HubPortrait({ appearance, className = '' }: { appearance: Appearance; className?: string }) {
+  const sex = appearance.gender === 'Femme' ? 'female' : 'male'
+  return <div className={`hub-portrait ${className}`} role="img" aria-label={`Portrait du Warrior ${appearance.gender}`}><img src={hubPortrait(sex)} alt="" draggable={false}/></div>
+}
+
+export function GameIcon({ group, name, className = '' }: { group: 'navigation' | 'stats' | 'system'; name: string; className?: string }) {
+  return <img className={`game-icon ${className}`} src={gameIcon(group, name)} alt="" aria-hidden="true" draggable={false}/>
 }
 
 export function ProductionEnemy({ variant = 0, enemyId, state = 'idle', boss = false, className = '' }: { variant?: number; enemyId?: EnemyId; state?: SpriteState; boss?: boolean; className?: string }) {

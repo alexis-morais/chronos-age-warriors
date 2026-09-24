@@ -72,6 +72,11 @@ describe('comparaison et choix d’équipement', () => {
 
 describe('gacha et doublons', () => {
   it('totalise exactement 100 %', () => expect(Object.values(RARITY_CHANCES).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 10))
+  it('distingue un objet réellement nouveau avant le choix Équiper/Stocker', () => {
+    const reward = rollChest(() => 0, {}, [])
+    expect(reward.kind).toBe('equipment')
+    if (reward.kind === 'equipment') { expect(reward.item.id).toBe('flint-club'); expect(reward.duplicate).toBe(false); expect(reward.recycle).toBeUndefined() }
+  })
   it('identifie un doublon et sa conversion', () => {
     const reward = rollChest(() => 0, { 'flint-club': { level: 1, xp: 0, kills: 0 } }, [])
     expect(reward.kind).toBe('equipment')
