@@ -1,0 +1,469 @@
+CHRONOS AGE WARRIORS — V1 CREATION CHARACTER FINALIZATION
+
+MODEL RECOMMENDED: GPT-5.6 Sol
+REASONING: HIGH
+
+IMPORTANT — READ EVERYTHING BEFORE MODIFYING THE PROJECT.
+
+CONTEXT
+We are freezing the V1 character-creation art direction so we can stop iterating on hair alignment and move forward with the game.
+
+The final V1 decision is intentionally simple:
+- Male: ONE fixed canonical buzzcut hairstyle.
+- Female: ONE fixed canonical long hairstyle from the approved generated pack.
+- The player does NOT choose a hairstyle in V1.
+- The player chooses only:
+  1. pseudo/name,
+  2. sex: Homme / Femme,
+  3. hair color: Brun / Noir / Blond / Rouge,
+  4. skin tone: Clair / Doré / Brun / Foncé.
+
+A new final asset pack has been manually prepared outside the project and copied into public/. It contains final PRECOMPOSED character PNGs. These are the source of truth. Do not rebuild hair overlays from older packs, do not calibrate hair, do not recolor these images at runtime, and do not mix them with old creation assets.
+
+EXPECTED PACK LOCATION
+The folder must exist exactly here:
+
+public/chronos-v1-creation-canonical-pack/
+
+Inside it:
+- characters/male/skin-01/brown.png
+- characters/male/skin-01/black.png
+- characters/male/skin-01/blond.png
+- characters/male/skin-01/red.png
+- ... through skin-04
+- characters/female/skin-01/brown.png
+- ... through skin-04
+- manifest.json
+- references/            -> QA/source only, never runtime
+- contact-sheets/        -> QA only, never runtime
+- scripts/               -> source tooling only, never runtime
+- README-INTEGRATION.md  -> documentation only
+
+There are exactly 32 runtime character images:
+2 sexes × 4 skin tones × 4 hair colors = 32.
+
+SKIN MAPPING
+- skin-01 = Clair
+- skin-02 = Doré
+- skin-03 = Brun
+- skin-04 = Foncé
+
+HAIR COLOR MAPPING
+- brown = Brun
+- black = Noir
+- blond = Blond
+- red = Rouge
+
+PRIMARY GOAL
+Replace the current creation-character runtime artwork with this new pack cleanly, permanently for V1, with ZERO hair calibration and ZERO runtime compositing.
+
+The final creation preview must use ONE image only:
+
+/chronos-v1-creation-canonical-pack/characters/{sex}/{skin}/{color}.png
+
+Examples:
+- Homme + Clair + Brun -> /chronos-v1-creation-canonical-pack/characters/male/skin-01/brown.png
+- Homme + Foncé + Rouge -> /chronos-v1-creation-canonical-pack/characters/male/skin-04/red.png
+- Femme + Doré + Noir -> /chronos-v1-creation-canonical-pack/characters/female/skin-02/black.png
+- Femme + Brun + Blond -> /chronos-v1-creation-canonical-pack/characters/female/skin-03/blond.png
+
+DO NOT USE ANY OTHER CREATION ART SOURCE FOR THE NORMAL PLAYER CREATION SCREEN.
+
+FORBIDDEN RUNTIME SOURCES
+The normal creation screen must not request or compose assets from:
+- chronos-perfect-creation-assets-v4/01-bases
+- chronos-perfect-creation-assets-v4/02-hair-overlays
+- chronos-perfect-creation-assets-v4/06-runtime-normalized
+- chronos-perfect-creation-assets-v4/07-final-variants
+- chronos-perfect-creation-assets-v4/09-final-human-approved
+- chronos-v07-hair-reference-pack
+- any old selector images
+- any calibration JSON
+- any historical hair overlay
+
+Old folders can remain in public/ as rollback/source material unless already intentionally excluded. Do not delete user source artwork unless absolutely necessary. But the NORMAL V1 CREATION RUNTIME must not use them.
+
+ASSET RULES — NON-NEGOTIABLE
+1. Use the PNGs exactly as supplied.
+2. Do not use CSS hue-rotate, filter, brightness, saturation, blend-mode or color overlays.
+3. Do not recolor with Canvas.
+4. Do not recolor with Pillow/Python.
+5. Do not add a separate hair image.
+6. Do not add masks, clip-paths or scalp overlays.
+7. Do not apply per-sex/per-color/per-skin X/Y offsets.
+8. Do not apply per-variant scale values.
+9. Do not crop individual variants differently.
+10. Do not attempt automatic artistic correction. The final image itself is authoritative.
+
+The new assets are already:
+- RGBA transparent PNG,
+- 512×512,
+- normalized to a shared transparent canvas,
+- centered,
+- aligned to a common baseline,
+- final precomposed body + head + hair + clothes.
+
+RUNTIME RESOLVER
+Create or simplify a single canonical resolver in src/art/creationCharacterAssets.ts (or the project's current equivalent) with a minimal deterministic mapping.
+
+Recommended API shape:
+
+resolveCanonicalCreationCharacter({ sex, skinTone, hairColor })
+
+It must return exactly:
+
+/chronos-v1-creation-canonical-pack/characters/${sexPath}/${skinPath}/${hairPath}.png
+
+Suggested mapping:
+- male -> male
+- female -> female
+- light/clair -> skin-01
+- golden/dore -> skin-02
+- brown/brun -> skin-03
+- dark/fonce -> skin-04
+- brown -> brown
+- black -> black
+- blond -> blond
+- red -> red
+
+Use the project's existing internal enum/string values when possible to avoid unnecessary save migration. Centralize conversion in one mapping object rather than scattering conditions throughout React components.
+
+HAIRSTYLE DATA / OLD SAVES
+Historical saves may still contain hairStyle. Preserve backward compatibility without letting hairStyle affect V1 rendering.
+
+Rules:
+- Do NOT break old saves.
+- It is acceptable to keep the historical hairStyle field in save data/schema for compatibility.
+- Ignore it for V1 visual rendering.
+- Male always visually resolves to the fixed male asset set.
+- Female always visually resolves to the fixed female asset set.
+- Do not reintroduce a hairstyle selector in the player UI.
+- Do not trigger a save migration solely to remove hairStyle unless the current architecture absolutely requires it.
+
+PLAYER CREATION UI
+Final field order must remain simple and clean:
+1. Pseudo
+2. Sexe
+3. Couleur des cheveux
+4. Teint
+5. Créer mon Warrior
+
+There must be NO section titled "Coiffure" and NO Style 1 / Style 2 / Style 3 cards on the normal player creation screen.
+
+Keep the existing premium light/dark visual identity and current layout unless a tiny spacing correction is necessary after integration.
+
+HAIR COLOR CONTROL
+Keep the four color choices:
+- Brun
+- Noir
+- Blond
+- Rouge
+
+Selecting a hair color must ONLY swap the final precomposed PNG path.
+It must not modify the image with CSS or JS.
+
+SKIN CONTROL
+Keep the four skin choices:
+- Clair
+- Doré
+- Brun
+- Foncé
+
+Selecting a skin tone must ONLY swap the final precomposed PNG path.
+It must not tint the image.
+
+SEX CONTROL
+Switching Homme/Femme must immediately swap between the male and female final asset trees while preserving the currently selected skin tone and hair color when valid.
+
+PREVIEW IMPLEMENTATION
+The large character preview must render exactly ONE img element for the warrior artwork.
+
+Target behavior:
+- no overlay image,
+- no stacked layers,
+- no pseudo-element artwork,
+- no canvas composition,
+- no per-image transforms,
+- no ghost image during fast changes,
+- no layout jump.
+
+Use a stable preview container.
+Recommended visual rules:
+- object-fit: contain;
+- object-position: center bottom;
+- image-rendering: auto;
+- identical CSS dimensions for all 32 variants;
+- no dynamic width/height based on the chosen variant.
+
+Because every source image is 512×512 with common internal normalization, the visible character must remain in the same position and scale when changing:
+- hair color,
+- skin tone,
+- sex.
+
+Do not enlarge or shrink a single combination to make it "look nicer". Uniformity is required.
+
+PRELOADING
+Keep transitions instantaneous but lightweight.
+At minimum preload:
+- the four hair colors for the active sex + active skin tone,
+- the four skin tones for the active sex + active hair color,
+- the same active skin/hair combination for the other sex.
+
+Deduplicate URLs.
+Do not preload old packs.
+
+DEVELOPMENT HAIR CALIBRATOR
+The existing ?qaHairCalibration utility may stay in the source code for future post-V1 work, but:
+- it must NOT affect the normal creation screen,
+- it must NOT mutate the new final pack,
+- it must NOT be part of the V1 player flow,
+- it must NOT provide runtime offsets used by the normal resolver.
+
+If keeping it would create accidental coupling with the new resolver, isolate it clearly as a dev-only legacy/future tool. Do not spend time calibrating the new pack.
+
+BUILD OUTPUT / PUBLIC ASSET FILTERING
+The production build should include ONLY the 32 runtime PNG files from the new pack for this creation system.
+
+Exclude from production dist if the current Vite filtering system supports it:
+- public/chronos-v1-creation-canonical-pack/references/
+- public/chronos-v1-creation-canonical-pack/contact-sheets/
+- public/chronos-v1-creation-canonical-pack/scripts/
+- README-INTEGRATION.md
+- PROMPT-CODEX-V1-CREATION-FINAL.txt
+- manifest.json if runtime does not need it
+
+Keep the source files in public locally, but do not unnecessarily ship QA/reference material.
+
+Do not accidentally copy old creation packs back into dist if the project already has build filtering for them.
+
+PYTHON USAGE
+Python is allowed and encouraged for AUDIT ONLY.
+Do not regenerate the approved final character images.
+
+Create/update an audit script if useful to assert:
+- exactly 32 expected runtime PNGs exist,
+- every PNG is 512×512,
+- every PNG is RGBA,
+- every PNG has non-empty alpha,
+- no duplicate path is missing,
+- all 16 male and 16 female combinations resolve,
+- hair color changes resolve to different files,
+- skin tone changes resolve to different files,
+- old hairstyle values never alter the resolved path.
+
+Do not use Python to artistically modify these images.
+
+TESTS TO ADD/UPDATE
+Update tests to reflect the final V1 contract.
+
+Required assertions:
+1. male always resolves inside /characters/male/ regardless of historical hairStyle.
+2. female always resolves inside /characters/female/ regardless of historical hairStyle.
+3. 4 male skins × 4 hair colors = 16 valid unique paths.
+4. 4 female skins × 4 hair colors = 16 valid unique paths.
+5. total = 32 valid unique paths.
+6. every path exists.
+7. no normal creation resolver path contains:
+   - 01-bases
+   - 02-hair-overlays
+   - 06-runtime-normalized
+   - 07-final-variants
+   - 09-final-human-approved
+   - selectors
+   - hair-overlays
+8. changing hair color preserves sex and skin mapping.
+9. changing skin preserves sex and hair mapping.
+10. hairstyle cards are absent from the normal creation UI.
+11. CharacterPreview renders one final image only.
+12. old saves containing hairStyle still load without crash.
+13. new saves remain valid under the current save version unless a real schema reason forces a migration.
+
+BROWSER QA — MANDATORY
+Open the REAL application in the browser, not just unit tests.
+
+Test at least:
+- 320×844
+- 390×844
+- 768×1024
+- 1440×900
+
+On the real creation screen, manually cycle:
+- Homme/Femme,
+- all 4 hair colors,
+- all 4 skin tones.
+
+This means visually verifying the complete 32-state matrix or using an automated browser loop plus representative screenshots.
+
+Check:
+- no broken image,
+- no 404,
+- no image flash/ghost,
+- no horizontal overflow,
+- no preview jump between color variants,
+- no preview jump between skin variants,
+- character fully visible,
+- hair remains attached because it is already baked into the final PNG,
+- skin selection actually changes the intended final asset,
+- hair color selection actually changes the intended final asset,
+- no weird face paint/mask/tint from any old processing pipeline,
+- no old overlay is requested in Network.
+
+IMPORTANT VISUAL ACCEPTANCE
+The screenshots previously showed corruption where some male skin/color combinations displayed incorrect face coloration or mask-like artifacts, and where female hair did not align. This new integration must eliminate those categories of bugs by design.
+
+Therefore:
+- a male hair-color or skin-tone switch MUST load a different final precomposed PNG and nothing else;
+- a female hair-color or skin-tone switch MUST load a different final precomposed PNG and nothing else;
+- there is no hair transform to calibrate anymore;
+- there is no separate hair geometry to drift;
+- there is no runtime recoloring that can spill onto the face.
+
+Do not declare success merely because tests pass. Inspect the real UI.
+
+NETWORK QA
+In browser DevTools/network or via automation confirm during creation interaction:
+- only new canonical creation PNGs are requested for player art,
+- zero requests to old creation packs for the normal player preview,
+- zero failed requests,
+- zero 404s.
+
+CONSOLE QA
+Final browser session:
+- 0 errors,
+- 0 relevant warnings.
+
+GENERAL REGRESSION RULES
+Do not alter gameplay systems unrelated to creation.
+Do not change combat logic.
+Do not change economy.
+Do not change campaign progression.
+Do not change chest logic.
+Do not change equipment systems.
+Do not change navigation unless needed to preserve creation flow.
+Do not redesign unrelated screens.
+Do not change localStorage/save version unless strictly required.
+Do not introduce horizontal overflow.
+Do not add heavy dependencies.
+
+GIT RULES — ABSOLUTE
+Do NOT run:
+- git add
+- git commit
+- git push
+- git checkout -b
+- git switch -c
+- any branch creation
+- any remote modification
+- any publication/deployment command
+
+Read-only Git checks are allowed:
+- git status
+- git diff
+- git diff --check
+
+Leave all changes uncommitted for human review.
+
+MANDATORY VALIDATION COMMANDS
+Run all relevant project checks, including at minimum:
+- pnpm test
+- pnpm run lint
+- pnpm exec tsc -b --pretty false
+- pnpm run build
+- git diff --check
+
+Also run the creation asset audit.
+
+DO NOT STOP AFTER TECHNICAL PASS
+You must visually test the actual creation screen after the code changes.
+
+FINAL REPORT FORMAT — REQUIRED
+Your final report must include all of the following sections:
+
+A. V1 decision implemented
+- male fixed hairstyle
+- female fixed hairstyle
+- no hairstyle selector
+- 4 hair colors
+- 4 skin tones
+
+B. Canonical asset source
+- exact folder path
+- exact runtime URL pattern
+- confirmation that old packs are not used by normal creation
+
+C. Resolver behavior
+- mapping sex / skin / hair color
+- handling of historical hairStyle
+
+D. UI behavior
+- exact controls present
+- confirmation that Coiffure/Style cards are gone
+
+E. Rendering architecture
+- confirmation that preview uses exactly one precomposed image
+- confirmation of no overlay/filter/mask/calibration
+
+F. Asset audit
+- 32/32 files
+- dimensions
+- RGBA/non-empty alpha
+- unique path count
+
+G. Browser QA
+- resolutions tested
+- 32 combinations tested
+- visual results
+- horizontal overflow status
+
+H. Console/network
+- error count
+- warning count
+- failed request count
+- 404 count
+- confirmation old packs were not requested by the normal creation preview
+
+I. Technical validation
+- tests
+- lint
+- TypeScript
+- build
+- git diff --check
+- final JS/CSS/build sizes if available
+
+J. Files modified
+- exact list
+
+K. Git confirmation
+Explicitly confirm:
+- no git add
+- no commit
+- no push
+- no branch
+- no remote modification
+- no deployment
+
+L. TEST LOCAL — MANDATORY
+Leave a local dev server running at the end and include clickable URLs in the report.
+
+You MUST provide:
+- URL DU JEU: http://127.0.0.1:<REAL_PORT>/
+- URL DIRECTE CRÉATION: http://127.0.0.1:<REAL_PORT>/?qaCreated&qaCreation
+
+If ?qaHairCalibration still exists you may also provide it, but it is secondary.
+
+Do not invent the port. Report the actual active port used by the server.
+
+SUCCESS CRITERIA
+This task is successful only if:
+- the new pack is the sole source for normal V1 character creation artwork,
+- male/female creation is visually stable,
+- all 32 sex × skin × hair-color combinations work,
+- no runtime tinting causes face corruption,
+- no separate hair overlay exists in normal creation,
+- no hair calibration is necessary,
+- no hairstyle selector exists,
+- old saves remain readable,
+- all technical validations pass,
+- the final report contains the real local URLs.
+
+If any of these conditions is not true, do not claim the task is complete. Fix it first.

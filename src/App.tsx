@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Activity, ChevronLeft, Sparkles, Trophy, X } from 'lucide-react'
 import { GAME } from './config'
 import { badges, equipment, skillDescriptions, skills } from './data'
 import { addWarriorXp, compareEquipmentStats, effectiveStats, equipmentLevelFromXp, equipmentStats, equipItem, generateEnemy, grantEquipmentXp, rollChest, seededRng, simulateBattle, xpForLevel } from './game'
 import { loadSave, persistSave } from './storage'
-import type { BattleResult, EquipmentDefinition, Fighter, OwnedEquipment, Rarity, SaveData, StatKey, View } from './types'
-import { EquipmentArt, GameIcon, HubPortrait, ProductionEnemy, ProductionWarrior, WarriorAvatar } from './components/Art'
-import { assetsV04, enemyIds, resolveEnemyId, spriteStates, type EnemyId, type SpriteState } from './art/assetsV04'
-import { assetsV05, equipmentAsset, playerStates, playerWeapons, preloadBattleAssetsV05, weaponMotion, type PlayerState } from './art/assetsV05'
+import type { Appearance, BattleResult, EquipmentDefinition, Fighter, OwnedEquipment, Rarity, SaveData, StatKey, View } from './types'
+import { CharacterPreview, EquipmentArt, GameIcon, HubWarrior, ProductionEnemy, ProductionWarrior } from './components/Art'
+import { characterSexes, hairColors, sexLabel, skinTones, updateAppearance } from './character'
+import { canonicalizeCreationAppearance, preloadCreationChoices } from './art/creationCharacterAssets'
+import { enemyIds, spriteStates, type EnemyId, type SpriteState } from './art/assetsV04'
+import { assetsV06, equipmentAsset, playerPoses, playerWeapons, preloadBattleAssetsV06, resolveEnemyId, weaponMotion, type PlayerState } from './art/assetsV06'
 import { finalBattleFrame } from './art/battleVisual'
 
 const nav: { id: View; label: string; icon: string }[] = [
@@ -25,6 +28,9 @@ function unlock(save: SaveData, id: string) {
 }
 
 const statMeta = { strength: { label: 'Force', icon: 'force' }, dodge: { label: 'Esquive', icon: 'dodge' }, speed: { label: 'Vitesse', icon: 'speed' }, hp: { label: 'PV', icon: 'pv' } }
+type SkillFilter = 'all' | 'owned' | 'locked'
+const skillIcon = (index: number) => ['force', 'dodge', 'speed', 'pv'][index % 4]
+const badgeVisual = (id: string) => id.startsWith('training') ? ['navigation', 'training'] as const : id.startsWith('gear') ? ['navigation', 'equipment'] as const : id.includes('rare') || id.includes('epic') || id.includes('legendary') || id.includes('mythic') ? ['stats', 'badge'] as const : ['navigation', 'force'] as const
 const formatStats = (item: EquipmentDefinition, level: number) => Object.entries(equipmentStats(item.id, level)).map(([key, value]) => `+${value} ${statMeta[key as keyof typeof statMeta].label}`)
 
 function Stat({ type, value }: { type: 'strength' | 'dodge' | 'speed'; value: number }) {
@@ -46,42 +52,45 @@ function EquipmentCard({ item, save, onClick, onEquip }: { item: EquipmentDefini
 
 function Creation({ save, setSave }: { save: SaveData; setSave: (save: SaveData) => void }) {
   const [name, setName] = useState('')
-  const [appearance, setAppearance] = useState(save.warrior.appearance)
+  const [appearance, setAppearance] = useState(() => canonicalizeCreationAppearance(save.warrior.appearance))
+  useEffect(() => { void preloadCreationChoices(appearance) }, [appearance])
   const finish = () => {
     if (!name.trim()) return
-    const next = clone(save); next.created = true; next.warrior.name = name.trim().slice(0, 18); next.warrior.appearance = appearance; window.scrollTo({ top: 0 }); setSave(next)
+    const next = clone(save); next.created = true; next.warrior.name = name.trim().slice(0, 18); next.warrior.appearance = canonicalizeCreationAppearance(appearance); window.scrollTo({ top: 0 }); setSave(next)
   }
-  return <main className="creation-shell">
-    <section className="creation-art" data-gender={appearance.gender}><div className="brand"><img src={assetsV04.logo} alt="Chronos Age Warriors"/></div><div className="avatar-stage"><WarriorAvatar appearance={appearance} weapon="flint-club" armor="hunter-hides"/></div><p>Chaque légende commence avant l’Histoire.</p></section>
-    <section className="creation-panel"><div><span className="eyebrow">ÈRE PRIMORDIALE</span><h1>Crée ton Warrior</h1><p>Ton apparence pourra évoluer avec ton équipement.</p></div>
-      <label className="field">Pseudo<input value={name} maxLength={18} placeholder="Ton nom de guerrier" onChange={(event) => setName(event.target.value)} autoFocus/></label>
-      <fieldset><legend>Genre</legend><div className="segmented">{(['Homme','Femme'] as const).map((gender) => <button className={appearance.gender === gender ? 'active' : ''} onClick={() => setAppearance({ ...appearance, gender })} key={gender}>{gender}</button>)}</div></fieldset>
-      <fieldset><legend>Teinte de peau</legend><div className="swatches">{['#f1c7a5','#c68a63','#9c6346','#673f31'].map((skin) => <button aria-label={`Teinte ${skin}`} className={appearance.skin === skin ? 'active' : ''} style={{ background: skin }} onClick={() => setAppearance({ ...appearance, skin })} key={skin}/>)}</div></fieldset>
-      <fieldset><legend>Coiffure</legend><div className="segmented">{(['Crête','Tresses','Sauvage'] as const).map((hair) => <button className={appearance.hair === hair ? 'active' : ''} onClick={() => setAppearance({ ...appearance, hair })} key={hair}>{hair}</button>)}</div></fieldset>
-      {appearance.gender === 'Homme' && <fieldset><legend>Barbe</legend><div className="segmented"><button className={!appearance.beard ? 'active' : ''} onClick={() => setAppearance({ ...appearance, beard: false })}>Sans barbe</button><button className={appearance.beard ? 'active' : ''} onClick={() => setAppearance({ ...appearance, beard: true })}>Barbe tribale</button></div></fieldset>}
-      <fieldset><legend>Couleur des cheveux</legend><div className="swatches">{['#211914','#633b20','#b78b45','#912b22'].map((hairColor) => <button aria-label={`Couleur ${hairColor}`} className={appearance.hairColor === hairColor ? 'active' : ''} style={{ background: hairColor }} onClick={() => setAppearance({ ...appearance, hairColor })} key={hairColor}/>)}</div></fieldset>
-      <button className="primary wide" disabled={!name.trim()} onClick={finish}>ENTRER DANS L’ÈRE</button>
+  return <main className="creation-v07">
+    <section className="creation-v07-showcase"><img className="creation-v07-logo" src={assetsV06.brand.logo} alt="Chronos Age Warriors"/><div className="creation-v07-intro"><span>IDENTITÉ DU WARRIOR</span><p>Un héros, à travers toutes les époques.</p></div><CharacterPreview appearance={appearance}/><div className="creation-v07-caption" aria-live="polite"><strong>{name.trim() || 'Ton Warrior'}</strong><span>{sexLabel(appearance.sex)}</span></div></section>
+    <section className="creation-v07-config"><header><span className="eyebrow">NOUVEAU WARRIOR</span><h1>Crée ton héros</h1><p>Choisis une identité claire et durable. Son équipement évoluera ensuite avec ta progression.</p></header>
+      <label className="creation-v07-name">Pseudo<input value={name} maxLength={18} placeholder="Nom du Warrior" onChange={(event) => setName(event.target.value)}/></label>
+      <fieldset><legend>Sexe</legend><div className="creation-v07-segmented">{characterSexes.map((option) => <button type="button" aria-pressed={appearance.sex === option.id} className={appearance.sex === option.id ? 'active' : ''} onClick={() => setAppearance(canonicalizeCreationAppearance(updateAppearance(appearance, { sex: option.id })))} key={option.id}>{option.label}</button>)}</div></fieldset>
+      <fieldset><legend>Couleur des cheveux</legend><div className="creation-v07-swatches">{hairColors.map((option) => <button type="button" aria-label={option.label} aria-pressed={appearance.hairColor === option.id} className={appearance.hairColor === option.id ? 'active' : ''} style={{ '--swatch': option.hex } as React.CSSProperties} onClick={() => setAppearance(updateAppearance(appearance, { hairColor: option.id }))} key={option.id}><i/><span>{option.label}</span></button>)}</div></fieldset>
+      <fieldset><legend>Teint</legend><div className="creation-v07-swatches skin">{skinTones.map((option) => <button type="button" aria-label={option.label} aria-pressed={appearance.skinTone === option.id} className={appearance.skinTone === option.id ? 'active' : ''} style={{ '--swatch': option.hex } as React.CSSProperties} onClick={() => setAppearance(updateAppearance(appearance, { skinTone: option.id }))} key={option.id}><i/><span>{option.label}</span></button>)}</div></fieldset>
+      <button className="primary wide creation-v07-submit" disabled={!name.trim()} onClick={finish}>CRÉER MON WARRIOR</button>
     </section>
   </main>
 }
 
 function Header({ save, view, setView }: { save: SaveData; view: View; setView: (view: View) => void }) {
-  return <header className="topbar"><button className="mini-brand" onClick={() => setView('hub')}><img src={assetsV04.logo} alt="Chronos Age Warriors"/><span>ÈRE PRIMORDIALE</span></button><div className="topbar-title">{view === 'adventure' && <button className="icon-button" onClick={() => setView('hub')}><ChevronLeft/></button>}<strong>{view === 'chest' ? 'Coffres' : view.charAt(0).toUpperCase() + view.slice(1)}</strong></div><div className="currency"><GameIcon group="stats" name="coins"/><strong>{save.coins}</strong></div></header>
+  return <header className="topbar"><button className="mini-brand" onClick={() => setView('hub')}><img src={assetsV06.brand.logo} alt="Chronos Age Warriors"/><span>ÈRE PRIMORDIALE</span></button><div className="topbar-title">{view === 'adventure' && <button className="icon-button" aria-label="Retour au Hub" onClick={() => setView('hub')}><ChevronLeft/></button>}<strong>{view === 'chest' ? 'Coffres' : view.charAt(0).toUpperCase() + view.slice(1)}</strong></div><div className="currency"><GameIcon group="stats" name="coins"/><strong>{save.coins}</strong></div></header>
 }
 
 function Hub({ save, setView, setDetail }: { save: SaveData; setView: (view: View) => void; setDetail: (item: EquipmentDefinition) => void }) {
   const stats = effectiveStats(save)
   const weapon = itemById(save.equippedWeapon), armor = itemById(save.equippedArmor)
+  const [skillFilter, setSkillFilter] = useState<SkillFilter>('all')
+  const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
+  const visibleSkills = skills.filter((skill) => skillFilter === 'all' || (skillFilter === 'owned') === save.warrior.skills.includes(skill))
   return <div className="hub-page page-enter">
     <section className="gear-gallery desktop-only"><span className="eyebrow">ARSENAL</span><h2>Relics du Warrior</h2><div className="shelf"><EquipmentCard item={weapon} save={save} onClick={() => setDetail(weapon)}/><EquipmentCard item={armor} save={save} onClick={() => setDetail(armor)}/></div><button className="text-button" onClick={() => setView('collection')}>Voir la collection <ChevronLeft size={16}/></button></section>
-    <section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="hero-name"><div><h1>{save.warrior.name}</h1><span>Niveau {save.warrior.level}</span></div><div className="level-ring">{save.warrior.level}</div></div><div className="hero-avatar"><HubPortrait appearance={save.warrior.appearance}/></div>
+    <section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="hero-name"><div><h1>{save.warrior.name}</h1><span>Niveau {save.warrior.level}</span></div><div className="level-ring">{save.warrior.level}</div></div><div className="hero-avatar"><HubWarrior appearance={save.warrior.appearance}/></div>
       <div className="mobile-stats mobile-only"><div className="hp-row"><span><GameIcon group="stats" name="pv"/> PV</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div></div>
       <div className="resource-row mobile-only"><span><GameIcon group="stats" name="coins"/>{save.coins}</span><span><GameIcon group="stats" name="xp"/>{save.campaignRemaining} / 10</span></div>
       <button className="adventure-button" onClick={() => setView('adventure')}><GameIcon group="navigation" name="adventure"/><span><small>CAMPAGNE</small>AVENTURE</span><i>→</i></button>
     </section>
     <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><GameIcon group="stats" name="pv"/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{save.warrior.xp} / {xpForLevel(save.warrior.level)}</b></span><div className="progress"><i style={{ width: `${save.warrior.xp / xpForLevel(save.warrior.level) * 100}%` }}/></div></div><div className="daily"><span><GameIcon group="stats" name="coins"/> {save.coins} pièces</span><span><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 Campagne</span></div></div></section>
-    <section className="hub-bottom"><div className="skill-panel"><div className="section-title"><div><span className="eyebrow">PASSIFS</span><h2>Compétences</h2></div><span>{save.warrior.skills.length} / 20</span></div><div className="skill-list">{skills.map((skill) => { const owned = save.warrior.skills.includes(skill); return <button className={owned ? 'owned' : 'locked-skill'} title={skillDescriptions[skill]} key={skill}>{owned ? <GameIcon group="stats" name="xp"/> : <GameIcon group="system" name="lock"/>}<span><strong>{owned ? skill : 'Compétence verrouillée'}</strong><small>{owned ? skillDescriptions[skill] : 'À découvrir en progressant'}</small></span></button> })}</div></div>
+    <section className="hub-bottom"><div className="skill-panel"><div className="section-title"><div><span className="eyebrow">PASSIFS</span><h2>Compétences</h2></div><span>{save.warrior.skills.length} / 20 débloquées</span></div><div className="skill-filters" aria-label="Filtrer les compétences">{([['all','Toutes'],['owned','Débloquées'],['locked','Verrouillées']] as [SkillFilter,string][]).map(([filter,label]) => <button className={skillFilter === filter ? 'active' : ''} onClick={() => setSkillFilter(filter)} key={filter}>{label}</button>)}</div><div className="skill-list">{visibleSkills.map((skill) => { const index = skills.indexOf(skill), owned = save.warrior.skills.includes(skill); return <button className={`skill-card ${owned ? 'owned' : 'locked-skill'}`} onClick={() => setSelectedSkill(skill)} key={skill}>{owned ? <GameIcon group="stats" name={skillIcon(index)}/> : <GameIcon group="system" name="lock"/>}<span><strong>{owned ? skill : '???'}</strong><small>{owned ? 'Débloquée' : 'Verrouillée'}</small></span></button> })}</div>{visibleSkills.length === 0 && <p className="skills-empty">Aucune compétence dans ce filtre.</p>}</div>
       <div className="mobile-gear mobile-only"><EquipmentCard item={weapon} save={save} onClick={() => setDetail(weapon)}/><EquipmentCard item={armor} save={save} onClick={() => setDetail(armor)}/></div></section>
+    {selectedSkill && createPortal(<div className="skill-detail-modal" role="dialog" aria-modal="true" aria-label="Détail de compétence" onClick={() => setSelectedSkill(null)}><section onClick={(event) => event.stopPropagation()}><button className="close" aria-label="Fermer" onClick={() => setSelectedSkill(null)}><X/></button><GameIcon group={save.warrior.skills.includes(selectedSkill) ? 'stats' : 'system'} name={save.warrior.skills.includes(selectedSkill) ? skillIcon(skills.indexOf(selectedSkill)) : 'lock'}/><span className="eyebrow">{save.warrior.skills.includes(selectedSkill) ? 'COMPÉTENCE DÉBLOQUÉE' : 'COMPÉTENCE VERROUILLÉE'}</span><h2>{save.warrior.skills.includes(selectedSkill) ? selectedSkill : '???'}</h2><p>{save.warrior.skills.includes(selectedSkill) ? skillDescriptions[selectedSkill] : 'Continue ta progression pour révéler cette compétence.'}</p><button className="primary wide" onClick={() => setSelectedSkill(null)}>FERMER</button></section></div>, document.body)}
   </div>
 }
 
@@ -90,7 +99,7 @@ function Collection({ save, setSave, setDetail }: { save: SaveData; setSave: (sa
   const [type, setType] = useState<'weapon' | 'armor'>('weapon')
   const unlocked = new Set(save.badges.map((badge) => badge.id))
   return <div className="content-page page-enter"><div className="page-heading"><span className="eyebrow">ARCHIVES DU TEMPS</span><h1>Collection</h1><p>{Object.keys(save.owned).length} reliques découvertes sur {equipment.length}</p></div><div className="big-tabs"><button className={tab === 'equipment' ? 'active' : ''} onClick={() => setTab('equipment')}><GameIcon group="navigation" name="equipment"/>Équipements</button><button className={tab === 'badges' ? 'active' : ''} onClick={() => setTab('badges')}><GameIcon group="stats" name="badge"/>Badges</button></div>
-    {tab === 'equipment' ? <><div className="filter-row"><button className={type === 'weapon' ? 'active' : ''} onClick={() => setType('weapon')}>Armes</button><button className={type === 'armor' ? 'active' : ''} onClick={() => setType('armor')}>Armures</button></div><div className="collection-grid">{equipment.filter((item) => item.type === type).map((item) => <EquipmentCard key={item.id} item={item} save={save} onClick={() => setDetail(item)} onEquip={save.owned[item.id] ? () => setSave(equipItem(save, item.id)) : undefined}/>)}</div></> : <div className="badge-grid">{badges.map(([id, name, description]) => <div className={`badge-card ${unlocked.has(id) ? 'unlocked' : ''}`} key={id}><div className="badge-medal"><GameIcon group="stats" name="badge"/></div><div><strong>{name}</strong><span>{description}</span></div>{!unlocked.has(id) && <GameIcon group="system" name="lock"/>}</div>)}</div>}
+    {tab === 'equipment' ? <><div className="filter-row"><button className={type === 'weapon' ? 'active' : ''} onClick={() => setType('weapon')}>Armes</button><button className={type === 'armor' ? 'active' : ''} onClick={() => setType('armor')}>Armures</button></div><div className="collection-grid">{equipment.filter((item) => item.type === type).map((item) => <EquipmentCard key={item.id} item={item} save={save} onClick={() => setDetail(item)} onEquip={save.owned[item.id] ? () => setSave(equipItem(save, item.id)) : undefined}/>)}</div></> : <div className="badge-grid">{badges.map(([id, name, description]) => { const [group, icon] = badgeVisual(id); return <div className={`badge-card badge-${group}-${icon} ${unlocked.has(id) ? 'unlocked' : ''}`} key={id}><div className="badge-medal"><GameIcon group={group} name={icon}/></div><div><strong>{name}</strong><span>{description}</span></div>{!unlocked.has(id) && <GameIcon group="system" name="lock"/>}</div> })}</div>}
   </div>
 }
 
@@ -141,7 +150,7 @@ function Chests({ save, setSave }: { save: SaveData; setSave: (save: SaveData) =
     setTimeout(() => { setSpinning(false); setLoot({ reward: result, before, after, equipped, equippedLevel }); setSave(next) }, 4400)
   }
   const equipReward = () => { if (!loot || loot.reward.kind !== 'equipment') return; setSave(equipItem(save, loot.reward.item.id)); setLoot(null) }
-  return <div className="chest-page content-page page-enter"><div className="page-heading centered"><span className="eyebrow">AUTEL DES POSSIBLES</span><h1>Coffre primordial</h1><p>Le destin est scellé avant que la roulette ne s’élance.</p></div><div className={`chest chest-v05 ${spinning ? 'opening' : ''}`}><img className="chest-main" src={spinning ? assetsV05.chest.open : assetsV05.chest.closed} alt={spinning ? 'Coffre primordial ouvert' : 'Coffre primordial fermé'}/>{spinning && <img className="chest-glow" src={assetsV05.chest.glow} alt=""/>}</div>
+  return <div className="chest-page content-page page-enter"><div className="page-heading centered"><span className="eyebrow">AUTEL DES POSSIBLES</span><h1>Coffre primordial</h1><p>Le destin est scellé avant que la roulette ne s’élance.</p></div><div className={`chest chest-v06 ${spinning ? 'opening' : ''}`}><img className="chest-main" src={spinning ? assetsV06.chest.open : assetsV06.chest.closed} alt={spinning ? 'Coffre primordial ouvert' : 'Coffre primordial fermé'}/>{spinning && <img className="chest-glow" src={assetsV06.chest.glow} alt=""/>}</div>
     {(spinning || loot) && <div className={`roulette ${spinning ? 'spinning' : 'finished'}`}><div className="roulette-marker"/><div className="roulette-track">{strip.map((item, index) => <div className={`roulette-card ${rarityClass(item.rarity)} ${!spinning && index === 15 ? 'winner' : ''}`} key={`${item.id}-${index}`}><EquipmentArt item={item} compact/><strong>{item.name}</strong><span>{item.rarity}</span></div>)}</div></div>}
     {!loot && <button className="primary chest-button" onClick={open} disabled={save.coins < GAME.chestCost || spinning}>{spinning ? 'LE TEMPS SE PLIE…' : <><GameIcon group="navigation" name="chest"/> OUVRIR · {GAME.chestCost} <GameIcon group="stats" name="coins"/></>}</button>}
     {save.coins < GAME.chestCost && !spinning && <p className="hint">Il te faut encore {GAME.chestCost - save.coins} pièces.</p>}
@@ -183,7 +192,7 @@ function Battle({ save, setSave, active, onExit }: { save: SaveData; setSave: (s
     setSummary({ xp, coins, weaponXp: active.mode === 'training' && won ? 1 : 0, armorXp: active.mode === 'training' && won ? 1 : 0, levelUp: next.warrior.level - previousLevel, badges: next.badges.filter((badge) => !previousBadges.has(badge.id)).map((badge) => badges.find(([id]) => id === badge.id)?.[1] ?? badge.id), campaignProgress: active.mode === 'campaign' ? (won ? `Nœud ${active.node} terminé${active.node < 20 ? ` · prochain : ${active.node + 1}` : ' · Ère achevée'}` : `Nœud ${active.node} à retenter`) : undefined })
     setSave(next); setSettled(true)
   }
-  useEffect(() => { let live = true; preloadBattleAssetsV05(save.warrior.appearance.gender === 'Femme' ? 'female' : 'male', save.equippedWeapon, enemyId).then(() => { if (live) setReady(true) }); return () => { live = false } }, [save.warrior.appearance.gender, save.equippedWeapon, enemyId])
+  useEffect(() => { let live = true; preloadBattleAssetsV06(save.warrior.appearance.sex, save.equippedWeapon, enemyId).then(() => { if (live) setReady(true) }); return () => { live = false } }, [save.warrior.appearance.sex, save.equippedWeapon, enemyId])
   useEffect(() => {
     if (!ready || done) { if (done) settle(); return }
     const timers: number[] = []
@@ -193,16 +202,14 @@ function Battle({ save, setSave, active, onExit }: { save: SaveData; setSave: (s
     const recentAttack = active.result.events.slice(Math.max(0, index - 3), index).reverse().find((entry) => entry.type === 'attack')
     const continuesStrike = Boolean(recentAttack && ['critical', 'damage', 'bleed', 'skill'].includes(event.type))
     if (!continuesStrike) { setPlayerState('idle'); setEnemyState('idle') }
-    let duration = 520
+    let duration = 360
     if (event.type === 'attack') {
       const motion = event.actor === 'player' ? weaponMotion(save.equippedWeapon) : 'heavy'
-      const anticipation = motion === 'heavy' ? 250 : motion === 'claw' ? 155 : motion === 'spear' ? 175 : 205
-      const contact = motion === 'heavy' ? 790 : motion === 'spear' ? 620 : motion === 'axe' ? 680 : motion === 'claw' ? 530 : motion === 'ranged' ? 780 : 690
+      const anticipation = motion === 'heavy' ? 125 : motion === 'claw' ? 90 : motion === 'spear' ? 100 : 110
+      const contact = motion === 'heavy' ? 450 : motion === 'spear' ? 380 : motion === 'axe' ? 400 : motion === 'claw' ? 340 : motion === 'ranged' ? 430 : 390
       if (event.actor === 'player') {
-        setPlayerState('idle-to-anticipation')
-        later(() => setPlayerState('anticipation'), 78)
-        later(() => setPlayerState('anticipation-to-attack'), anticipation)
-        later(() => setPlayerState('attack'), anticipation + 88)
+        setPlayerState('anticipation')
+        later(() => setPlayerState('attack'), anticipation)
       } else {
         setEnemyState('anticipation'); later(() => setEnemyState('attack'), anticipation)
       }
@@ -211,19 +218,19 @@ function Battle({ save, setSave, active, onExit }: { save: SaveData; setSave: (s
     else if (event.type === 'critical') { duration = 100 }
     else if (event.type === 'dodge') {
       if (event.actor === 'player') setPlayerState('dodge'); else setEnemyState('dodge')
-      if (event.target === 'player') { later(() => setPlayerState('attack-to-recovery'), 110); later(() => setPlayerState('idle'), 390) }
-      else { later(() => setEnemyState('idle'), 330) }
-      duration = 560
+      if (event.target === 'player') { later(() => setPlayerState('recovery'), 100); later(() => setPlayerState('idle'), 280) }
+      else { later(() => setEnemyState('idle'), 250) }
+      duration = 350
     }
     else if (event.type === 'damage' || event.type === 'bleed') {
       if (event.target === 'player') setPlayerState('hurt'); else setEnemyState('hurt')
       setHitPause(true); later(() => setHitPause(false), isCritical ? 52 : 34)
-      if (event.actor === 'player') { later(() => setPlayerState('attack-to-recovery'), 120); later(() => setPlayerState('idle'), 330) }
-      else { later(() => setEnemyState('idle'), 280) }
-      duration = 460
+      if (event.actor === 'player') { later(() => setPlayerState('recovery'), 90); later(() => setPlayerState('idle'), 265) }
+      else { later(() => setEnemyState('idle'), 230) }
+      duration = 320
     }
-    else if (event.type === 'skill' && event.label === 'Parade') { if (event.actor === 'player') setPlayerState('dodge'); else setEnemyState('dodge'); duration = 480 }
-    else if (event.type === 'ko') { if (event.target === 'player') setPlayerState('ko'); else setEnemyState('ko'); if (event.actor === 'player') setPlayerState('victory'); else setEnemyState('victory'); duration = 720 }
+    else if (event.type === 'skill' && event.label === 'Parade') { if (event.actor === 'player') setPlayerState('dodge'); else setEnemyState('dodge'); duration = 330 }
+    else if (event.type === 'ko') { if (event.target === 'player') setPlayerState('ko'); else setEnemyState('ko'); if (event.actor === 'player') setPlayerState('victory'); else setEnemyState('victory'); duration = 620 }
     later(() => { if (index >= active.result.events.length - 1) setDone(true); else setIndex((current) => current + 1) }, duration)
     return () => timers.forEach(clearTimeout)
   }, [index, done, ready, save.speed, save.equippedWeapon, event, active.result.events, isCritical])
@@ -235,11 +242,12 @@ function Battle({ save, setSave, active, onExit }: { save: SaveData; setSave: (s
   const playerHp = event?.playerHp ?? effectiveStats(save).hp, enemyHp = event?.enemyHp ?? active.result.enemy.stats.hp
   const setSpeed = (speed: 1 | 2 | 3) => { const next = clone(save); next.speed = speed; setSave(next) }
   const ranged = save.equippedWeapon === 'hunter-bow' && event?.actor === 'player' && event.type === 'attack'
-  const impactEffect = isCritical ? assetsV05.effects.criticalStars : weaponMotion(save.equippedWeapon) === 'heavy' ? assetsV05.effects.impactGround : assetsV05.effects.impactStar
+  const effectTarget = event && ['dodge', 'skill', 'heal'].includes(event.type) ? event.actor : event?.target ?? 'enemy'
+  const impactEffect = isCritical ? assetsV06.effects.criticalStars : weaponMotion(save.equippedWeapon) === 'heavy' ? assetsV06.effects.impactGround : assetsV06.effects.impactStar
   return <div className={`battle-page ${isCritical ? 'screen-shake' : ''} ${hitPause ? 'hit-pause' : ''} ${ready ? 'assets-ready' : 'assets-loading'}`} style={{ '--battle-speed': save.speed } as React.CSSProperties}><div className="battle-top"><div><span className="eyebrow">{active.mode === 'training' ? 'ENTRAÎNEMENT' : `NŒUD ${active.node}`}</span><strong>Arène Primordiale</strong></div><div className="speed-control">{([1,2,3] as const).map((speed) => <button className={save.speed === speed ? 'active' : ''} onClick={() => setSpeed(speed)} key={speed}>×{speed}</button>)}</div><button className="skip" onClick={skip}>Passer</button></div>
-    <div className={`arena event-${event?.type ?? 'idle'} actor-${event?.actor ?? 'player'}`}><img className="arena-layer arena-background" src={assetsV05.arena.background} alt=""/><img className="arena-layer arena-ground-v05" src={assetsV05.arena.ground} alt=""/><div className="battle-hud"><div className="fighter-ui player-hud"><div><strong>{save.warrior.name}</strong><span>Niv. {save.warrior.level}</span></div><div className="health-bar"><i style={{ width: `${playerHp / effectiveStats(save).hp * 100}%` }}/></div><small>{playerHp} / {effectiveStats(save).hp} PV</small></div><div className="fighter-ui enemy-hud"><div><strong>{active.result.enemy.name}</strong><span>Niv. {active.enemyLevel}</span></div><div className="health-bar"><i style={{ width: `${enemyHp / active.result.enemy.stats.hp * 100}%` }}/></div><small>{enemyHp} / {active.result.enemy.stats.hp} PV</small></div></div><div className={`fighter player phase-${playerState} motion-${weaponMotion(save.equippedWeapon)}`}><img className="contact-shadow" src={assetsV05.arena.contactShadow} alt=""/><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon} state={playerState}/></div>
-      {ranged && ['anticipation-to-attack','attack'].includes(playerState) && <div className="projectile"><img src={assetsV05.effects.projectileArrow} alt=""/></div>}<div className={`impact-zone ${isCritical ? 'is-critical' : ''}`}>{event?.type === 'damage' && <><img className="production-impact" src={impactEffect} alt=""/><span className={isCritical ? 'critical' : ''}>−{event.value}</span>{isCritical && <em>CRITIQUE</em>}</>}{['skill','dodge','heal','bleed'].includes(event?.type ?? '') && <b>{event?.label ?? event?.type}</b>}{event?.type === 'dodge' && <img className="production-dodge" src={assetsV05.effects.dodgeTrail} alt=""/>}</div>
-      <div className={`fighter enemy phase-${enemyState} ${enemyId === 'mammoth' ? 'boss-fighter' : ''}`}><img className="contact-shadow" src={enemyId === 'mammoth' ? assetsV05.arena.bossShadow : assetsV05.arena.contactShadow} alt=""/><ProductionEnemy enemyId={enemyId} state={enemyState} boss={active.node === 20}/></div><img className="arena-layer arena-foreground" src={assetsV05.arena.foreground} alt=""/></div>
+    <div className={`arena event-${event?.type ?? 'idle'} actor-${event?.actor ?? 'player'}`}><img className="arena-layer arena-background" src={assetsV06.arena.background} alt=""/><img className="arena-layer arena-ground-v06" src={assetsV06.arena.ground} alt=""/><div className="battle-hud"><div className="fighter-ui player-hud"><div><strong>{save.warrior.name}</strong><span>Niv. {save.warrior.level}</span></div><div className="health-bar"><i style={{ width: `${playerHp / effectiveStats(save).hp * 100}%` }}/></div><small>{playerHp} / {effectiveStats(save).hp} PV</small></div><div className="fighter-ui enemy-hud"><div><strong>{active.result.enemy.name}</strong><span>Niv. {active.enemyLevel}</span></div><div className="health-bar"><i style={{ width: `${enemyHp / active.result.enemy.stats.hp * 100}%` }}/></div><small>{enemyHp} / {active.result.enemy.stats.hp} PV</small></div></div><div className={`fighter player phase-${playerState} motion-${weaponMotion(save.equippedWeapon)}`}><img className="contact-shadow" src={assetsV06.arena.contactShadow} alt=""/><ProductionWarrior appearance={save.warrior.appearance} weapon={save.equippedWeapon} state={playerState}/></div>
+      {ranged && ['anticipation','attack'].includes(playerState) && <div className="projectile from-player to-enemy"><img src={assetsV06.effects.projectileArrow} alt=""/></div>}<div className={`impact-zone target-${effectTarget} ${weaponMotion(save.equippedWeapon) === 'heavy' ? 'ground-impact' : ''} ${isCritical ? 'is-critical' : ''}`}>{event?.type === 'damage' && <><img className="production-impact" src={impactEffect} alt=""/><span className={isCritical ? 'critical' : ''}>−{event.value}</span>{isCritical && <em>CRITIQUE</em>}</>}{['skill','dodge','heal','bleed'].includes(event?.type ?? '') && <b>{event?.label ?? event?.type}</b>}{event?.type === 'dodge' && <img className="production-dodge" src={assetsV06.effects.dodgeTrail} alt=""/>}</div>
+      <div className={`fighter enemy phase-${enemyState} ${enemyId === 'mammoth' ? 'boss-fighter' : ''}`}><img className="contact-shadow" src={enemyId === 'mammoth' ? assetsV06.arena.bossShadow : assetsV06.arena.contactShadow} alt=""/><ProductionEnemy enemyId={enemyId} state={enemyState} boss={active.node === 20}/></div><img className="arena-layer arena-foreground" src={assetsV06.arena.foreground} alt=""/></div>
     {done && settled && summary && <div className="result-overlay"><div className={`result-sheet ${active.result.winner}`}><div className="result-mark">{active.result.winner === 'player' ? <Trophy/> : <GameIcon group="navigation" name="shield"/>}</div><span className="eyebrow">COMBAT TERMINÉ</span><h1>{active.result.winner === 'player' ? 'VICTOIRE' : 'DÉFAITE'}</h1><p>contre <strong>{active.result.enemy.name}</strong></p><div className="result-rewards"><span><GameIcon group="stats" name="xp"/><b>+{summary.xp}</b><small>XP Warrior</small></span><span><GameIcon group="stats" name="coins"/><b>+{summary.coins}</b><small>Pièces</small></span><span><GameIcon group="navigation" name="force"/><b>+{summary.weaponXp}</b><small>XP arme</small></span><span><GameIcon group="navigation" name="shield"/><b>+{summary.armorXp}</b><small>XP armure</small></span></div>{summary.levelUp > 0 && <div className="result-callout"><Sparkles/> Niveau {save.warrior.level} atteint</div>}{summary.badges.map((badge) => <div className="result-callout" key={badge}><GameIcon group="stats" name="badge"/> Badge débloqué : {badge}</div>)}{summary.campaignProgress && <div className="campaign-result"><GameIcon group="navigation" name="adventure"/><span>{summary.campaignProgress}</span></div>}<button className="primary wide" onClick={onExit}>CONTINUER</button></div></div>}
   </div>
 }
@@ -276,18 +284,18 @@ function SpriteLabFigure({ children, label, state }: { children: React.ReactNode
 }
 
 function SpriteLab() {
-  const appearance = (gender: 'Homme' | 'Femme') => ({ gender, skin: '#c68a63', hair: 'Sauvage' as const, hairColor: '#211914' })
+  const appearance = (sex: Appearance['sex']): Appearance => ({ sex, skinTone: 'skin-02', hairStyle: 'style-02', hairColor: 'hair-black' })
   const [grid, setGrid] = useState(true), [boxes, setBoxes] = useState(true), [baseline, setBaseline] = useState(true)
-  return <main className={`sprite-lab ${grid ? 'show-grid' : ''} ${boxes ? 'show-boxes' : ''} ${baseline ? 'show-baseline' : ''}`}><header><span className="eyebrow">OUTIL DE DÉVELOPPEMENT</span><h1>Sprite Lab V0.5</h1><p>Canvas joueur 512×512 constant, transitions incluses et groundY contrôlé.</p><div className="sprite-lab-controls"><label><input type="checkbox" checked={grid} onChange={(event) => setGrid(event.target.checked)}/> Quadrillage</label><label><input type="checkbox" checked={boxes} onChange={(event) => setBoxes(event.target.checked)}/> Bounding box</label><label><input type="checkbox" checked={baseline} onChange={(event) => setBaseline(event.target.checked)}/> Baseline</label></div></header>
+  return <main className={`sprite-lab ${grid ? 'show-grid' : ''} ${boxes ? 'show-boxes' : ''} ${baseline ? 'show-baseline' : ''}`}><header><span className="eyebrow">OUTIL DE DÉVELOPPEMENT</span><h1>Sprite Lab V0.6</h1><p>Une pose complète à la fois, canvas 512×512 constant et baseline commune.</p><div className="sprite-lab-controls"><label><input type="checkbox" checked={grid} onChange={(event) => setGrid(event.target.checked)}/> Quadrillage</label><label><input type="checkbox" checked={boxes} onChange={(event) => setBoxes(event.target.checked)}/> Bounding box</label><label><input type="checkbox" checked={baseline} onChange={(event) => setBaseline(event.target.checked)}/> Baseline</label></div></header>
     <section><h2>Équipements</h2><div className="sprite-lab-grid equipment">{equipment.map((item) => <SpriteLabFigure key={item.id} label={item.id} state={item.type}><img src={equipmentAsset(item.id, item.type)} alt=""/></SpriteLabFigure>)}</div></section>
-    {(['Homme','Femme'] as const).map((gender) => <section key={gender}><h2>Warrior {gender}</h2><div className="sprite-lab-grid player-v05-lab">{playerWeapons.flatMap((weapon) => playerStates.map((state) => <SpriteLabFigure key={`${gender}-${weapon}-${state}`} label={weapon} state={state}><ProductionWarrior appearance={appearance(gender)} weapon={weapon} state={state}/></SpriteLabFigure>))}</div></section>)}
+    {(['male','female'] as const).map((sex) => <section key={sex}><h2>Warrior {sexLabel(sex)}</h2><div className="sprite-lab-grid player-v06-lab">{playerWeapons.flatMap((weapon) => playerPoses.map((state) => <SpriteLabFigure key={`${sex}-${weapon}-${state}`} label={weapon} state={state}><ProductionWarrior appearance={appearance(sex)} weapon={weapon} state={state}/></SpriteLabFigure>))}</div></section>)}
     <section><h2>Ennemis</h2><div className="sprite-lab-grid">{enemyIds.flatMap((enemy) => spriteStates.filter((state) => !['victory'].includes(state)).map((state) => <SpriteLabFigure key={`${enemy}-${state}`} label={enemy} state={state}><ProductionEnemy enemyId={enemy} state={state}/></SpriteLabFigure>))}</div></section>
-    <section><h2>Ombres de contact</h2><div className="sprite-lab-grid effects">{[assetsV05.arena.contactShadow, assetsV05.arena.bossShadow].map((src) => <SpriteLabFigure key={src} label={src.includes('boss') ? 'boss' : 'standard'}><img src={src} alt=""/></SpriteLabFigure>)}</div></section>
-    <section><h2>Effets</h2><div className="sprite-lab-grid effects">{Object.entries(assetsV05.effects).map(([name, src]) => <SpriteLabFigure key={name} label={name}><img src={src} alt=""/></SpriteLabFigure>)}</div></section>
+    <section><h2>Ombres de contact</h2><div className="sprite-lab-grid effects">{[assetsV06.arena.contactShadow, assetsV06.arena.bossShadow].map((src) => <SpriteLabFigure key={src} label={src.includes('boss') ? 'boss' : 'standard'}><img src={src} alt=""/></SpriteLabFigure>)}</div></section>
+    <section><h2>Effets</h2><div className="sprite-lab-grid effects">{Object.entries(assetsV06.effects).map(([name, src]) => <SpriteLabFigure key={name} label={name}><img src={src} alt=""/></SpriteLabFigure>)}</div></section>
   </main>
 }
 
-export default function App() {
+function GameApp() {
   const qaMode = import.meta.env.DEV && new URLSearchParams(window.location.search).has('qaCreated')
   const [save, setSaveState] = useState<SaveData>(() => {
     const loaded = loadSave()
@@ -296,7 +304,7 @@ export default function App() {
     const qaWeapon = query.get('qaWeapon'), qaGender = query.get('qaGender')
     const weapon = qaWeapon && equipment.some((item) => item.type === 'weapon' && item.id === qaWeapon) ? qaWeapon : loaded.equippedWeapon
     const owned = loaded.owned[weapon] ? loaded.owned : { ...loaded.owned, [weapon]: { level: 1, xp: 0, kills: 0 } }
-    return { ...loaded, created: !query.has('qaCreation'), coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, warrior: { ...loaded.warrior, name: loaded.warrior.name || 'Warrior QA', appearance: { ...loaded.warrior.appearance, gender: qaGender === 'female' ? 'Femme' : qaGender === 'male' ? 'Homme' : loaded.warrior.appearance.gender } } }
+    return { ...loaded, created: !query.has('qaCreation'), coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, warrior: { ...loaded.warrior, name: loaded.warrior.name || 'Warrior QA', skills: query.get('qaSkills') === 'all' ? [...skills] : loaded.warrior.skills, appearance: { ...loaded.warrior.appearance, sex: qaGender === 'female' ? 'female' : qaGender === 'male' ? 'male' : loaded.warrior.appearance.sex } } }
   }), [view, setView] = useState<View>('hub'), [detail, setDetail] = useState<EquipmentDefinition | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(null)
   const initial = useRef(true)
   const setSave = (next: SaveData) => setSaveState(next)
@@ -324,4 +332,8 @@ export default function App() {
   return <div className="app-shell"><Header save={save} view={view} setView={setView}/><main className="main-content">{content}</main><nav className="bottom-nav" aria-label="Navigation principale">{nav.map(({ id, label, icon }) => <button aria-label={label} className={view === id ? 'active' : ''} onClick={() => setView(id)} key={id}><GameIcon group="navigation" name={icon}/><span>{label}</span></button>)}</nav>
     {detail && <div className="modal-backdrop" onClick={() => setDetail(null)}><section className={`detail-sheet ${rarityClass(detail.rarity)}`} onClick={(event) => event.stopPropagation()}><button className="close" onClick={() => setDetail(null)}><X/></button><EquipmentArt item={detail}/><span className="rarity-label">{detail.rarity}</span><h2>{detail.name}</h2><p className="bonus">{detail.bonus}</p><p>{detail.effect}</p>{save.owned[detail.id] ? <><div className="detail-level"><span>Niveau {save.owned[detail.id].level}</span><span>{save.owned[detail.id].xp} XP cumulée</span></div><button className="primary wide" disabled={[save.equippedWeapon, save.equippedArmor].includes(detail.id)} onClick={() => { equip(detail); setDetail(null) }}>{[save.equippedWeapon, save.equippedArmor].includes(detail.id) ? 'ÉQUIPÉ' : 'ÉQUIPER'}</button></> : <div className="locked-copy"><GameIcon group="system" name="lock"/>À découvrir dans un coffre</div>}</section></div>}
     {save.pendingLevelChoice && <LevelChoice save={save} setSave={setSave}/>} {save.bossTrophyPending && <TrophyChoice save={save} setSave={setSave}/>}</div>
+}
+
+export default function App() {
+  return <GameApp/>
 }

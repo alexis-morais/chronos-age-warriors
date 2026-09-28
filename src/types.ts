@@ -3,15 +3,18 @@ export type Rarity = 'Commun' | 'Peu commun' | 'Rare' | 'Épique' | 'Légendaire
 export type EquipmentType = 'weapon' | 'armor'
 export type BattleSpeed = 1 | 2 | 3
 export type View = 'hub' | 'collection' | 'training' | 'chest' | 'duel' | 'adventure' | 'battle'
+export type CharacterSex = 'male' | 'female'
+export type HairStyle = 'style-01' | 'style-02' | 'style-03'
+export type HairColor = 'hair-brown' | 'hair-black' | 'hair-blond' | 'hair-red'
+export type SkinTone = 'skin-01' | 'skin-02' | 'skin-03' | 'skin-04'
 
 export interface Stats { strength: number; dodge: number; speed: number; hp: number }
 
 export interface Appearance {
-  gender: 'Homme' | 'Femme'
-  skin: string
-  hair: 'Crête' | 'Tresses' | 'Sauvage'
-  hairColor: string
-  beard?: boolean
+  sex: CharacterSex
+  hairStyle: HairStyle
+  hairColor: HairColor
+  skinTone: SkinTone
 }
 
 export interface EquipmentDefinition {

@@ -1,4 +1,5 @@
 import { initialStats, seededRng } from './game'
+import { DEFAULT_APPEARANCE, normalizeAppearance } from './character'
 import type { SaveData } from './types'
 
 export const SAVE_KEY = 'chronos-age-warriors:v1'
@@ -8,7 +9,7 @@ export const localDate = (date = new Date()) => date.toLocaleDateString('sv-SE')
 export function freshSave(seed = Date.now()): SaveData {
   return {
     version: SAVE_VERSION, created: false,
-    warrior: { name: '', appearance: { gender: 'Homme', skin: '#b97852', hair: 'Crête', hairColor: '#211914', beard: false }, level: 1, xp: 0, stats: initialStats(seededRng(seed)), skills: [] },
+    warrior: { name: '', appearance: { ...DEFAULT_APPEARANCE }, level: 1, xp: 0, stats: initialStats(seededRng(seed)), skills: [] },
     coins: 300,
     owned: { 'flint-club': { level: 1, xp: 0, kills: 0 }, 'hunter-hides': { level: 1, xp: 0, kills: 0 } },
     equippedWeapon: 'flint-club', equippedArmor: 'hunter-hides', campaignNode: 1, defeatedNodes: [], campaignRemaining: 10,
@@ -28,6 +29,7 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage): Save
     if (!raw) return freshSave()
     const parsed = JSON.parse(raw) as SaveData
     if (parsed.version !== SAVE_VERSION) return freshSave()
+    parsed.warrior.appearance = normalizeAppearance(parsed.warrior.appearance)
     return dailyReset(parsed)
   } catch { return freshSave() }
 }

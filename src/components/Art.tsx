@@ -1,5 +1,7 @@
 import type { Appearance, EquipmentDefinition } from '../types'
-import { enemySprite, equipmentAsset, gameIcon, hubPortrait, playerSprite, resolveEnemyId, resolvePlayerWeapon, weaponMotion, type EnemyId, type PlayerState, type SpriteState } from '../art/assetsV05'
+import { sexLabel } from '../character'
+import { resolveCanonicalCreationCharacter } from '../art/creationCharacterAssets'
+import { enemySprite, equipmentAsset, gameIcon, heroPortrait, playerSprite, resolveEnemyId, resolvePlayerWeapon, weaponMotion, type EnemyId, type PlayerState, type SpriteState } from '../art/assetsV06'
 
 const line = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 
@@ -29,55 +31,20 @@ export function EquipmentArt({ item, compact = false, silhouette = false }: { it
   return <svg className={`equipment-art ${compact ? 'compact' : ''} silhouette`} viewBox="0 0 160 130" role="img" aria-label={`Silhouette verrouillée — ${item.type === 'weapon' ? 'arme' : 'armure'}`}><circle cx="80" cy="65" r="62" fill="currentColor" opacity=".08"/>{item.type === 'weapon' ? <WeaponIllustration art={item.art}/> : <ArmorIllustration art={item.art}/>}</svg>
 }
 
-function WornArmor({ armor }: { armor?: string }) {
-  if (armor === 'bone-harness') return <><path d="m70 139 79 69m0-69-79 69M109 127v94" stroke="#ded2b5" strokeWidth="12" strokeLinecap="round"/><circle cx="109" cy="174" r="15" fill="#b7a98a"/></>
-  if (armor === 'mammoth-plate') return <><path d="M59 139q50-35 100 0l-13 86H72Z" fill="#75624d"/><path d="m63 146-20 16 22 27m90-43 20 16-22 27" stroke="#e8d7ad" strokeWidth="14" strokeLinecap="round"/><path d="M109 132v91" stroke="#c9a969" strokeWidth="6"/></>
-  if (armor === 'volcanic-shell') return <><path d="M60 138q49-33 98 0l-12 87H73Z" fill="#302b2d"/><path d="m70 145 25 28-12 44m65-72-25 28 12 44" {...line} stroke="#ee6332" strokeWidth="7"/><path d="m91 144 18 26 17-27" {...line} stroke="#ffab45" strokeWidth="4"/></>
-  if (armor === 'white-titan-fur') return <><path d="M55 142q54-45 108 0l-11 84H66Z" fill="#d9d8d1"/><path d="m58 145 14-25 18 14 19-20 19 19 19-14 16 26-19 19-18-9-17 13-19-13-17 10Z" fill="#f3efe5"/><path d="m78 176 31 16 31-16" {...line} stroke="#969ba0" strokeWidth="5"/></>
-  if (armor === 'primordial-titan-skin') return <><path d="M58 139q51-37 102 0l-12 87H70Z" fill="#17131f"/><path d="m69 145 40 28 40-28M109 130v93" {...line} stroke="#8f5fc4" strokeWidth="6"/><circle cx="109" cy="174" r="10" fill="#b47ae7"/></>
-  return <><path d="M60 139q49-32 98 0l-12 87H73Z" fill="#684a34"/><path d="m64 143 18-14 15 14 15-16 16 15 20-13 10 18-20 16-25-8-20 10-23-17Z" fill="#9a7550"/></>
+function CharacterPortrait({ appearance, context, className = '' }: { appearance: Appearance; context: 'hub' | 'creation'; className?: string }) {
+  return <div className={`${context}-portrait hero-portrait ${className}`} role="img" aria-label={`Warrior ${sexLabel(appearance.sex)}, portrait ${context}`}><img src={heroPortrait(appearance.sex)} alt="" draggable={false}/></div>
 }
 
-function HeldWeapon({ weapon }: { weapon?: string }) {
-  const id = weapon ?? 'flint-club'
-  if (id === 'hunter-bow') return <g className="weapon-layer"><path d="M8 8q51 48 1 104" {...line} stroke="#936039" strokeWidth="7"/><path d="M8 8 9 112" stroke="#ead9bd" strokeWidth="2"/><path d="M-2 61h54" stroke="#d9c9b0" strokeWidth="3"/><path d="m58 61-14-8v16Z" fill="#d4c6aa"/></g>
-  if (id === 'volcanic-hammer') return <g className="weapon-layer"><path d="M12 35v91" stroke="#5e3c27" strokeWidth="12"/><path d="M-23 5h70l-6 41h-58Z" fill="#282426" stroke="#100f10" strokeWidth="5"/><path d="m-12 10 12 16 13-8 11 22 11-16" {...line} stroke="#f06430" strokeWidth="4"/></g>
-  if (id === 'smilodon-fangs') return <g className="weapon-layer"><path d="M-8 9q33 29 27 84-10 13-19 2Q9 55-13 23Z" fill="#eadab5" stroke="#4c4438" strokeWidth="4"/><path d="M22 2q31 31 22 82-9 11-18 1 11-37-9-69Z" fill="#f3e5c1" stroke="#4c4438" strokeWidth="4"/></g>
-  if (id === 'tyrant-claw') return <g className="weapon-layer"><path d="M7 42v85" stroke="#5f3426" strokeWidth="13"/><path d="M-12 44Q-10 4 15-8q4 22-5 40 16-25 35-25-3 28-29 47 22-11 37 2-15 21-48 25Z" fill="#c3924c" stroke="#38231a" strokeWidth="4"/></g>
-  if (id === 'titan-heart') return <g className="weapon-layer"><path d="M12 61v66" stroke="#33243e" strokeWidth="11"/><path d="M12 69-21 35Q-33 10-11 1 5-6 12 11 20-6 36 1q22 9 10 34Z" fill="#25152f" stroke="#0c0910" strokeWidth="5"/><path d="m-15 35 18-1 7-19 9 34 8-16h14" {...line} stroke="#bc7bfb" strokeWidth="3"/></g>
-  if (id === 'obsidian-axe') return <g className="weapon-layer"><path d="M10 37v90" stroke="#493328" strokeWidth="10"/><path d="M8 36Q31 9 59 24q-5 31-45 44L5 51Z" fill="#15171d" stroke="#07080b" strokeWidth="5"/><path d="M18 34q17-12 32-6" {...line} stroke="#787e96" strokeWidth="2"/></g>
-  const mammoth = id === 'mammoth-spear', spear = id === 'bone-spear' || mammoth
-  if (spear) return <g className="weapon-layer"><path d="M10 25v108" stroke="#67432d" strokeWidth="9"/><path d={mammoth ? 'M10-14q26 18 15 43L10 45-5 29Q-16 6 10-14Z' : 'm10-8 18 31-18 17-18-17Z'} fill="#ead9b3" stroke="#514638" strokeWidth="4"/><path d="M-2 34h24m-22 9h20" stroke="#b87843" strokeWidth="4"/></g>
-  return <g className="weapon-layer"><path d="M9 42v87" stroke="#68452d" strokeWidth="12"/><path d="m-10 48 8-37 28-8 22 24-14 37-28 7Z" fill={id === 'flint-club' ? '#77766e' : '#3b3046'} stroke="#282824" strokeWidth="5"/><path d="M-3 48h39m-37 9h34" stroke="#c19a61" strokeWidth="5"/></g>
+export function HubWarrior({ appearance, className = '' }: { appearance: Appearance; className?: string }) {
+  return <CharacterPortrait appearance={appearance} context="hub" className={className}/>
 }
 
-export function WarriorAvatar({ appearance, weapon, armor, enemy = false, className = '' }: { appearance: Appearance; weapon?: string; armor?: string; enemy?: boolean; className?: string }) {
-  const skin = enemy ? '#88654e' : appearance.skin, hair = enemy ? '#241d18' : appearance.hairColor
-  return <svg className={`warrior ${appearance.gender === 'Femme' ? 'female-warrior' : 'male-warrior'} ${className}`} viewBox="0 0 220 270" role="img" aria-label={enemy ? 'Adversaire' : 'Warrior'}>
-    <ellipse className="warrior-shadow" cx="110" cy="252" rx="55" ry="9" fill="#000" opacity=".3"/>
-    <g className="body-layer">
-      <path d="m83 204-5 38m59-38 5 38" stroke="#30251e" strokeWidth="23" strokeLinecap="round"/>
-      <path d="m72 244 28 1m21 0 29-1" stroke="#171310" strokeWidth="15" strokeLinecap="round"/>
-      <path d="M66 143q44-27 88 0l-8 82H74Z" fill="#6b4a32" stroke="#2d2119" strokeWidth="5"/>
-      <path d="M77 208h65l-6 19H84Z" fill="#3d2b22"/><path d="M107 145v77" stroke="#c39a5d" strokeWidth="5" opacity=".75"/>
-      <path d="m69 151-30 45" stroke={skin} strokeWidth="18" strokeLinecap="round"/><circle cx="36" cy="201" r="10" fill={skin}/>
-      <WornArmor armor={armor}/>
-      <path d="M75 143q35 24 70 0" {...line} stroke="#dfb96d" strokeWidth="6" opacity=".8"/>
-      <circle cx="110" cy="92" r="39" fill={skin} stroke="#2a1e18" strokeWidth="5"/>
-      <path d="M83 89q10-8 19-1m16 0q10-7 20 1" {...line} stroke="#2b201b" strokeWidth="5"/>
-      <ellipse cx="94" cy="96" rx="3.5" ry="4.5" fill="#17120f"/><ellipse cx="127" cy="96" rx="3.5" ry="4.5" fill="#17120f"/>
-      <path d="m108 98-3 13 8 1M100 122q10 5 20 0" {...line} stroke="#704034" strokeWidth="3.5"/>
-      {appearance.hair === 'Crête' && <path d="M75 79q4-46 34-52 32 4 38 46l-16-13-14 6-15-7-18 13Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}
-      {appearance.hair === 'Tresses' && <><path d="M73 81q0-49 36-54 39 3 39 52l-14-17-14 7-13-8-17 9-11-7Z" fill={hair} stroke="#241b16" strokeWidth="4"/><path d="m78 68-5 61m72-61 6 61" stroke={hair} strokeWidth="10" strokeLinecap="round"/></>}
-      {appearance.hair === 'Sauvage' && <path d="m72 80 4-40 18 5 14-25 15 22 22-10 4 45-16-15-15 8-14-9-19 12Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}
-      {appearance.gender === 'Homme' && appearance.beard && <path d="M82 109q5 35 28 42 24-8 29-42l-15 13-14-5-13 5Z" fill={hair} stroke="#241b16" strokeWidth="4"/>}
-      <g className="weapon-arm" transform="translate(151 145) rotate(8)">
-        <path d="M0 8 18 47" stroke={skin} strokeWidth="18" strokeLinecap="round"/>
-        <g transform="translate(15 35)"><HeldWeapon weapon={weapon}/></g>
-        <circle className="weapon-hand" cx="18" cy="47" r="11" fill={skin}/>
-      </g>
-    </g>
-  </svg>
+export function CharacterPreview({ appearance, className = '' }: { appearance: Appearance; className?: string }) {
+  return <div className={`character-preview-v07 ${className}`} role="img" aria-label={`Aperçu du Warrior ${sexLabel(appearance.sex)}`}>
+    <div className="character-preview-v07-stack">
+      <img className="character-preview-v07-image" src={resolveCanonicalCreationCharacter(appearance)} alt="" draggable={false}/>
+    </div>
+  </div>
 }
 
 export function EnemyAvatar({ variant = 0, className = '' }: { variant?: number; className?: string }) {
@@ -85,14 +52,8 @@ export function EnemyAvatar({ variant = 0, className = '' }: { variant?: number;
 }
 
 export function ProductionWarrior({ appearance, weapon, state = 'idle', className = '' }: { appearance: Appearance; weapon?: string; state?: PlayerState; className?: string }) {
-  const sex = appearance.gender === 'Femme' ? 'female' : 'male'
-  const src = playerSprite(sex, weapon, state)
-  return <div className={`warrior-sprite player-v05 weapon-${resolvePlayerWeapon(weapon)} motion-${weaponMotion(weapon)} state-${state} ${className}`} role="img" aria-label={`Warrior ${appearance.gender}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
-}
-
-export function HubPortrait({ appearance, className = '' }: { appearance: Appearance; className?: string }) {
-  const sex = appearance.gender === 'Femme' ? 'female' : 'male'
-  return <div className={`hub-portrait ${className}`} role="img" aria-label={`Portrait du Warrior ${appearance.gender}`}><img src={hubPortrait(sex)} alt="" draggable={false}/></div>
+  const src = playerSprite(appearance.sex, weapon, state)
+  return <div className={`warrior-sprite player-v06 weapon-${resolvePlayerWeapon(weapon)} motion-${weaponMotion(weapon)} state-${state} ${className}`} role="img" aria-label={`Warrior ${sexLabel(appearance.sex)}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
 }
 
 export function GameIcon({ group, name, className = '' }: { group: 'navigation' | 'stats' | 'system'; name: string; className?: string }) {

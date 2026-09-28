@@ -8,3 +8,19 @@ dist/
 coverage/
 .pnpm-store/
 .sites-runtime/
+.cache/
+.tmp/
+tmp/
+*.log
+playwright-report/
+test-results/
+qa-output/
+docs/qa/
+
+# V0.6 production keeps only optimized runtime exports under public/assets-v06.
+public/assets-v06/source/
+public/assets-v06/source-clean/
+public/assets-v06/source-v06/
+public/assets-v06/qa/
+public/assets-v06/customization/
+public/assets-v06/player/
