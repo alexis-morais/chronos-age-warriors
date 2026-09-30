@@ -3,19 +3,10 @@ export type Rarity = 'Commun' | 'Peu commun' | 'Rare' | 'Épique' | 'Légendaire
 export type EquipmentType = 'weapon' | 'armor'
 export type BattleSpeed = 1 | 2 | 3
 export type View = 'hub' | 'collection' | 'training' | 'chest' | 'duel' | 'adventure' | 'battle'
-export type CharacterSex = 'male' | 'female'
-export type HairStyle = 'style-01' | 'style-02' | 'style-03'
-export type HairColor = 'hair-brown' | 'hair-black' | 'hair-blond' | 'hair-red'
-export type SkinTone = 'skin-01' | 'skin-02' | 'skin-03' | 'skin-04'
-
 export interface Stats { strength: number; dodge: number; speed: number; hp: number }
 
-export interface Appearance {
-  sex: CharacterSex
-  hairStyle: HairStyle
-  hairColor: HairColor
-  skinTone: SkinTone
-}
+export interface WarriorDefinition { id: string; name: string; era: string; rarity: Rarity; baseStats: Stats; art: string | null }
+export interface OwnedWarrior { warriorId: string; level: number; xp: number; bonusStats: Stats }
 
 export interface EquipmentDefinition {
   id: string
@@ -29,21 +20,13 @@ export interface EquipmentDefinition {
 
 export interface OwnedEquipment { level: number; xp: number; kills: number }
 
-export interface Warrior {
-  name: string
-  appearance: Appearance
-  level: number
-  xp: number
-  stats: Stats
-  skills: string[]
-}
-
 export interface BadgeState { id: string; unlockedAt?: string }
 
 export interface SaveData {
   version: number
-  created: boolean
-  warrior: Warrior
+  activeWarriorId: string
+  ownedWarriors: Record<string, OwnedWarrior>
+  unlockedSkills: string[]
   coins: number
   owned: Record<string, OwnedEquipment>
   equippedWeapon: string

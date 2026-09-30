@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { assetsV06, gameIcon, heroPortrait, playerCanvas, playerPoses, playerSprite, playerWeapons, resolvePlayerWeapon, v04RuntimeFallbacks } from './assetsV06'
+import { assetsV06, gameIcon, playerCanvas, playerPoses, playerSprite, playerWeapons, resolvePlayerWeapon, v04RuntimeFallbacks } from './assetsV06'
 
 describe('pipeline runtime V0.6', () => {
   it('résout exactement 108 poses propres, sans frame de transition', () => {
@@ -23,13 +23,6 @@ describe('pipeline runtime V0.6', () => {
     expect(playerSprite('female', 'hunter-bow', 'victory')).toBe(playerSprite('female', 'hunter-bow', 'idle'))
   })
 
-  it('sépare les portraits Hero des poses de combat', () => {
-    expect(heroPortrait('male')).toBe('/assets-v06/hub/hub-male.png')
-    expect(heroPortrait('female')).toBe('/assets-v06/hub/hub-female.png')
-    expect(heroPortrait('male')).not.toContain('/player/')
-    expect(heroPortrait('male')).not.toMatch(/attack|anticipation|dodge|hurt|ko/)
-  })
-
   it('publie un canvas canonique et une ancre de pieds stable', () => {
     expect(playerCanvas).toEqual({ width: 768, height: 512, anchorX: 384, groundY: 462, bodyHeight: 126 })
   })
@@ -38,7 +31,7 @@ describe('pipeline runtime V0.6', () => {
     expect(resolvePlayerWeapon('flint-club')).toBe('massue-silex')
     expect(resolvePlayerWeapon('hunter-bow')).toBe('arc-chasseur')
     const paths = [
-      assetsV06.brand.logo, ...Object.values(assetsV06.hero), ...Object.values(assetsV06.arena),
+      assetsV06.brand.logo, ...Object.values(assetsV06.arena),
       ...Object.values(assetsV06.chest), ...Object.values(assetsV06.effects), gameIcon('navigation', 'hub'),
     ]
     expect(paths.every((path) => path.startsWith('/assets-v06/'))).toBe(true)

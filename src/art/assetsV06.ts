@@ -17,9 +17,6 @@ const weaponAliases: Record<string, PlayerWeapon> = {
 
 export const assetsV06 = {
   brand: { logo: `${V06_ROOT}/branding/logo.png` },
-  hero: {
-    male: `${V06_ROOT}/hub/hub-male.png`, female: `${V06_ROOT}/hub/hub-female.png`,
-  },
   arena: {
     background: `${V06_ROOT}/arena/primordial/background-full.png`, ground: `${V06_ROOT}/arena/primordial/ground.png`,
     foreground: `${V06_ROOT}/arena/primordial/foreground.png`, contactShadow: `${V06_ROOT}/arena/primordial/contact-shadow.png`,
@@ -48,7 +45,6 @@ export function playerSprite(sex: PlayerSex, weapon: string | undefined, state: 
   return `${V06_ROOT}/derived/player/${sex}/${resolvePlayerWeapon(weapon)}/${pose}.png`
 }
 
-export function heroPortrait(sex: PlayerSex) { return assetsV06.hero[sex] }
 export function gameIcon(group: keyof typeof assetsV06.icons, name: string) { return assetsV06.icons[group][name] }
 export { enemySprite, equipmentAsset, resolveEnemyId, weaponMotion }
 export type { EnemyId, SpriteState, WeaponMotion }

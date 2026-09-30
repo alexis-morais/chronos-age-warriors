@@ -1,19 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { RARITY_CHANCES } from './config'
-import { addWarriorXp, compareEquipmentStats, damageForStrength, dodgeChance, equipmentLevelFromXp, equipmentStats, equipItem, initialStats, rollChest, seededRng, simulateBattle, speedWeight, xpForLevel } from './game'
+import { addWarriorXp, compareEquipmentStats, damageForStrength, dodgeChance, equipmentLevelFromXp, equipmentStats, equipItem, rollChest, seededRng, simulateBattle, speedWeight, xpForLevel } from './game'
 import { dailyReset, freshSave, loadSave, persistSave, SAVE_KEY } from './storage'
 import type { Fighter } from './types'
-
-describe('RNG initiale', () => {
-  it('distribue exactement 8 points avec un plafond de 4', () => {
-    for (let seed = 0; seed < 100; seed += 1) {
-      const stats = initialStats(seededRng(seed))
-      const points = stats.strength - 4 + stats.dodge - 4 + stats.speed - 4 + (stats.hp - 100) / 10
-      expect(points).toBe(8)
-      expect(Math.max(stats.strength - 4, stats.dodge - 4, stats.speed - 4, (stats.hp - 100) / 10)).toBeLessThanOrEqual(4)
-    }
-  })
-})
+import { activeWarrior, DEV_WARRIOR_ID } from './warriors'
 
 describe('formules de combat', () => {
   it('calcule des dégâts croissants et la vitesse pondérée', () => {
@@ -43,12 +33,12 @@ describe('progression', () => {
     expect(equipmentLevelFromXp(960).level).toBe(10)
   })
   it('propose un choix au niveau 5 et permet l’attribution de compétence', () => {
-    const save = freshSave(2); save.warrior.level = 4
+    const save = freshSave(); save.ownedWarriors[save.activeWarriorId].level = 4
     addWarriorXp(save, xpForLevel(4), seededRng(1))
-    expect(save.warrior.level).toBe(5)
+    expect(save.ownedWarriors[save.activeWarriorId].level).toBe(5)
     expect(save.pendingLevelChoice).toBe(true)
-    save.warrior.skills.push('Rage')
-    expect(save.warrior.skills).toContain('Rage')
+    save.unlockedSkills.push('Rage')
+    expect(save.unlockedSkills).toContain('Rage')
   })
 })
 
@@ -85,6 +75,23 @@ describe('gacha et doublons', () => {
 })
 
 describe('sauvegarde et reset quotidien', () => {
+  it('démarre sans création avec un Warrior de développement actif', () => {
+    const save = freshSave()
+    expect(save.activeWarriorId).toBe(DEV_WARRIOR_ID)
+    expect(Object.keys(save.ownedWarriors)).toEqual([DEV_WARRIOR_ID])
+    expect(activeWarrior(save).stats).toEqual({ strength: 6, dodge: 6, speed: 6, hp: 120 })
+    expect('created' in save).toBe(false)
+    expect('appearance' in save).toBe(false)
+  })
+  it('écarte une sauvegarde v2 invalide et garde la v1 intacte sans migration', () => {
+    const memory = new Map<string, string>([
+      ['chronos-age-warriors:v1', JSON.stringify({ version: 1, warrior: { name: 'Ancien' } })],
+      [SAVE_KEY, JSON.stringify({ version: 2, activeWarriorId: 'missing', ownedWarriors: {}, unlockedSkills: [] })],
+    ])
+    const loaded = loadSave({ getItem: (key: string) => memory.get(key) ?? null })
+    expect(loaded.activeWarriorId).toBe(DEV_WARRIOR_ID)
+    expect(memory.has('chronos-age-warriors:v1')).toBe(true)
+  })
   it('persiste notamment la vitesse x1/x2/x3', () => {
     const memory = new Map<string, string>()
     const storage = { getItem: (key: string) => memory.get(key) ?? null, setItem: (key: string, value: string) => { memory.set(key, value) } }

@@ -1,15 +1,16 @@
-import { initialStats, seededRng } from './game'
-import { DEFAULT_APPEARANCE, normalizeAppearance } from './character'
 import type { SaveData } from './types'
+import { DEV_WARRIOR_ID, warriorDefinitions } from './warriors'
 
-export const SAVE_KEY = 'chronos-age-warriors:v1'
-export const SAVE_VERSION = 1
+export const SAVE_KEY = 'chronos-age-warriors:v2'
+export const SAVE_VERSION = 2
 export const localDate = (date = new Date()) => date.toLocaleDateString('sv-SE')
 
-export function freshSave(seed = Date.now()): SaveData {
+export function freshSave(): SaveData {
   return {
-    version: SAVE_VERSION, created: false,
-    warrior: { name: '', appearance: { ...DEFAULT_APPEARANCE }, level: 1, xp: 0, stats: initialStats(seededRng(seed)), skills: [] },
+    version: SAVE_VERSION,
+    activeWarriorId: DEV_WARRIOR_ID,
+    ownedWarriors: { [DEV_WARRIOR_ID]: { warriorId: DEV_WARRIOR_ID, level: 1, xp: 0, bonusStats: { strength: 0, dodge: 0, speed: 0, hp: 0 } } },
+    unlockedSkills: [],
     coins: 300,
     owned: { 'flint-club': { level: 1, xp: 0, kills: 0 }, 'hunter-hides': { level: 1, xp: 0, kills: 0 } },
     equippedWeapon: 'flint-club', equippedArmor: 'hunter-hides', campaignNode: 1, defeatedNodes: [], campaignRemaining: 10,
@@ -28,8 +29,7 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage): Save
     const raw = storage.getItem(SAVE_KEY)
     if (!raw) return freshSave()
     const parsed = JSON.parse(raw) as SaveData
-    if (parsed.version !== SAVE_VERSION) return freshSave()
-    parsed.warrior.appearance = normalizeAppearance(parsed.warrior.appearance)
+    if (parsed.version !== SAVE_VERSION || !warriorDefinitions[parsed.activeWarriorId] || parsed.ownedWarriors?.[parsed.activeWarriorId]?.warriorId !== parsed.activeWarriorId || !Array.isArray(parsed.unlockedSkills)) return freshSave()
     return dailyReset(parsed)
   } catch { return freshSave() }
 }

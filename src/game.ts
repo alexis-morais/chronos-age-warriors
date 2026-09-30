@@ -1,6 +1,7 @@
 import { DUPLICATE_REWARDS, EQUIPMENT_XP, GAME, RARITY_CHANCES, rarityOrder } from './config'
 import { equipment, skills } from './data'
-import type { BattleResult, Fighter, OwnedEquipment, Rarity, SaveData, StatKey, Stats } from './types'
+import type { BattleResult, Fighter, OwnedEquipment, Rarity, SaveData, Stats } from './types'
+import { activeWarrior } from './warriors'
 
 export type Rng = () => number
 
@@ -13,19 +14,6 @@ export function seededRng(seed: number): Rng {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
-}
-
-export function initialStats(rng: Rng): Stats {
-  const stats: Stats = { strength: 4, dodge: 4, speed: 4, hp: 100 }
-  const spent: Record<StatKey, number> = { strength: 0, dodge: 0, speed: 0, hp: 0 }
-  const keys: StatKey[] = ['strength', 'dodge', 'speed', 'hp']
-  for (let i = 0; i < 8; i += 1) {
-    const available = keys.filter((key) => spent[key] < 4)
-    const key = available[Math.floor(rng() * available.length)]
-    spent[key] += 1
-    stats[key] += key === 'hp' ? 10 : 1
-  }
-  return stats
 }
 
 export const xpForLevel = (level: number) => Math.round(250 + 35 * level + 1.2 * level ** 2)
@@ -77,7 +65,7 @@ export function equipItem(save: SaveData, itemId: string): SaveData {
 }
 
 export function effectiveStats(save: SaveData): Stats {
-  const result = { ...save.warrior.stats }
+  const result = { ...activeWarrior(save).stats }
   const apply = (id: string) => {
     const owned = save.owned[id]
     if (!owned) return
@@ -208,17 +196,18 @@ export function grantEquipmentXp(item: OwnedEquipment, amount: number) {
 }
 
 export function addWarriorXp(save: SaveData, amount: number, rng: Rng = Math.random) {
-  save.warrior.xp += amount
+  const warrior = save.ownedWarriors[save.activeWarriorId]
+  warrior.xp += amount
   let levels = 0
-  while (save.warrior.level < GAME.maxWarriorLevel && save.warrior.xp >= xpForLevel(save.warrior.level)) {
-    save.warrior.xp -= xpForLevel(save.warrior.level)
-    save.warrior.level += 1
-    save.warrior.stats.strength += 1
-    save.warrior.stats.dodge += 1
-    save.warrior.stats.speed += 1
-    save.warrior.stats.hp += 10
+  while (warrior.level < GAME.maxWarriorLevel && warrior.xp >= xpForLevel(warrior.level)) {
+    warrior.xp -= xpForLevel(warrior.level)
+    warrior.level += 1
+    warrior.bonusStats.strength += 1
+    warrior.bonusStats.dodge += 1
+    warrior.bonusStats.speed += 1
+    warrior.bonusStats.hp += 10
     levels += 1
-    if (save.warrior.level % 5 === 0) save.pendingLevelChoice = true
+    if (warrior.level % 5 === 0) save.pendingLevelChoice = true
   }
   void rng
   return levels

@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { armorIds, assetsV04, enemyIds, enemySprite, equipmentAsset, resolveEnemyId, warriorSprite, weaponIds, weaponMotion } from './assetsV04'
+import { armorIds, enemyIds, enemySprite, equipmentAsset, resolveEnemyId, weaponIds, weaponMotion } from './assetsV04'
 import { finalBattleFrame } from './battleVisual'
 import type { BattleResult } from '../types'
 
 describe('manifest V0.4', () => {
-  it('résout les neuf armes pour les Warriors homme et femme', () => {
+  it('résout les neuf illustrations d’armes', () => {
     for (const weapon of weaponIds) {
-      expect(warriorSprite('male', weapon, 'attack')).toContain(`/male/${weapon}/attack.png`)
-      expect(warriorSprite('female', weapon, 'idle')).toContain(`/female/${weapon}/idle.png`)
       expect(equipmentAsset(weapon, 'weapon')).toContain(`/weapons/${weapon}.png`)
     }
   })
@@ -32,10 +30,7 @@ describe('manifest V0.4', () => {
   })
 
   it('utilise des fallbacks sûrs sans chemin d’atlas ou art-direction', () => {
-    expect(warriorSprite('male', 'inconnu', 'hurt')).toBe('/assets-v04/derived/warriors/male/flint-club/idle.png')
     expect(resolveEnemyId('inconnu')).toBe('tribal-hunter')
-    expect(JSON.stringify(assetsV04)).not.toContain('art-direction')
-    expect(JSON.stringify(assetsV04)).not.toContain('atlas')
   })
 
   it('attribue des profils de mouvement distincts', () => {

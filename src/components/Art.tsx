@@ -1,7 +1,5 @@
-import type { Appearance, EquipmentDefinition } from '../types'
-import { sexLabel } from '../character'
-import { resolveCanonicalCreationCharacter } from '../art/creationCharacterAssets'
-import { enemySprite, equipmentAsset, gameIcon, heroPortrait, playerSprite, resolveEnemyId, resolvePlayerWeapon, weaponMotion, type EnemyId, type PlayerState, type SpriteState } from '../art/assetsV06'
+import type { EquipmentDefinition } from '../types'
+import { enemySprite, equipmentAsset, gameIcon, playerSprite, resolveEnemyId, resolvePlayerWeapon, weaponMotion, type EnemyId, type PlayerState, type SpriteState } from '../art/assetsV06'
 
 const line = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 
@@ -31,29 +29,14 @@ export function EquipmentArt({ item, compact = false, silhouette = false }: { it
   return <svg className={`equipment-art ${compact ? 'compact' : ''} silhouette`} viewBox="0 0 160 130" role="img" aria-label={`Silhouette verrouillée — ${item.type === 'weapon' ? 'arme' : 'armure'}`}><circle cx="80" cy="65" r="62" fill="currentColor" opacity=".08"/>{item.type === 'weapon' ? <WeaponIllustration art={item.art}/> : <ArmorIllustration art={item.art}/>}</svg>
 }
 
-function CharacterPortrait({ appearance, context, className = '' }: { appearance: Appearance; context: 'hub' | 'creation'; className?: string }) {
-  return <div className={`${context}-portrait hero-portrait ${className}`} role="img" aria-label={`Warrior ${sexLabel(appearance.sex)}, portrait ${context}`}><img src={heroPortrait(appearance.sex)} alt="" draggable={false}/></div>
-}
-
-export function HubWarrior({ appearance, className = '' }: { appearance: Appearance; className?: string }) {
-  return <CharacterPortrait appearance={appearance} context="hub" className={className}/>
-}
-
-export function CharacterPreview({ appearance, className = '' }: { appearance: Appearance; className?: string }) {
-  return <div className={`character-preview-v07 ${className}`} role="img" aria-label={`Aperçu du Warrior ${sexLabel(appearance.sex)}`}>
-    <div className="character-preview-v07-stack">
-      <img className="character-preview-v07-image" src={resolveCanonicalCreationCharacter(appearance)} alt="" draggable={false}/>
-    </div>
-  </div>
-}
-
 export function EnemyAvatar({ variant = 0, className = '' }: { variant?: number; className?: string }) {
   return <ProductionEnemy variant={variant} className={className}/>
 }
 
-export function ProductionWarrior({ appearance, weapon, state = 'idle', className = '' }: { appearance: Appearance; weapon?: string; state?: PlayerState; className?: string }) {
-  const src = playerSprite(appearance.sex, weapon, state)
-  return <div className={`warrior-sprite player-v06 weapon-${resolvePlayerWeapon(weapon)} motion-${weaponMotion(weapon)} state-${state} ${className}`} role="img" aria-label={`Warrior ${sexLabel(appearance.sex)}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
+/** TEMPORARY LEGACY COMBAT PLACEHOLDER until collectible Warriors receive sprites. */
+export function ProductionWarrior({ sex = 'male', weapon, state = 'idle', className = '' }: { sex?: 'male' | 'female'; weapon?: string; state?: PlayerState; className?: string }) {
+  const src = playerSprite(sex, weapon, state)
+  return <div className={`warrior-sprite player-v06 weapon-${resolvePlayerWeapon(weapon)} motion-${weaponMotion(weapon)} state-${state} ${className}`} role="img" aria-label="Sprite provisoire du Warrior actif"><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
 }
 
 export function GameIcon({ group, name, className = '' }: { group: 'navigation' | 'stats' | 'system'; name: string; className?: string }) {
