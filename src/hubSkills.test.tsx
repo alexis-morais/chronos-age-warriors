@@ -2,10 +2,11 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import App from './App'
 import { skills } from './data'
-import { freshSave, persistSave, SAVE_KEY } from './storage'
+import { persistSave, SAVE_KEY } from './storage'
+import { establishedKargSave } from './testFixtures'
 
 function renderHub(ownedSkills: string[]) {
-  const save = freshSave()
+  const save = establishedKargSave()
   save.unlockedSkills = [...ownedSkills]
   persistSave(save)
   const view = render(<App/>)

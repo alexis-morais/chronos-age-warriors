@@ -1,4 +1,6 @@
+import type { CSSProperties } from 'react'
 import type { EquipmentDefinition } from '../types'
+import { enemyPresentation } from '../art/enemyPresentation'
 import { enemySprite, equipmentAsset, gameIcon, playerSprite, resolveEnemyId, resolvePlayerWeapon, weaponMotion, type EnemyId, type PlayerState, type SpriteState } from '../art/assetsV06'
 
 const line = { fill: 'none', stroke: 'currentColor', strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
@@ -46,5 +48,11 @@ export function GameIcon({ group, name, className = '' }: { group: 'navigation' 
 export function ProductionEnemy({ variant = 0, enemyId, state = 'idle', boss = false, className = '' }: { variant?: number; enemyId?: EnemyId; state?: SpriteState; boss?: boolean; className?: string }) {
   const resolved = resolveEnemyId(enemyId ?? variant, boss)
   const src = enemySprite(resolved, state, boss)
-  return <div className={`enemy-sprite enemy-${resolved} state-${state} ${boss ? 'is-boss' : ''} ${className}`} role="img" aria-label={`Ennemi primordial ${resolved}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
+  const presentation = enemyPresentation[resolved]
+  const style = {
+    '--enemy-ko-scale': presentation.koScale,
+    '--enemy-ko-offset-x': `${presentation.koOffsetX}px`,
+    '--enemy-ko-offset-y': `${presentation.koOffsetY}px`,
+  } as CSSProperties
+  return <div className={`enemy-sprite enemy-${resolved} state-${state} ${boss ? 'is-boss' : ''} ${className}`} style={style} role="img" aria-label={`Ennemi primordial ${resolved}`}><img key={src} className="sprite-frame" src={src} alt="" draggable={false}/></div>
 }

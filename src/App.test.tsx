@@ -9,7 +9,7 @@ describe('fiche modale du coffre', () => {
     const onEquip = vi.fn(), onStore = vi.fn()
     const reward = rollChest(() => 0, {}, [])
     const equipped = equipment.find((item) => item.id === 'bone-spear')!
-    const loot: LootContext = { reward, equipped, equippedLevel: 4 }
+    const loot: LootContext = { reward, equipped }
     render(<LootReveal loot={loot} onEquip={onEquip} onStore={onStore}/>)
 
     expect(screen.getByText('NOUVEL OBJET')).toBeTruthy()
@@ -21,18 +21,15 @@ describe('fiche modale du coffre', () => {
     expect(onStore).toHaveBeenCalledOnce()
   })
 
-  it('affiche le recyclage et la progression d’un doublon avant de continuer', () => {
+  it('affiche la quantité d’un doublon sans recyclage ni XP', () => {
     const reward = rollChest(() => 0, { 'flint-club': { level: 1, xp: 0, kills: 0 } }, [])
     const loot: LootContext = {
       reward,
-      before: { level: 1, xp: 0, kills: 0 },
-      after: { level: 1, xp: 10, kills: 0 },
+      after: { quantity: 2, level: 1, xp: 0, kills: 0 },
     }
     render(<LootReveal loot={loot} onEquip={vi.fn()} onStore={vi.fn()}/>)
-    expect(screen.getByText('DÉJÀ POSSÉDÉ · RECYCLÉ')).toBeTruthy()
-    expect(screen.getByText('+10 pièces')).toBeTruthy()
-    expect(screen.getByText('+10 XP équipement')).toBeTruthy()
-    expect(screen.getByText(/Avant · niv. 1/)).toBeTruthy()
-    expect(screen.getByText(/Après · niv. 1/)).toBeTruthy()
+    expect(screen.getByText('DÉJÀ POSSÉDÉ · +1 EXEMPLAIRE')).toBeTruthy()
+    expect(screen.getByText('Dans l’inventaire : ×2')).toBeTruthy()
+    expect(screen.queryByText(/RECYCLÉ|XP équipement|Niveau 1/)).toBeNull()
   })
 })

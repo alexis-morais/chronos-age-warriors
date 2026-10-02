@@ -5,7 +5,9 @@ export type BattleSpeed = 1 | 2 | 3
 export type View = 'hub' | 'collection' | 'training' | 'chest' | 'duel' | 'adventure' | 'battle'
 export interface Stats { strength: number; dodge: number; speed: number; hp: number }
 
-export interface WarriorDefinition { id: string; name: string; era: string; rarity: Rarity; baseStats: Stats; art: string | null }
+export type WarriorClass = 'Ravageur' | 'Tempête' | 'Bastion' | 'Spectre' | 'Héraut' | 'Fléau'
+export interface WarriorPassive { name: string; description: string }
+export interface WarriorDefinition { id: string; name: string; title: string; era: string; rarity: Rarity; warriorClass: WarriorClass; passive?: WarriorPassive; baseStats: Stats; art: string; artPosition: string }
 export interface OwnedWarrior { warriorId: string; level: number; xp: number; bonusStats: Stats }
 
 export interface EquipmentDefinition {
@@ -18,19 +20,23 @@ export interface EquipmentDefinition {
   art: string
 }
 
-export interface OwnedEquipment { level: number; xp: number; kills: number }
+/** Quantity includes the equipped copy. Legacy progression fields remain for old saves. */
+export interface OwnedEquipment { quantity?: number; level: number; xp: number; kills: number }
+export interface WarriorLoadout { weapon: string; armor: string }
 
 export interface BadgeState { id: string; unlockedAt?: string }
 
 export interface SaveData {
   version: number
   activeWarriorId: string
+  welcomeChestOpened: boolean
   ownedWarriors: Record<string, OwnedWarrior>
   unlockedSkills: string[]
   coins: number
   owned: Record<string, OwnedEquipment>
   equippedWeapon: string
   equippedArmor: string
+  loadouts: Record<string, WarriorLoadout>
   campaignNode: number
   defeatedNodes: number[]
   campaignRemaining: number

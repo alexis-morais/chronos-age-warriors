@@ -6,7 +6,7 @@ export const playerWeapons = ['massue-silex', 'lance-os', 'hache-obsidienne', 'a
 export const playerPoses = ['idle', 'anticipation', 'attack', 'dodge', 'hurt', 'ko'] as const
 export type PlayerWeapon = typeof playerWeapons[number]
 export type PlayerPose = typeof playerPoses[number]
-export type PlayerState = PlayerPose | 'recovery' | 'victory'
+export type PlayerState = PlayerPose | 'block' | 'recovery' | 'victory'
 export type PlayerSex = 'male' | 'female'
 
 const weaponAliases: Record<string, PlayerWeapon> = {
@@ -41,7 +41,7 @@ export function resolvePlayerWeapon(weapon?: string): PlayerWeapon {
 }
 
 export function playerSprite(sex: PlayerSex, weapon: string | undefined, state: PlayerState = 'idle') {
-  const pose: PlayerPose = state === 'recovery' || state === 'victory' ? 'idle' : state
+  const pose: PlayerPose = state === 'recovery' || state === 'victory' ? 'idle' : state === 'block' ? 'dodge' : state
   return `${V06_ROOT}/derived/player/${sex}/${resolvePlayerWeapon(weapon)}/${pose}.png`
 }
 
@@ -49,11 +49,11 @@ export function gameIcon(group: keyof typeof assetsV06.icons, name: string) { re
 export { enemySprite, equipmentAsset, resolveEnemyId, weaponMotion }
 export type { EnemyId, SpriteState, WeaponMotion }
 
-export const preloadBattleAssetsV06 = (sex: PlayerSex, weapon: string, enemy: EnemyId) => {
+export const preloadBattleAssetsV06 = (sex: PlayerSex, weapon: string, enemy: EnemyId, includeLegacyPlayer = true, includeLegacyEnemy = true) => {
   const sources = [
     ...Object.values(assetsV06.arena), ...Object.values(assetsV06.effects),
-    ...playerPoses.map((state) => playerSprite(sex, weapon, state)),
-    ...(['idle', 'anticipation', 'attack', 'dodge', 'hurt', 'ko'] as SpriteState[]).map((state) => enemySprite(enemy, state)),
+    ...(includeLegacyPlayer ? playerPoses.map((state) => playerSprite(sex, weapon, state)) : []),
+    ...(includeLegacyEnemy ? (['idle', 'anticipation', 'attack', 'dodge', 'hurt', 'ko'] as SpriteState[]).map((state) => enemySprite(enemy, state)) : []),
   ]
   return Promise.all(sources.map((src) => new Promise<void>((resolve) => { const image = new Image(); image.onload = image.onerror = () => resolve(); image.src = src })))
 }

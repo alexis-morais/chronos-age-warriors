@@ -1,0 +1,38 @@
+import { GAME } from './config'
+import { equipment } from './data'
+import type { SaveData } from './types'
+import { primalWarriors } from './warriors'
+
+export const ADMIN_SAVE_KEY = 'chronos-age-warriors:admin:v2'
+export const ADMIN_COINS = 9_999_999
+
+export function isLocalAdmin(location: Pick<Location, 'hostname' | 'search'>): boolean {
+  return ['localhost', '127.0.0.1'].includes(location.hostname) && new URLSearchParams(location.search).has('admin')
+}
+
+/** Fill the isolated QA career from the current catalog without changing item or Warrior data. */
+export function withAdminAccess(save: SaveData): SaveData {
+  const ownedWarriors = { ...save.ownedWarriors }
+  for (const warrior of primalWarriors) {
+    ownedWarriors[warrior.id] ??= { warriorId: warrior.id, level: 1, xp: 0, bonusStats: { strength: 0, dodge: 0, speed: 0, hp: 0 } }
+  }
+  const owned = { ...save.owned }
+  for (const item of equipment) owned[item.id] ??= { quantity: 1, level: 1, xp: 0, kills: 0 }
+  return {
+    ...save, activeWarriorId: save.activeWarriorId || primalWarriors[0].id, welcomeChestOpened: true, ownedWarriors, owned, coins: ADMIN_COINS,
+    campaignRemaining: Math.max(save.campaignRemaining, GAME.campaignDaily),
+    trainingRemaining: Math.max(save.trainingRemaining, GAME.trainingDaily),
+  }
+}
+
+export function canOpenChest(save: SaveData, admin: boolean): boolean {
+  return admin || save.coins >= GAME.chestCost
+}
+
+export function canStartBattle(save: SaveData, mode: 'training' | 'campaign', admin: boolean): boolean {
+  return admin || (mode === 'training' ? save.trainingRemaining : save.campaignRemaining) > 0
+}
+
+export function canEnterCampaignNode(save: SaveData, node: number, admin: boolean): boolean {
+  return (admin || node === save.campaignNode) && canStartBattle(save, 'campaign', admin)
+}

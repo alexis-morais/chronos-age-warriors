@@ -1,7 +1,7 @@
-import { DUPLICATE_REWARDS, EQUIPMENT_XP, GAME, RARITY_CHANCES, rarityOrder } from './config'
+import { GAME, RARITY_CHANCES, rarityOrder } from './config'
 import { equipment, skills } from './data'
 import type { BattleResult, Fighter, OwnedEquipment, Rarity, SaveData, Stats } from './types'
-import { activeWarrior } from './warriors'
+import { activeWarrior, primalWarriors, warriorDefinitions } from './warriors'
 
 export type Rng = () => number
 
@@ -21,37 +21,27 @@ export const damageForStrength = (strength: number) => GAME.baseDamage + GAME.st
 export const dodgeChance = (dodge: number) => Math.min(GAME.dodgeCap, GAME.dodgeBase + GAME.dodgeScale * dodge / (dodge + 100))
 export const speedWeight = (speed: number) => (speed + GAME.speedOffset) ** GAME.speedExponent
 
-export function equipmentLevelFromXp(xp: number) {
-  let remaining = xp
-  let level = 1
-  while (level < GAME.maxEquipmentLevel && remaining >= EQUIPMENT_XP[level]) {
-    remaining -= EQUIPMENT_XP[level]
-    level += 1
-  }
-  return { level, progress: remaining, needed: level === GAME.maxEquipmentLevel ? 0 : EQUIPMENT_XP[level] }
-}
-
-export function equipmentStats(id: string, level: number): Partial<Stats> {
+export function equipmentStats(id: string): Partial<Stats> {
   const stats: Partial<Stats> = {}
   const add = (key: keyof Stats, value: number) => { stats[key] = (stats[key] ?? 0) + value }
-  if (id === 'flint-club') add('strength', level)
-  if (id === 'bone-spear') add('speed', level)
-  if (['obsidian-axe', 'bone-harness'].includes(id)) { add('strength', level); add('hp', 5 * level) }
-  if (id === 'hunter-bow') { add('speed', level); add('hp', 5 * level) }
-  if (id === 'smilodon-fangs') { add('strength', level); add('speed', level) }
-  if (['mammoth-spear', 'mammoth-plate'].includes(id)) { add('strength', level); add('hp', 10 * level) }
-  if (id === 'volcanic-hammer') { add('strength', 2 * level); add('hp', 5 * level) }
-  if (id === 'volcanic-shell') { add('strength', level); add('hp', 15 * level) }
-  if (id === 'tyrant-claw') { add('strength', 2 * level); add('speed', level) }
-  if (id === 'titan-heart') { add('strength', 2 * level); add('speed', level); add('hp', 5 * level) }
-  if (id === 'hunter-hides') add('hp', 10 * level)
-  if (id === 'white-titan-fur') { add('strength', level); add('hp', 20 * level) }
-  if (id === 'primordial-titan-skin') { add('dodge', level); add('hp', 25 * level) }
+  if (id === 'flint-club') add('strength', 1)
+  if (id === 'bone-spear') add('speed', 1)
+  if (['obsidian-axe', 'bone-harness'].includes(id)) { add('strength', 1); add('hp', 5) }
+  if (id === 'hunter-bow') { add('speed', 1); add('hp', 5) }
+  if (id === 'smilodon-fangs') { add('strength', 1); add('speed', 1) }
+  if (['mammoth-spear', 'mammoth-plate'].includes(id)) { add('strength', 1); add('hp', 10) }
+  if (id === 'volcanic-hammer') { add('strength', 2); add('hp', 5) }
+  if (id === 'volcanic-shell') { add('strength', 1); add('hp', 15) }
+  if (id === 'tyrant-claw') { add('strength', 2); add('speed', 1) }
+  if (id === 'titan-heart') { add('strength', 2); add('speed', 1); add('hp', 5) }
+  if (id === 'hunter-hides') add('hp', 10)
+  if (id === 'white-titan-fur') { add('strength', 1); add('hp', 20) }
+  if (id === 'primordial-titan-skin') { add('dodge', 1); add('hp', 25) }
   return stats
 }
 
-export function compareEquipmentStats(candidateId: string, candidateLevel: number, currentId: string, currentLevel: number) {
-  const candidate = equipmentStats(candidateId, candidateLevel), current = equipmentStats(currentId, currentLevel)
+export function compareEquipmentStats(candidateId: string, currentId: string) {
+  const candidate = equipmentStats(candidateId), current = equipmentStats(currentId)
   return (['strength', 'dodge', 'speed', 'hp'] as (keyof Stats)[]).map((stat) => ({ stat, candidate: candidate[stat] ?? 0, current: current[stat] ?? 0, difference: (candidate[stat] ?? 0) - (current[stat] ?? 0) })).filter(({ candidate: value, current: old }) => value !== 0 || old !== 0)
 }
 
@@ -61,6 +51,56 @@ export function equipItem(save: SaveData, itemId: string): SaveData {
   const next = structuredClone(save)
   if (item.type === 'weapon') next.equippedWeapon = itemId
   else next.equippedArmor = itemId
+  next.loadouts ??= {}
+  next.loadouts[next.activeWarriorId] = { weapon: next.equippedWeapon, armor: next.equippedArmor }
+  return next
+}
+
+/** A stack includes its equipped copy; loadouts are presets, not reservations. */
+export function addEquipmentCopy(save: SaveData, itemId: string): SaveData {
+  if (!equipment.some((item) => item.id === itemId)) return save
+  const next = structuredClone(save)
+  next.owned[itemId] ??= { quantity: 0, level: 1, xp: 0, kills: 0 }
+  next.owned[itemId].quantity = (next.owned[itemId].quantity ?? 1) + 1
+  return next
+}
+
+export function activateWarrior(save: SaveData, warriorId: string): SaveData {
+  if (!save.ownedWarriors[warriorId]) return save
+  const next = structuredClone(save)
+  next.loadouts ??= {}
+  if (next.activeWarriorId) next.loadouts[next.activeWarriorId] = { weapon: next.equippedWeapon, armor: next.equippedArmor }
+  next.activeWarriorId = warriorId
+  const selected = next.loadouts[warriorId]
+  next.equippedWeapon = selected?.weapon && next.owned[selected.weapon] ? selected.weapon : ''
+  next.equippedArmor = selected?.armor && next.owned[selected.armor] ? selected.armor : ''
+  next.loadouts[warriorId] = { weapon: next.equippedWeapon, armor: next.equippedArmor }
+  return next
+}
+
+/** The first copy of a Warrior has no gear, regardless of inventory contents. */
+export function grantWarrior(save: SaveData, warriorId: string): SaveData {
+  if (!warriorDefinitions[warriorId]) return save
+  const next = structuredClone(save)
+  if (!next.ownedWarriors[warriorId]) {
+    next.ownedWarriors[warriorId] = { warriorId, level: 1, xp: 0, bonusStats: { strength: 0, dodge: 0, speed: 0, hp: 0 } }
+    next.loadouts[warriorId] = { weapon: '', armor: '' }
+  }
+  return next.activeWarriorId ? next : activateWarrior(next, warriorId)
+}
+
+/** Shared by the paid Warrior chest and the free first-arrival chest. */
+export function rollWarriorChest(rng: Rng) {
+  const rarity = rollRarity(rng)
+  const pool = primalWarriors.filter((warrior) => warrior.rarity === rarity)
+  return pool[Math.floor(rng() * pool.length)]
+}
+
+export function claimWelcomeWarrior(save: SaveData, warriorId: string): SaveData {
+  if (save.welcomeChestOpened || Object.keys(save.ownedWarriors).length > 0) return save
+  const next = grantWarrior(save, warriorId)
+  if (next === save) return save
+  next.welcomeChestOpened = true
   return next
 }
 
@@ -69,7 +109,7 @@ export function effectiveStats(save: SaveData): Stats {
   const apply = (id: string) => {
     const owned = save.owned[id]
     if (!owned) return
-    const bonuses = equipmentStats(id, owned.level)
+    const bonuses = equipmentStats(id)
     for (const [key, value] of Object.entries(bonuses) as [keyof Stats, number][]) result[key] += value
   }
   apply(save.equippedWeapon)
@@ -186,13 +226,7 @@ export function rollChest(rng: Rng, owned: Record<string, OwnedEquipment>, known
   const pool = equipment.filter((item) => item.rarity === rarity)
   const item = pool[Math.floor(rng() * pool.length)]
   const duplicate = Boolean(owned[item.id])
-  return { kind: 'equipment' as const, item, duplicate, recycle: duplicate ? DUPLICATE_REWARDS[rarity] : undefined }
-}
-
-export function grantEquipmentXp(item: OwnedEquipment, amount: number) {
-  item.xp += amount
-  const next = equipmentLevelFromXp(item.xp)
-  item.level = next.level
+  return { kind: 'equipment' as const, item, duplicate }
 }
 
 export function addWarriorXp(save: SaveData, amount: number, rng: Rng = Math.random) {
