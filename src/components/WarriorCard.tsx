@@ -9,9 +9,9 @@ const statItems = [
   { key: 'speed', label: 'Vitesse', icon: 'speed' },
 ] as const
 
-export function WarriorCard({ warrior, level, className = '', loading = 'lazy' }: { warrior: WarriorDefinition; level?: number; className?: string; loading?: 'eager' | 'lazy' }) {
+export function WarriorCard({ warrior, level, className = '', loading = 'lazy', variant = 'standard' }: { warrior: WarriorDefinition; level?: number; className?: string; loading?: 'eager' | 'lazy'; variant?: 'standard' | 'gacha' }) {
   const rarity = warrior.rarity.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replaceAll(' ', '-')
-  return <div className={`warrior-card warrior-${warrior.id} rarity-${rarity} ${className}`} style={{ '--warrior-object-position': warrior.artPosition } as CSSProperties}>
+  return <div className={`warrior-card warrior-${warrior.id} rarity-${rarity} ${variant === 'gacha' ? 'gacha-warrior-card' : ''} ${className}`} style={{ '--warrior-object-position': warrior.artPosition } as CSSProperties}>
     <div className="warrior-card-frame"><img src={warrior.art} alt={`Portrait de ${warrior.name}`} loading={loading}/></div>
     {level !== undefined && <span className="warrior-level-badge" aria-label={`Niveau ${level}`}>{level}</span>}
   </div>

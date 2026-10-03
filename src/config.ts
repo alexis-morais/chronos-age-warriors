@@ -13,11 +13,9 @@ export const GAME = {
   speedOffset: 10,
   speedExponent: 0.65,
   maxConsecutiveActions: 3,
-  chestCost: 100,
   campaignDaily: 10,
   trainingDaily: 100,
   maxWarriorLevel: 100,
-  mythicalSkillWeight: 0.25,
 } as const
 
 export const RARITY_CHANCES: Record<Rarity, number> = {

@@ -1,12 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronLeft, Sparkles, Trophy, X } from 'lucide-react'
-import { ADMIN_SAVE_KEY, canEnterCampaignNode, canOpenChest, canStartBattle, isLocalAdmin, withAdminAccess } from './admin'
-import { GAME } from './config'
-import { badges, equipment, skillDescriptions, skills } from './data'
-import { activateWarrior, addEquipmentCopy, addWarriorXp, claimWelcomeWarrior, compareEquipmentStats, effectiveStats, equipmentStats, equipItem, generateEnemy, grantWarrior, rollChest, rollWarriorChest, seededRng, simulateBattle, xpForLevel } from './game'
+import { Award, Check, ChevronLeft, Sparkles, X } from 'lucide-react'
+import { ADMIN_SAVE_KEY, canEnterCampaignNode, canStartBattle, isLocalAdmin, withAdminAccess } from './admin'
+import { equipment, skillDescriptions, skills } from './data'
+import { activateWarrior, addEquipmentCopy, addWarriorXp, claimWelcomeWarrior, effectiveStats, equipmentStats, equipItem, generateEnemy, rollWarriorChest, seededRng, simulateBattle, xpForLevel } from './game'
 import { loadSave, persistSave } from './storage'
-import type { BattleResult, EquipmentDefinition, Fighter, OwnedEquipment, Rarity, SaveData, StatKey, View } from './types'
+import type { BattleResult, EquipmentDefinition, Fighter, Rarity, SaveData, StatKey, View } from './types'
 import { EquipmentArt, GameIcon, ProductionEnemy, ProductionWarrior } from './components/Art'
 import { WarriorCard, WarriorStats } from './components/WarriorCard'
 import { WarriorDetail } from './components/WarriorDetail'
@@ -23,7 +22,15 @@ import { enemyContactDistance, enemyPaintedBattleSize, enemyProjectileGeometry, 
 import { warriorCombatFactor } from './art/combatVisualScale'
 import { EnemyAttackFx, EnemySprite } from './components/EnemySprite'
 import { EnemySpritePreview } from './components/EnemySpritePreview'
+import { BadgesView } from './components/BadgesView'
+import { ChestPage } from './components/ChestPage'
+import { WarriorGacha } from './components/WarriorGacha'
+import { shortEquipmentSummary } from './equipmentSummary'
+import { AdventureMap } from './components/AdventureMap'
+import { primalMapLayout } from './art/adventureMapLayout'
 import { activeWarrior, primalWarriors, warriorDefinitions } from './warriors'
+import { grantEarnedBadges } from './badgeSystem'
+import { recordBattleOutcome } from './victories'
 
 const nav: { id: View; label: string; icon: string }[] = [
   { id: 'hub', label: 'Hub', icon: 'hub' }, { id: 'collection', label: 'Collection', icon: 'collection' },
@@ -35,14 +42,9 @@ const rarityClass = (rarity: Rarity) => `rarity-${rarity.toLowerCase().replace('
 const itemById = (id: string) => equipment.find((item) => item.id === id)!
 const clone = (save: SaveData): SaveData => structuredClone(save)
 
-function unlock(save: SaveData, id: string) {
-  if (!save.badges.some((badge) => badge.id === id)) save.badges.push({ id, unlockedAt: new Date().toISOString() })
-}
-
 const statMeta = { strength: { label: 'Force', icon: 'force' }, dodge: { label: 'Esquive', icon: 'dodge' }, speed: { label: 'Vitesse', icon: 'speed' }, hp: { label: 'PV', icon: 'pv' } }
 type SkillFilter = 'all' | 'owned' | 'locked'
 const skillIcon = (index: number) => ['force', 'dodge', 'speed', 'pv'][index % 4]
-const badgeVisual = (id: string) => id.startsWith('training') ? ['navigation', 'training'] as const : id.startsWith('gear') ? ['navigation', 'equipment'] as const : id.includes('rare') || id.includes('epic') || id.includes('legendary') || id.includes('mythic') ? ['stats', 'badge'] as const : ['navigation', 'force'] as const
 const formatStats = (item: EquipmentDefinition) => Object.entries(equipmentStats(item.id)).map(([key, value]) => `+${value} ${statMeta[key as keyof typeof statMeta].label}`)
 const equipmentIcon = (type: EquipmentDefinition['type']) => `/assets/icons/collection/${type}.png`
 
@@ -50,45 +52,35 @@ function Stat({ type, value }: { type: 'strength' | 'dodge' | 'speed'; value: nu
   return <div className="stat"><GameIcon group="stats" name={statMeta[type].icon}/><span>{statMeta[type].label}</span><strong>{value}</strong></div>
 }
 
-function EquipmentCard({ item, save, onClick }: { item: EquipmentDefinition; save: SaveData; onClick: () => void }) {
-  const owned = save.owned[item.id]
-  return <article className={`equipment-card ${rarityClass(item.rarity)} ${!owned ? 'locked' : ''}`}>
-    <button className="card-main" onClick={onClick}>{!owned && <GameIcon group="system" name="lock" className="lock"/>}<div className="card-art-wrap"><EquipmentArt item={item} silhouette={!owned}/><span className="rarity-pip"/></div>
-      <div className="equipment-card-copy"><div className="card-kicker"><span className="rarity-label">{item.rarity}</span></div><strong>{owned ? item.name : item.type === 'weapon' ? 'Arme inconnue' : 'Armure inconnue'}</strong>
-        {owned && <><div className="card-stats">{formatStats(item).map((bonus) => <span key={bonus}>{bonus}</span>)}</div><p>{item.effect}</p></>}
-      </div></button>
+function HubEquipmentSlot({ type, item }: { type: EquipmentDefinition['type']; item?: EquipmentDefinition }) {
+  const label = type === 'weapon' ? 'Arme' : 'Armure'
+  const summary = item ? [...formatStats(item), item.effect].join(' · ') : 'Emplacement vide'
+  return <article className={`hub-equipment-slot ${item ? 'is-equipped' : 'is-empty'}`} aria-label={`${label} : ${item?.name ?? 'vide'}`}>
+    <img src={equipmentIcon(type)} alt=""/>
+    <div className="hub-equipment-copy"><strong>{item?.name ?? `Aucune ${label.toLowerCase()}`}</strong><span>{summary}</span></div>
   </article>
 }
 
 function Header({ save, view, setView, admin }: { save: SaveData; view: View; setView: (view: View) => void; admin: boolean }) {
-  return <header className={`topbar ${admin ? 'is-admin' : ''}`}><button className="mini-brand" onClick={() => setView('hub')}><img src={assetsV06.brand.logo} alt="Chronos Age Warriors"/><span>ÈRE PRIMORDIALE</span>{admin && <span className="admin-indicator">ADMIN LOCAL</span>}</button><div className="topbar-title">{view === 'adventure' && <button className="icon-button" aria-label="Retour au Hub" onClick={() => setView('hub')}><ChevronLeft/></button>}<strong>{view === 'chest' ? 'Coffres' : view.charAt(0).toUpperCase() + view.slice(1)}</strong></div><div className="currency"><GameIcon group="stats" name="coins"/><strong>{save.coins}</strong></div></header>
+  return <header className={`topbar ${admin ? 'is-admin' : ''}`}><button className="mini-brand" onClick={() => setView('hub')}><img src={assetsV06.brand.logo} alt="Chronos Age Warriors"/><span>ÈRE PRIMORDIALE</span>{admin && <span className="admin-indicator">ADMIN LOCAL</span>}</button><div className="topbar-title">{view === 'adventure' && <button className="icon-button" aria-label="Retour au Hub" onClick={() => setView('hub')}><ChevronLeft/></button>}<strong>{view === 'chest' ? 'Coffres' : view === 'adventure' ? 'Aventure' : view.charAt(0).toUpperCase() + view.slice(1)}</strong></div><div className="currency"><GameIcon group="stats" name="coins"/><strong>{save.coins}</strong></div></header>
 }
 
 function EmptyHub() {
-  return <div className="hub-page empty-hub page-enter"><section className="gear-gallery desktop-only"><span className="eyebrow">ARSENAL</span><h2>Relics du Warrior</h2><div className="shelf"><div className="gear-empty-slot">Aucune arme</div><div className="gear-empty-slot">Aucune armure</div></div></section><section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="empty-warrior-space"><GameIcon group="navigation" name="collection"/><span>Ton premier Warrior t’attend</span></div><div className="hero-name"><h1>Aucun Warrior actif</h1></div><div className="resource-row mobile-only"><span>Le coffre de bienvenue est prêt.</span></div><button className="adventure-button" disabled>AVENTURE</button></section><section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><p>Ouvre le coffre de bienvenue pour révéler ton Warrior.</p></section><section className="hub-bottom"><div className="skill-panel"><span className="eyebrow">PASSIFS</span><h2>Compétences</h2><p>À découvrir avec ton Warrior.</p></div><div className="mobile-gear mobile-only"><div className="gear-empty-slot">Aucune arme</div><div className="gear-empty-slot">Aucune armure</div></div></section></div>
-}
-
-function WarriorChestReveal({ warrior, duplicate = false }: { warrior: (typeof primalWarriors)[number]; duplicate?: boolean }) {
-  return <div className="warrior-chest-reveal"><span className="eyebrow">{duplicate ? 'DÉJÀ POSSÉDÉ' : 'NOUVEAU WARRIOR'}</span><WarriorCard warrior={warrior} level={1} className="warrior-chest-card" loading="eager"/><strong>{warrior.name}</strong><span className={`warrior-rarity ${rarityClass(warrior.rarity)}`}>{warrior.rarity}</span></div>
+  return <div className="hub-page empty-hub page-enter"><section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="empty-warrior-space"><GameIcon group="navigation" name="collection"/><span>Ton premier Warrior t’attend</span></div><div className="hero-name"><h1>Aucun Warrior actif</h1></div><div className="resource-row mobile-only"><span>Le coffre de bienvenue est prêt.</span></div><button className="adventure-button" disabled>AVENTURE</button></section><section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><p>Ouvre le coffre de bienvenue pour révéler ton Warrior.</p></section><section className="hub-bottom"><div className="skill-panel"><span className="eyebrow">PASSIFS</span><h2>Compétences</h2><p>À découvrir avec ton Warrior.</p></div></section></div>
 }
 
 function WelcomeChest({ onClaim, onDone }: { onClaim: (warriorId: string) => void; onDone: () => void }) {
-  const [phase, setPhase] = useState<'ready' | 'opening' | 'reveal'>('ready')
   const [warrior, setWarrior] = useState<(typeof primalWarriors)[number] | null>(null)
-  const timers = useRef<number[]>([])
-  useEffect(() => () => timers.current.forEach(clearTimeout), [])
   const open = () => {
-    if (phase !== 'ready') return
+    if (warrior) return
     const drawn = rollWarriorChest(Math.random)
     setWarrior(drawn)
     onClaim(drawn.id)
-    setPhase('opening')
-    timers.current.push(window.setTimeout(() => setPhase('reveal'), 1000))
   }
-  return createPortal(<div className="welcome-overlay" role="dialog" aria-modal="true" aria-label="Coffre Warrior de bienvenue"><section className="welcome-panel"><span className="eyebrow">BIENVENUE DANS CHRONOS</span>{phase === 'reveal' && warrior ? <WarriorChestReveal warrior={warrior}/> : <><h2>Ton histoire commence ici</h2><p>Un coffre Warrior t’est offert. Découvre ton premier combattant.</p><div className={`welcome-chest-art ${phase === 'opening' ? 'opening' : ''}`}><img src={phase === 'opening' ? assetsV06.chest.open : assetsV06.chest.closed} alt="Coffre Warrior de bienvenue"/></div></>}{phase === 'ready' && <button className="primary wide" autoFocus onClick={open}>OUVRIR MON COFFRE OFFERT</button>}{phase === 'opening' && <p className="welcome-opening">Le temps révèle ton Warrior…</p>}{phase === 'reveal' && <button className="primary wide" onClick={onDone}>ENTRER DANS LE HUB</button>}</section></div>, document.body)
+  return createPortal(warrior ? <WarriorGacha warrior={warrior} duplicate={false} welcome onContinue={onDone}/> : <div className="welcome-overlay" role="dialog" aria-modal="true" aria-label="Coffre Warrior de bienvenue"><section className="welcome-panel"><span className="eyebrow">BIENVENUE DANS CHRONOS</span><h2>Ton histoire commence ici</h2><p>Un coffre Warrior t’est offert. Découvre ton premier combattant.</p><div className="welcome-chest-art"><img src={assetsV06.chest.closed} alt="Coffre Warrior de bienvenue"/></div><button className="primary wide" autoFocus onClick={open}>OUVRIR MON COFFRE OFFERT</button></section></div>, document.body)
 }
 
-function Hub({ save, setView, setDetail }: { save: SaveData; setView: (view: View) => void; setDetail: (item: EquipmentDefinition) => void }) {
+function Hub({ save, setView }: { save: SaveData; setView: (view: View) => void }) {
   const warrior = activeWarrior(save)
   const stats = warrior.stats
   const weapon = equipment.find((item) => item.id === save.equippedWeapon), armor = equipment.find((item) => item.id === save.equippedArmor)
@@ -108,106 +100,71 @@ function Hub({ save, setView, setDetail }: { save: SaveData; setView: (view: Vie
     return () => window.removeEventListener('keydown', onEscape)
   }, [skillsOpen, selectedSkill])
   return <div className="hub-page page-enter">
-    <section className="gear-gallery desktop-only"><span className="eyebrow">ARSENAL</span><h2>Relics du Warrior</h2><div className="shelf">{weapon ? <EquipmentCard item={weapon} save={save} onClick={() => setDetail(weapon)}/> : <div className="gear-empty-slot">Aucune arme</div>}{armor ? <EquipmentCard item={armor} save={save} onClick={() => setDetail(armor)}/> : <div className="gear-empty-slot">Aucune armure</div>}</div><button className="text-button" onClick={() => setView('collection')}>Voir la collection <ChevronLeft size={16}/></button></section>
     <section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="hero-avatar"><WarriorCard warrior={warrior} level={warrior.level} className="hub-warrior-card" loading="eager"/></div><div className="hero-name"><h1>{warrior.name}</h1><div className="warrior-tags"><span>{warrior.warriorClass}</span><span className={`warrior-rarity ${rarityClass(warrior.rarity)}`}>{warrior.rarity}</span></div></div><WarriorStats stats={stats} className="hub-warrior-stats"/>
-      <div className="resource-row mobile-only"><span><GameIcon group="stats" name="coins"/>{save.coins}</span><span><GameIcon group="stats" name="xp"/>{save.campaignRemaining} / 10</span></div>
+      <div className="resource-row mobile-only"><span><GameIcon group="stats" name="xp"/>{save.campaignRemaining} / 10 combats récompensés</span></div>
       <button className="adventure-button" onClick={() => setView('adventure')}><GameIcon group="navigation" name="adventure"/><span><small>CAMPAGNE</small>AVENTURE</span><i>→</i></button>
     </section>
-    <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><GameIcon group="stats" name="pv"/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{activeWarrior(save).xp} / {xpForLevel(activeWarrior(save).level)}</b></span><div className="progress"><i style={{ width: `${activeWarrior(save).xp / xpForLevel(activeWarrior(save).level) * 100}%` }}/></div></div><div className="daily"><span><GameIcon group="stats" name="coins"/> {save.coins} pièces</span><span><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 Campagne</span></div></div></section>
+    <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><GameIcon group="stats" name="pv"/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{activeWarrior(save).xp} / {xpForLevel(activeWarrior(save).level)}</b></span><div className="progress"><i style={{ width: `${activeWarrior(save).xp / xpForLevel(activeWarrior(save).level) * 100}%` }}/></div></div><div className="daily"><span><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 Campagne</span></div></div></section>
     <section className="hub-bottom"><div className="skill-panel skill-summary"><div className="section-title"><div><span className="eyebrow">PASSIFS</span><h2>Compétences</h2></div><span>{activeWarrior(save).skills.length} / {skills.length} débloquées</span></div>
       {previewSkills.length ? <div className="skill-preview-list">{previewSkills.map((skill) => <button className="skill-preview" onClick={() => setSelectedSkill(skill)} key={skill}><GameIcon group="stats" name={skillIcon(skills.indexOf(skill))}/><span><strong>{skill}</strong><small>Débloquée</small></span><ChevronLeft aria-hidden="true"/></button>)}</div> : <p className="skill-preview-empty">Aucune compétence débloquée <span>Progresse pour éveiller ton premier passif.</span></p>}
       <button className="skill-see-all" onClick={() => { setSkillFilter('all'); setSkillsOpen(true) }}>Voir toutes <span aria-hidden="true">→</span></button></div>
-      <div className="mobile-gear mobile-only">{weapon ? <EquipmentCard item={weapon} save={save} onClick={() => setDetail(weapon)}/> : <div className="gear-empty-slot">Aucune arme</div>}{armor ? <EquipmentCard item={armor} save={save} onClick={() => setDetail(armor)}/> : <div className="gear-empty-slot">Aucune armure</div>}</div></section>
+      <div className="hub-equipment" aria-label="Équipement du Warrior actif"><span className="eyebrow">ÉQUIPEMENT</span><div className="hub-equipment-grid"><HubEquipmentSlot type="weapon" item={weapon}/><HubEquipmentSlot type="armor" item={armor}/></div></div>
+    </section>
     {skillsOpen && createPortal(<div className="skills-sheet-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSkillsOpen(false) }}><section className="skills-sheet" role="dialog" aria-modal="true" aria-label="Toutes les compétences"><div className="skills-sheet-header"><div><span className="eyebrow">PASSIFS DU WARRIOR</span><h2>Compétences</h2><p>{activeWarrior(save).skills.length} / {skills.length} débloquées</p></div><button className="skills-sheet-close" aria-label="Fermer les compétences" onClick={() => setSkillsOpen(false)} autoFocus><X/></button></div><div className="skill-filters" aria-label="Filtrer les compétences">{([['all','Toutes'],['owned','Débloquées'],['locked','Verrouillées']] as [SkillFilter,string][]).map(([filter,label]) => <button aria-pressed={skillFilter === filter} className={skillFilter === filter ? 'active' : ''} onClick={() => setSkillFilter(filter)} key={filter}>{label}</button>)}</div><div className="skill-list">{visibleSkills.map((skill) => { const index = skills.indexOf(skill), owned = activeWarrior(save).skills.includes(skill); return <button className={`skill-card ${owned ? 'owned' : 'locked-skill'}`} onClick={() => setSelectedSkill(skill)} key={skill}>{owned ? <GameIcon group="stats" name={skillIcon(index)}/> : <GameIcon group="system" name="lock"/>}<span><strong>{owned ? skill : '???'}</strong><small>{owned ? skillDescriptions[skill] : 'Verrouillée'}</small></span></button> })}</div>{visibleSkills.length === 0 && <p className="skills-empty">Aucune compétence dans ce filtre.</p>}</section></div>, document.body)}
     {selectedSkill && createPortal(<div className="skill-detail-modal" role="dialog" aria-modal="true" aria-label="Détail de compétence" onClick={() => setSelectedSkill(null)} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setSelectedSkill(null) } }}><section onClick={(event) => event.stopPropagation()}><button className="close" aria-label="Fermer" onClick={() => setSelectedSkill(null)} autoFocus><X/></button><GameIcon group={activeWarrior(save).skills.includes(selectedSkill) ? 'stats' : 'system'} name={activeWarrior(save).skills.includes(selectedSkill) ? skillIcon(skills.indexOf(selectedSkill)) : 'lock'}/><span className="eyebrow">{activeWarrior(save).skills.includes(selectedSkill) ? 'COMPÉTENCE DÉBLOQUÉE' : 'COMPÉTENCE VERROUILLÉE'}</span><h2>{activeWarrior(save).skills.includes(selectedSkill) ? selectedSkill : '???'}</h2><p>{activeWarrior(save).skills.includes(selectedSkill) ? skillDescriptions[selectedSkill] : 'Continue ta progression pour révéler cette compétence.'}</p><button className="primary wide" onClick={() => setSelectedSkill(null)}>FERMER</button></section></div>, document.body)}
   </div>
 }
 
+function EquipmentCollection({ save, setSave, type, setType }: { save: SaveData; setSave: (save: SaveData) => void; type: EquipmentDefinition['type']; setType: (type: EquipmentDefinition['type']) => void }) {
+  const [confirmation, setConfirmation] = useState<{ itemId: string; label: string; sequence: number } | null>(null)
+  const timer = useRef<number | null>(null)
+  const sequence = useRef(0)
+  useEffect(() => () => { if (timer.current !== null) window.clearTimeout(timer.current) }, [])
+  const inventory = equipment.filter((item) => item.type === type && (save.owned[item.id]?.quantity ?? (save.owned[item.id] ? 1 : 0)) > 0)
+  const activeGear = [equipment.find((item) => item.id === save.equippedWeapon), equipment.find((item) => item.id === save.equippedArmor)]
+  const equip = (item: EquipmentDefinition) => {
+    if ((item.type === 'weapon' ? save.equippedWeapon : save.equippedArmor) === item.id) return
+    setSave(equipItem(save, item.id))
+    if (timer.current !== null) window.clearTimeout(timer.current)
+    setConfirmation({ itemId: item.id, label: `${item.type === 'weapon' ? 'Arme' : 'Armure'} équipée : ${item.name}`, sequence: ++sequence.current })
+    timer.current = window.setTimeout(() => { setConfirmation(null); timer.current = null }, 2000)
+  }
+  return <section className="equipment-inventory">
+    <div className="active-loadout"><span className="eyebrow">ÉQUIPEMENT DE {activeWarrior(save).name.toUpperCase()}</span><div className="active-loadout-slots">{activeGear.map((item, index) => <div className={`active-loadout-slot ${confirmation?.itemId === item?.id ? 'just-equipped' : ''}`} key={index}><img src={equipmentIcon(index === 0 ? 'weapon' : 'armor')} alt=""/><span><strong>{item?.name ?? (index === 0 ? 'Aucune arme' : 'Aucune armure')}</strong><small>{item ? shortEquipmentSummary(item) : 'Emplacement vide'}</small></span></div>)}</div></div>
+    <div className="inventory-filters" aria-label="Catégorie d’équipement"><button aria-pressed={type === 'weapon'} className={type === 'weapon' ? 'active' : ''} onClick={() => setType('weapon')}><img src={equipmentIcon('weapon')} alt=""/>Armes</button><button aria-pressed={type === 'armor'} className={type === 'armor' ? 'active' : ''} onClick={() => setType('armor')}><img src={equipmentIcon('armor')} alt=""/>Armures</button></div>
+    {inventory.length ? <div className="equipment-inventory-grid">{inventory.map((item) => {
+      const equipped = (item.type === 'weapon' ? save.equippedWeapon : save.equippedArmor) === item.id
+      const quantity = save.owned[item.id].quantity ?? 1
+      const contents = <><img src={equipmentIcon(item.type)} alt=""/><span className="inventory-entry-copy"><strong>{item.name}</strong><small>{shortEquipmentSummary(item)}</small></span><span className="inventory-entry-meta">{equipped && <span className="inventory-equipped"><Check aria-hidden="true"/>Équipé</span>}{quantity > 1 && <b className="inventory-quantity">×{quantity}</b>}</span></>
+      const className = `inventory-entry ${rarityClass(item.rarity)} ${equipped ? 'is-equipped' : ''} ${confirmation?.itemId === item.id ? 'just-equipped' : ''}`
+      return equipped ? <article key={item.id} className={className} aria-label={`${item.name} équipé`}>{contents}</article> : <button key={item.id} className={className} onClick={() => equip(item)} aria-label={`Équiper ${item.name}`}>{contents}</button>
+    })}</div> : <p className="inventory-empty">Aucune {type === 'weapon' ? 'arme possédée' : 'armure possédée'}.</p>}
+    {confirmation && createPortal(<div key={confirmation.sequence} className="equipment-confirmation" role="status" aria-live="polite"><Check aria-hidden="true"/><span>{confirmation.label}</span></div>, document.body)}
+  </section>
+}
+
 function Collection({ save, setSave, setWarriorDetail }: { save: SaveData; setSave: (save: SaveData) => void; setWarriorDetail: (id: string) => void }) {
   const [tab, setTab] = useState<'warriors' | 'equipment' | 'badges'>('warriors')
   const [type, setType] = useState<'weapon' | 'armor'>('weapon')
-  const unlocked = new Set(save.badges.map((badge) => badge.id))
-  const inventory = equipment.filter((item) => item.type === type && (save.owned[item.id]?.quantity ?? (save.owned[item.id] ? 1 : 0)) > 0)
-  const activeGear = [equipment.find((item) => item.id === save.equippedWeapon), equipment.find((item) => item.id === save.equippedArmor)]
   return <div className="content-page page-enter"><div className="page-heading"><span className="eyebrow">ARCHIVES DU TEMPS</span><h1>Collection</h1><p>Warriors possédés : {Object.keys(save.ownedWarriors).length} / {primalWarriors.length} · {Object.keys(save.owned).length} types d’équipements possédés</p></div><div className="big-tabs"><button className={tab === 'warriors' ? 'active' : ''} onClick={() => setTab('warriors')}><img className="collection-tab-icon" src="/assets/icons/collection/warrior.png" alt="" aria-hidden="true"/>Warriors</button><button className={tab === 'equipment' ? 'active' : ''} onClick={() => setTab('equipment')}><GameIcon group="navigation" name="equipment"/>Équipements</button><button className={tab === 'badges' ? 'active' : ''} onClick={() => setTab('badges')}><GameIcon group="stats" name="badge"/>Badges</button></div>
     {tab === 'warriors' ? <div className="warrior-collection-grid">{primalWarriors.map((warrior) => {
       const owned = save.ownedWarriors[warrior.id]
       return owned
         ? <button className="warrior-collection-entry" key={warrior.id} onClick={() => setWarriorDetail(warrior.id)} aria-label={`Voir la fiche de ${warrior.name}`}><WarriorCard warrior={warrior} level={owned.level} className="collection-warrior-card"/><span className="warrior-collection-copy"><strong>{warrior.name}</strong><small>{warrior.warriorClass} · {warrior.rarity}</small></span></button>
         : <article className="warrior-collection-entry is-unowned" key={warrior.id} aria-label="Warrior inconnu"><div className="warrior-card collection-warrior-card locked-warrior-card" aria-hidden="true"><div className="warrior-card-frame"><svg className="warrior-locked-silhouette" viewBox="0 0 120 120" fill="currentColor"><circle cx="60" cy="39" r="19"/><path d="M22 110c0-25 15-43 38-43s38 18 38 43Z"/></svg><GameIcon group="system" name="lock" className="lock"/></div></div><span className="warrior-collection-copy"><strong>???</strong><small>Warrior inconnu · Non découvert</small></span></article>
-    })}</div> : tab === 'equipment' ? <section className="equipment-inventory"><div className="active-loadout"><span className="eyebrow">ÉQUIPEMENT DE {activeWarrior(save).name.toUpperCase()}</span><div className="active-loadout-slots">{activeGear.map((item, index) => <div className="active-loadout-slot" key={index}><img src={equipmentIcon(index === 0 ? 'weapon' : 'armor')} alt=""/><span><strong>{item?.name ?? (index === 0 ? 'Aucune arme' : 'Aucune armure')}</strong>{item && <small>{[...formatStats(item), item.effect].join(' · ')}</small>}</span></div>)}</div></div><div className="inventory-filters" aria-label="Catégorie d’équipement"><button aria-pressed={type === 'weapon'} className={type === 'weapon' ? 'active' : ''} onClick={() => setType('weapon')}><img src={equipmentIcon('weapon')} alt=""/>Armes</button><button aria-pressed={type === 'armor'} className={type === 'armor' ? 'active' : ''} onClick={() => setType('armor')}><img src={equipmentIcon('armor')} alt=""/>Armures</button></div>{inventory.length ? <div className="equipment-inventory-grid">{inventory.map((item) => { const equipped = [save.equippedWeapon, save.equippedArmor].includes(item.id), quantity = save.owned[item.id].quantity ?? 1; return <button key={item.id} className={`inventory-entry ${rarityClass(item.rarity)} ${equipped ? 'is-equipped' : ''}`} onClick={() => setSave(equipItem(save, item.id))} aria-label={`Équiper ${item.name}`} aria-pressed={equipped}><img src={equipmentIcon(item.type)} alt=""/><span className="inventory-entry-copy"><strong>{item.name}</strong><small>{[...formatStats(item), item.effect].join(' · ')}</small></span>{quantity > 1 && <b className="inventory-quantity">×{quantity}</b>}</button> })}</div> : <p className="inventory-empty">Aucune {type === 'weapon' ? 'arme possédée' : 'armure possédée'}.</p>}</section> : <div className="badge-grid">{badges.map(([id, name, description]) => { const [group, icon] = badgeVisual(id); return <div className={`badge-card badge-${group}-${icon} ${unlocked.has(id) ? 'unlocked' : ''}`} key={id}><div className="badge-medal"><GameIcon group={group} name={icon}/></div><div><strong>{name}</strong><span>{description}</span></div>{!unlocked.has(id) && <GameIcon group="system" name="lock"/>}</div> })}</div>}
+    })}</div> : tab === 'equipment' ? <EquipmentCollection save={save} setSave={setSave} type={type} setType={setType}/> : <BadgesView save={save}/>}
   </div>
-}
-
-export type ChestReward = ReturnType<typeof rollChest>
-export interface LootContext { reward: ChestReward; after?: OwnedEquipment; equipped?: EquipmentDefinition }
-
-function StatChips({ item }: { item: EquipmentDefinition }) {
-  return <div className="loot-stat-chips">{formatStats(item).map((bonus) => <span key={bonus}>{bonus}</span>)}</div>
-}
-
-export function LootReveal({ loot, onEquip, onStore }: { loot: LootContext; onEquip: () => void; onStore: () => void }) {
-  const reward = loot.reward
-  if (reward.kind === 'skill') return <div className="reward-card rarity-mythique"><span className="eyebrow">COMPÉTENCE MYTHIQUE</span><div className="skill-orb"><Sparkles/></div><h2>{reward.skill}</h2><p>Nouvelle compétence passive acquise.</p><button className="primary wide" onClick={onStore}>CONTINUER</button></div>
-  const item = reward.item
-  if (reward.duplicate) {
-    return <div className={`reward-card duplicate-reveal ${rarityClass(item.rarity)}`}><span className="eyebrow">DÉJÀ POSSÉDÉ · +1 EXEMPLAIRE</span><div className="loot-hero"><EquipmentArt item={item}/><div><span className="rarity-label">{item.rarity}</span><h2>{item.name}</h2><b>Dans l’inventaire : ×{loot.after?.quantity ?? 2}</b></div></div><button className="primary wide" onClick={onStore}>CONTINUER</button></div>
-  }
-  const comparison = loot.equipped ? compareEquipmentStats(item.id, loot.equipped.id) : []
-  return <div className={`reward-card new-loot ${rarityClass(item.rarity)}`}><span className="eyebrow">NOUVEL OBJET</span><div className="loot-hero"><EquipmentArt item={item}/><div><span className="rarity-label">{item.rarity}</span><h2>{item.name}</h2><b>{item.type === 'weapon' ? 'Arme' : 'Armure'}</b></div></div><div className="loot-detail"><section><small>BONUS</small><StatChips item={item}/><small>EFFET SPÉCIAL</small><p>{item.effect}</p>{comparison.length > 0 && <div className="stat-differences">{comparison.map(({ stat, difference }) => <span className={difference > 0 ? 'up' : difference < 0 ? 'down' : 'equal'} key={stat}>{difference > 0 ? '↑' : difference < 0 ? '↓' : '='} {statMeta[stat].label} {difference !== 0 && `${difference > 0 ? '+' : ''}${difference}`}</span>)}</div>}</section>{loot.equipped && <section className="comparison"><small>ÉQUIPÉ ACTUELLEMENT</small><div className="comparison-title"><EquipmentArt item={loot.equipped} compact/><div><strong>{loot.equipped.name}</strong><span>{loot.equipped.rarity}</span></div></div><StatChips item={loot.equipped}/><p>{loot.equipped.effect}</p></section>}</div><div className="reward-actions"><button className="primary" onClick={onEquip}>ÉQUIPER</button><button className="secondary" onClick={onStore}>STOCKER</button></div></div>
 }
 
 function Chests({ save, setSave, admin }: { save: SaveData; setSave: (save: SaveData) => void; admin: boolean }) {
-  const [mode, setMode] = useState<'equipment' | 'warrior'>('equipment')
-  const [spinning, setSpinning] = useState(false), [loot, setLoot] = useState<LootContext | null>(null), [strip, setStrip] = useState<EquipmentDefinition[]>([])
-  const [warriorLoot, setWarriorLoot] = useState<{ warrior: (typeof primalWarriors)[number]; duplicate: boolean } | null>(null)
-  useEffect(() => {
-    if (!loot && !warriorLoot) return
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { setLoot(null); setWarriorLoot(null) } }
-    window.addEventListener('keydown', close)
-    return () => window.removeEventListener('keydown', close)
-  }, [loot, warriorLoot])
-  const open = () => {
-    if (!canOpenChest(save, admin) || spinning) return
-    if (mode === 'warrior') {
-      const warrior = rollWarriorChest(Math.random)
-      const duplicate = Boolean(save.ownedWarriors[warrior.id])
-      const next = grantWarrior(save, warrior.id)
-      next.coins -= GAME.chestCost; next.chests += 1
-      setSpinning(true)
-      window.setTimeout(() => { setSpinning(false); setWarriorLoot({ warrior, duplicate }); setSave(next) }, 1200)
-      return
-    }
-    const result = rollChest(Math.random, save.owned, activeWarrior(save).skills)
-    const target = result.kind === 'equipment' ? result.item : equipment.find((item) => item.rarity === 'Mythique')!
-    const fillers = Array.from({ length: 18 }, () => equipment[Math.floor(Math.random() * equipment.length)]); fillers[15] = target
-    setStrip(fillers); setLoot(null); setSpinning(true)
-    const next = clone(save); next.coins -= GAME.chestCost; next.chests += 1
-    const equippedId = result.kind === 'equipment' ? (result.item.type === 'weapon' ? save.equippedWeapon : save.equippedArmor) : undefined
-    const equipped = equippedId ? itemById(equippedId) : undefined
-    if (result.kind === 'skill') next.unlockedSkills.push(result.skill)
-    else next.owned = addEquipmentCopy(next, result.item.id).owned
-    if (result.kind === 'equipment') { if (result.item.rarity === 'Rare' && result.item.type === 'weapon') unlock(next, 'first-rare'); if (result.item.rarity === 'Épique') unlock(next, 'first-epic'); if (result.item.rarity === 'Légendaire') unlock(next, 'first-legendary'); if (result.item.rarity === 'Mythique') unlock(next, 'first-mythic') }
-    const after = result.kind === 'equipment' && next.owned[result.item.id] ? { ...next.owned[result.item.id] } : undefined
-    setTimeout(() => { setSpinning(false); setLoot({ reward: result, after, equipped }); setSave(next) }, 4400)
-  }
-  const equipReward = () => { if (!loot || loot.reward.kind !== 'equipment') return; setSave(equipItem(save, loot.reward.item.id)); setLoot(null) }
-  return <div className="chest-page content-page page-enter"><div className="page-heading centered"><span className="eyebrow">AUTEL DES POSSIBLES</span><h1>Coffre primordial</h1><p>Le destin est scellé avant que la roulette ne s’élance.</p></div><div className="chest-modes" aria-label="Type de coffre"><button className={mode === 'equipment' ? 'active' : ''} aria-pressed={mode === 'equipment'} onClick={() => setMode('equipment')} disabled={spinning}>Équipement</button><button className={mode === 'warrior' ? 'active' : ''} aria-pressed={mode === 'warrior'} onClick={() => setMode('warrior')} disabled={spinning}>Warrior</button></div><div className={`chest chest-v06 ${spinning ? 'opening' : ''}`}><img className="chest-main" src={spinning ? assetsV06.chest.open : assetsV06.chest.closed} alt={spinning ? 'Coffre primordial ouvert' : 'Coffre primordial fermé'}/>{spinning && <img className="chest-glow" src={assetsV06.chest.glow} alt=""/>}</div>
-    {mode === 'equipment' && (spinning || loot) && <div className={`roulette ${spinning ? 'spinning' : 'finished'}`}><div className="roulette-marker"/><div className="roulette-track">{strip.map((item, index) => <div className={`roulette-card ${rarityClass(item.rarity)} ${!spinning && index === 15 ? 'winner' : ''}`} key={`${item.id}-${index}`}><EquipmentArt item={item} compact/><strong>{item.name}</strong><span>{item.rarity}</span></div>)}</div></div>}
-    {!loot && !warriorLoot && <button className="primary chest-button" onClick={open} disabled={!canOpenChest(save, admin) || spinning}>{spinning ? 'LE TEMPS SE PLIE…' : <><GameIcon group="navigation" name="chest"/> OUVRIR · {GAME.chestCost} <GameIcon group="stats" name="coins"/></>}</button>}
-    {!canOpenChest(save, admin) && !spinning && <p className="hint">Il te faut encore {GAME.chestCost - save.coins} pièces.</p>}
-    {loot && <div className="loot-modal" role="dialog" aria-modal="true" aria-label="Récompense du coffre"><div className="loot-modal-panel"><LootReveal loot={loot} onEquip={equipReward} onStore={() => setLoot(null)}/></div></div>} 
-    {warriorLoot && <div className="loot-modal" role="dialog" aria-modal="true" aria-label="Récompense du coffre Warrior"><div className="loot-modal-panel"><div className="reward-card warrior-reward"><WarriorChestReveal warrior={warriorLoot.warrior} duplicate={warriorLoot.duplicate}/><button className="primary wide" onClick={() => setWarriorLoot(null)}>CONTINUER</button></div></div></div>}
-    <div className="odds"><span>Commun 43,49 %</span><span>Peu commun 40 %</span><span>Rare 15 %</span><span>Épique 1 %</span><span>Légendaire 0,5 %</span><span>Mythique 0,01 %</span></div>
-  </div>
+  return <ChestPage save={save} setSave={setSave} admin={admin}/>
 }
 
 function Adventure({ save, startBattle, admin }: { save: SaveData; startBattle: (mode: 'campaign', node: number) => void; admin: boolean }) {
-  const [walking, setWalking] = useState<number | null>(null)
-  const choose = (node: number) => { if (!canEnterCampaignNode(save, node, admin) || walking) return; setWalking(node); setTimeout(() => startBattle('campaign', node), 850) }
-  return <div className="adventure-page page-enter"><div className="adventure-copy"><span className="eyebrow">CARTE I · ÈRE PRIMORDIALE</span><h1>La Vallée des Titans</h1><p>La puissance qui sommeille au volcan déforme la faune et les guerriers.</p><span className="daily-pill"><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 combats récompensés</span></div><div className="map-scene"><div className="volcano"/><div className="mountains"/><div className="map-path"/>
-    {Array.from({ length: 20 }, (_, i) => i + 1).map((node) => { const done = save.defeatedNodes.includes(node), accessible = node === save.campaignNode, elite = [5,10,15].includes(node), boss = node === 20; return <button key={node} onClick={() => choose(node)} style={{ '--x': `${12 + ((node - 1) % 5) * 19 + (Math.floor((node - 1) / 5) % 2 ? 6 : 0)}%`, '--y': `${82 - Math.floor((node - 1) / 5) * 23}%` } as React.CSSProperties} className={`map-node ${done ? 'done' : ''} ${accessible ? 'accessible' : ''} ${elite ? 'elite' : ''} ${boss ? 'boss' : ''}`}><span>{boss ? <Trophy/> : elite ? <GameIcon group="navigation" name="force"/> : node}</span>{node > save.campaignNode && !admin && <GameIcon group="system" name="lock" className="node-lock"/>}{accessible && <div className={`map-avatar ${walking === node ? 'walking' : ''}`}><ProductionWarrior weapon={save.equippedWeapon}/></div>}</button> })}
-  </div><div className="map-legend"><span><i className="standard"/>Standard</span><span><i className="elite"/>Élite</span><span><i className="boss"/>Boss</span></div></div>
+  return <div className="adventure-page page-enter">
+    <header className="adventure-copy"><div><span className="eyebrow">CARTE I · ÈRE PRIMORDIALE</span><h1>La Vallée des Titans</h1><p>La puissance qui sommeille au volcan déforme la faune et les guerriers.</p></div><div className="adventure-progress"><span>{save.defeatedNodes.includes(20) ? 'CAMPAGNE TERMINÉE' : 'PROCHAIN COMBAT'}</span><strong>{save.defeatedNodes.includes(20) ? 'Ère achevée' : <>Niveau {Math.min(save.campaignNode, 20)} <small>/ 20</small></>}</strong><span className="daily-pill"><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 combats récompensés</span></div></header>
+    <div className="map-scene"><AdventureMap layout={primalMapLayout} currentNode={save.campaignNode} defeatedNodes={save.defeatedNodes} canEnter={(node) => canEnterCampaignNode(save, node, admin)} onEnter={(node) => startBattle('campaign', node)}/></div>
+  </div>
 }
 
 interface ActiveBattle { result: BattleResult; mode: 'training' | 'campaign'; node: number; enemyLevel: number }
@@ -282,15 +239,16 @@ function Battle({ save, setSave, active, onExit, admin }: { save: SaveData; setS
   const settle = () => {
     if (settled) return
     const next = clone(save), won = active.result.winner === 'player', elite = [5,10,15].includes(active.node), boss = active.node === 20
-    const previousLevel = activeWarrior(save).level, previousBadges = new Set(save.badges.map((badge) => badge.id))
+    const previousLevel = activeWarrior(save).level
     const baseXp = 100 + 12 * active.enemyLevel
     const xp = active.mode === 'training' ? (won ? 1 : 0) : Math.round(baseXp * (won ? (boss ? 2.5 : elite ? 1.5 : 1) : 0.1))
     const coins = active.mode === 'training' ? (won ? 1 : 0) : won ? 50 : 10
     next.coins += coins; addWarriorXp(next, xp)
-    if (active.mode === 'training') { next.trainingRemaining = Math.max(0, next.trainingRemaining - 1); if (won) { next.trainingWins += 1; next.totalWins += 1 } }
-    else { next.campaignRemaining = Math.max(0, next.campaignRemaining - 1); if (won) { next.totalWins += 1; if (!next.defeatedNodes.includes(active.node)) next.defeatedNodes.push(active.node); next.campaignNode = Math.min(20, active.node + 1); if (elite) unlock(next, 'first-elite'); if (boss) { unlock(next, 'boss'); next.bossTrophyPending = true; if (!next.eraRewardClaimed) { next.coins += 100; next.chests += 3; addWarriorXp(next, 500); next.eraRewardClaimed = true } } } }
-    if (won) unlock(next, 'first-win'); if (next.trainingWins >= 10) unlock(next, 'training-10'); if (next.trainingWins >= 50) unlock(next, 'training-50')
-    setSummary({ xp, coins, levelUp: activeWarrior(next).level - previousLevel, badges: next.badges.filter((badge) => !previousBadges.has(badge.id)).map((badge) => badges.find(([id]) => id === badge.id)?.[1] ?? badge.id), campaignProgress: active.mode === 'campaign' ? (won ? `Niveau ${active.node} terminé${active.node < 20 ? ` · prochain : niveau ${active.node + 1}` : ' · Ère achevée'}` : `Niveau ${active.node} à retenter`) : undefined })
+    recordBattleOutcome(next, active.mode === 'campaign' ? 'adventure' : 'training', active.result.winner)
+    if (active.mode === 'training') next.trainingRemaining = Math.max(0, next.trainingRemaining - 1)
+    else { next.campaignRemaining = Math.max(0, next.campaignRemaining - 1); if (won) { if (!next.defeatedNodes.includes(active.node)) next.defeatedNodes.push(active.node); next.campaignNode = Math.min(20, active.node + 1); if (boss) { next.bossTrophyPending = true; if (!next.eraRewardClaimed) { next.coins += 100; next.chests += 3; addWarriorXp(next, 500); next.eraRewardClaimed = true } } } }
+    const earnedBadges = grantEarnedBadges(next).granted
+    setSummary({ xp, coins, levelUp: activeWarrior(next).level - previousLevel, badges: earnedBadges.map(({ title, coins: reward }) => `${title} · +${reward} pièces`), campaignProgress: active.mode === 'campaign' ? (won ? `Niveau ${active.node} terminé${active.node < 20 ? ` · prochain : niveau ${active.node + 1}` : ' · Ère achevée'}` : `Niveau ${active.node} à retenter`) : undefined })
     setSave(next); setSettled(true)
   }
   useEffect(() => {
@@ -470,12 +428,18 @@ function GameApp() {
   const adminMode = isLocalAdmin(window.location)
   const query = new URLSearchParams(window.location.search)
   const desktopCombatPreview = import.meta.env.DEV && adminMode && query.has('desktopCombatPreview')
+  const adventurePreview = import.meta.env.DEV && adminMode && query.has('adventurePreview')
   const qaLevelChoice = import.meta.env.DEV && adminMode && query.has('qaLevelChoice')
-  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || qaLevelChoice || (adminMode && query.has('enemySpritePreview')))
+  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || adventurePreview || qaLevelChoice || (adminMode && query.has('enemySpritePreview')))
   const requestedQaNode = Number(query.get('qaNode'))
   const qaNode = Number.isInteger(requestedQaNode) && requestedQaNode >= 1 && requestedQaNode <= 20 ? requestedQaNode : 1
+  const [initialLoad] = useState(() => {
+    const initialSave = adminMode ? withAdminAccess(loadSave(localStorage, ADMIN_SAVE_KEY)) : loadSave()
+    const initialBadges = grantEarnedBadges(initialSave)
+    return { loaded: adminMode ? withAdminAccess(initialBadges.save) : initialBadges.save, granted: initialBadges.granted.length > 0 }
+  })
   const [save, setSaveState] = useState<SaveData>(() => {
-    const loaded = adminMode ? withAdminAccess(loadSave(localStorage, ADMIN_SAVE_KEY)) : loadSave()
+    const loaded = initialLoad.loaded
     if (!qaMode) return loaded
     const qaWeapon = query.get('qaWeapon'), qaSkills = query.get('qaSkills'), qaWarrior = query.get('qaWarrior') ?? (desktopCombatPreview ? 'karg' : null)
     const qaSkillCount = qaSkills && /^\d+$/.test(qaSkills) ? Math.min(skills.length, Number(qaSkills)) : null
@@ -485,20 +449,31 @@ function GameApp() {
     const ownedWarriors = previewWarrior && !loaded.ownedWarriors[qaWarrior] ? { ...loaded.ownedWarriors, [qaWarrior]: { warriorId: qaWarrior, level: 1, xp: 0, bonusStats: { strength: 0, dodge: 0, speed: 0, hp: 0 } } } : loaded.ownedWarriors
     const activeWarriorId = previewWarrior ? qaWarrior : loaded.activeWarriorId
     const previewOwnedWarriors = qaLevelChoice ? { ...ownedWarriors, [activeWarriorId]: { ...ownedWarriors[activeWarriorId], level: 5 } } : ownedWarriors
-    return { ...loaded, activeWarriorId, ownedWarriors: previewOwnedWarriors, pendingLevelChoice: qaLevelChoice || loaded.pendingLevelChoice, coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, unlockedSkills: qaSkills === 'all' ? [...skills] : qaSkillCount !== null ? skills.slice(0, qaSkillCount) : loaded.unlockedSkills }
-  }), [view, setView] = useState<View>(desktopCombatPreview ? 'battle' : 'hub'), [detail, setDetail] = useState<EquipmentDefinition | null>(null), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => desktopCombatPreview ? createActiveBattle(save, 'campaign', qaNode) : null)
+    return { ...loaded, activeWarriorId, ownedWarriors: previewOwnedWarriors, pendingLevelChoice: qaLevelChoice || loaded.pendingLevelChoice, coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, unlockedSkills: qaSkills === 'all' ? [...skills] : qaSkillCount !== null ? skills.slice(0, qaSkillCount) : loaded.unlockedSkills, ...(adventurePreview ? { campaignNode: qaNode, defeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}) }
+  }), [view, setView] = useState<View>(desktopCombatPreview ? 'battle' : adventurePreview ? 'adventure' : 'hub'), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => desktopCombatPreview ? createActiveBattle(save, 'campaign', qaNode) : null)
   const [welcomeFlow, setWelcomeFlow] = useState(() => !adminMode && !qaMode && !save.welcomeChestOpened)
+  const [badgeNotice, setBadgeNotice] = useState<{ label: string; coins: number } | null>(null)
+  const badgeNoticeTimer = useRef<number | null>(null)
   const initial = useRef(true)
-  const setSave = (next: SaveData) => setSaveState(adminMode ? withAdminAccess(next) : next)
-  useEffect(() => { if (initial.current) initial.current = false; if (!qaMode) persistSave(save, localStorage, adminMode ? ADMIN_SAVE_KEY : undefined) }, [save, qaMode, adminMode])
+  const setSave = (next: SaveData) => {
+    const prepared = adminMode ? withAdminAccess(next) : next
+    const { save: awarded, granted } = grantEarnedBadges(prepared)
+    setSaveState(adminMode ? withAdminAccess(awarded) : awarded)
+    if (granted.length) {
+      if (badgeNoticeTimer.current !== null) window.clearTimeout(badgeNoticeTimer.current)
+      setBadgeNotice({ label: granted.length === 1 ? granted[0].title : `${granted.length} badges débloqués`, coins: granted.reduce((total, badge) => total + badge.coins, 0) })
+      badgeNoticeTimer.current = window.setTimeout(() => { setBadgeNotice(null); badgeNoticeTimer.current = null }, 2400)
+    }
+  }
+  useEffect(() => () => { if (badgeNoticeTimer.current !== null) window.clearTimeout(badgeNoticeTimer.current) }, [])
+  useEffect(() => { const first = initial.current; initial.current = false; if (!qaMode && (!first || initialLoad.granted)) persistSave(save, localStorage, adminMode ? ADMIN_SAVE_KEY : undefined) }, [save, qaMode, adminMode, initialLoad.granted])
   useEffect(() => { window.scrollTo({ top: 0 }) }, [view])
   const startBattle = (mode: 'training' | 'campaign', node = 0) => {
     if (!canStartBattle(save, mode, adminMode)) return
     setActiveBattle(createActiveBattle(save, mode, node)); setView('battle')
   }
-  const equip = (item: EquipmentDefinition) => setSave(equipItem(save, item.id))
   const content = useMemo(() => {
-    if (view === 'hub') return save.activeWarriorId ? <Hub save={save} setView={setView} setDetail={setDetail}/> : <EmptyHub/>
+    if (view === 'hub') return save.activeWarriorId ? <Hub save={save} setView={setView}/> : <EmptyHub/>
     if (view === 'collection') return <Collection save={save} setSave={setSave} setWarriorDetail={setWarriorDetailId}/>
     if (view === 'chest') return <Chests save={save} setSave={setSave} admin={adminMode}/>
     if (view === 'adventure') return <Adventure save={save} startBattle={startBattle} admin={adminMode}/>
@@ -508,10 +483,10 @@ function GameApp() {
   }, [view, save])
   if (import.meta.env.DEV && adminMode && query.has('enemySpritePreview')) return <EnemySpritePreview/>
   if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('spriteLab')) return <SpriteLab/>
-  if (view === 'battle' && activeBattle) return <Battle save={save} setSave={setSave} active={activeBattle} admin={adminMode} onExit={() => { setView(activeBattle.mode === 'campaign' ? 'adventure' : 'training'); setActiveBattle(null) }}/>
+  const badgeToast = badgeNotice && createPortal(<div className="badge-unlock-toast" role="status" aria-live="polite"><Award aria-hidden="true"/><span>{badgeNotice.label}</span><b>+{badgeNotice.coins} pièces</b></div>, document.body)
+  if (view === 'battle' && activeBattle) return <><Battle save={save} setSave={setSave} active={activeBattle} admin={adminMode} onExit={() => { setView(activeBattle.mode === 'campaign' ? 'adventure' : 'training'); setActiveBattle(null) }}/>{badgeToast}</>
   return <><div className="app-shell" inert={welcomeFlow} aria-hidden={welcomeFlow}><Header save={save} view={view} setView={setView} admin={adminMode}/><main className="main-content">{content}</main><nav className="bottom-nav" aria-label="Navigation principale">{nav.map(({ id, label, icon }) => <button aria-label={label} className={view === id ? 'active' : ''} onClick={() => setView(id)} key={id}><GameIcon group="navigation" name={icon}/><span>{label}</span></button>)}</nav>
-    {detail && <div className="modal-backdrop" onClick={() => setDetail(null)}><section className={`detail-sheet ${rarityClass(detail.rarity)}`} onClick={(event) => event.stopPropagation()}><button className="close" onClick={() => setDetail(null)}><X/></button><EquipmentArt item={detail}/><span className="rarity-label">{detail.rarity}</span><h2>{detail.name}</h2><p className="bonus">{detail.bonus}</p><p>{detail.effect}</p>{save.owned[detail.id] ? <button className="primary wide" disabled={[save.equippedWeapon, save.equippedArmor].includes(detail.id)} onClick={() => { equip(detail); setDetail(null) }}>{[save.equippedWeapon, save.equippedArmor].includes(detail.id) ? 'ÉQUIPÉ' : 'ÉQUIPER'}</button> : <div className="locked-copy"><GameIcon group="system" name="lock"/>À découvrir dans un coffre</div>}</section></div>}
-    {warriorDetailId && view === 'collection' && <WarriorDetail save={save} warriorId={warriorDetailId} onClose={() => setWarriorDetailId(null)} onActivate={() => { setSave(activateWarrior(save, warriorDetailId)); setWarriorDetailId(null) }}/>} {save.pendingLevelChoice && <LevelChoice save={save} setSave={setSave}/>} {save.bossTrophyPending && <TrophyChoice save={save} setSave={setSave}/>}</div>{welcomeFlow && <WelcomeChest onClaim={(id) => setSave(claimWelcomeWarrior(save, id))} onDone={() => setWelcomeFlow(false)}/>}</>
+    {warriorDetailId && view === 'collection' && <WarriorDetail save={save} warriorId={warriorDetailId} onClose={() => setWarriorDetailId(null)} onActivate={() => { setSave(activateWarrior(save, warriorDetailId)); setWarriorDetailId(null) }}/>} {save.pendingLevelChoice && <LevelChoice save={save} setSave={setSave}/>} {save.bossTrophyPending && <TrophyChoice save={save} setSave={setSave}/>}</div>{welcomeFlow && <WelcomeChest onClaim={(id) => setSave(claimWelcomeWarrior(save, id))} onDone={() => setWelcomeFlow(false)}/>}{badgeToast}</>
 }
 
 export default function App() {

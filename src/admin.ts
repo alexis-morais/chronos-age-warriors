@@ -2,6 +2,7 @@ import { GAME } from './config'
 import { equipment } from './data'
 import type { SaveData } from './types'
 import { primalWarriors } from './warriors'
+import { chestPrice, type ChestSelection } from './chestSystem'
 
 export const ADMIN_SAVE_KEY = 'chronos-age-warriors:admin:v2'
 export const ADMIN_COINS = 9_999_999
@@ -25,8 +26,8 @@ export function withAdminAccess(save: SaveData): SaveData {
   }
 }
 
-export function canOpenChest(save: SaveData, admin: boolean): boolean {
-  return admin || save.coins >= GAME.chestCost
+export function canOpenChest(save: SaveData, admin: boolean, selection: ChestSelection = { kind: 'warrior', quantity: 1 }): boolean {
+  return admin || save.coins >= chestPrice(selection)
 }
 
 export function canStartBattle(save: SaveData, mode: 'training' | 'campaign', admin: boolean): boolean {

@@ -16,7 +16,7 @@ export function freshSave(): SaveData {
     owned: {},
     equippedWeapon: '', equippedArmor: '', campaignNode: 1, defeatedNodes: [], campaignRemaining: 10,
     loadouts: {},
-    trainingRemaining: 100, trainingWins: 0, totalWins: 0, chests: 0, speed: 1, badges: [], pendingLevelChoice: false,
+    trainingRemaining: 100, trainingWins: 0, totalWins: 0, adventureWins: 0, riftWins: 0, duelWins: 0, chests: 0, speed: 1, badges: [], pendingLevelChoice: false,
     lastReset: localDate(), bossTrophyPending: false, eraRewardClaimed: false,
   }
 }
@@ -42,6 +42,10 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     const isUnopenedNewSave = parsed.activeWarriorId === '' && Object.keys(parsed.ownedWarriors ?? {}).length === 0 && parsed.welcomeChestOpened === false
     if (parsed.version !== SAVE_VERSION || (!hasWarrior && !isUnopenedNewSave) || !Array.isArray(parsed.unlockedSkills)) return freshSave()
     parsed.welcomeChestOpened = hasWarrior ? true : false
+    // Legacy totalWins mixes Training and Adventure; their historical split is unknowable.
+    parsed.adventureWins = Number.isSafeInteger(parsed.adventureWins) && parsed.adventureWins >= 0 ? parsed.adventureWins : 0
+    parsed.riftWins = Number.isSafeInteger(parsed.riftWins) && parsed.riftWins >= 0 ? parsed.riftWins : 0
+    parsed.duelWins = Number.isSafeInteger(parsed.duelWins) && parsed.duelWins >= 0 ? parsed.duelWins : 0
     parsed.owned ??= {}
     for (const item of Object.values(parsed.owned)) item.quantity = Number.isSafeInteger(item.quantity) && (item.quantity ?? 0) > 0 ? item.quantity : 1
     parsed.loadouts ??= {}

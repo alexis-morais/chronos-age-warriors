@@ -38,14 +38,6 @@ export const equipment: EquipmentDefinition[] = [
   { id: 'primordial-titan-skin', name: 'Peau du Titan primordial', type: 'armor', rarity: 'Mythique', bonus: '+25 PV et +1 Esquive', effect: 'Les 3 premières attaques reçues font −20 % dégâts', art: 'titan' },
 ]
 
-export const badges = [
-  ['first-win', 'Premier impact', 'Première victoire'], ['first-rare', 'Éclat azur', 'Première arme Rare'],
-  ['first-epic', 'Faveur violette', 'Premier Épique'], ['first-legendary', 'Légende naissante', 'Premier Légendaire'],
-  ['first-mythic', 'Cosmos éveillé', 'Premier Mythique'], ['training-10', 'Endurant', '10 victoires Entraînement'],
-  ['training-50', 'Infatigable', '50 victoires Entraînement'], ['first-elite', 'Briseur d’Élite', 'Première Élite'],
-  ['boss', 'Maître du Primordial', 'Boss Primordial vaincu'],
-] as const
-
 export const enemies = [
   'Ramasseur des brumes', 'Chasseur de cornes', 'Veilleuse des fougères', 'Pilleur de silex', 'Brak le Colossal',
   'Traqueur des marais', 'Dompteuse de raptors', 'Gardien des os', 'Éclaireur du volcan', 'Ura la Balafrée',

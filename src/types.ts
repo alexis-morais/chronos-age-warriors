@@ -43,6 +43,9 @@ export interface SaveData {
   trainingRemaining: number
   trainingWins: number
   totalWins: number
+  adventureWins: number
+  riftWins: number
+  duelWins: number
   chests: number
   speed: BattleSpeed
   badges: BadgeState[]

@@ -95,12 +95,12 @@ describe('comparaison et choix d’équipement', () => {
 describe('gacha et doublons', () => {
   it('totalise exactement 100 %', () => expect(Object.values(RARITY_CHANCES).reduce((a, b) => a + b, 0)).toBeCloseTo(100, 10))
   it('distingue un objet réellement nouveau avant le choix Équiper/Stocker', () => {
-    const reward = rollChest(() => 0, {}, [])
+    const reward = rollChest(() => 0, {})
     expect(reward.kind).toBe('equipment')
     if (reward.kind === 'equipment') { expect(reward.item.id).toBe('flint-club'); expect(reward.duplicate).toBe(false) }
   })
   it('identifie un doublon et incrémente le stack sans compensation', () => {
-    const reward = rollChest(() => 0, { 'flint-club': { level: 1, xp: 0, kills: 0 } }, [])
+    const reward = rollChest(() => 0, { 'flint-club': { level: 1, xp: 0, kills: 0 } })
     expect(reward.kind).toBe('equipment')
     if (reward.kind === 'equipment') { expect(reward.duplicate).toBe(true); expect('recycle' in reward).toBe(false) }
     const save = establishedKargSave(), next = addEquipmentCopy(save, 'flint-club')

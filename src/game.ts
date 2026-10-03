@@ -1,5 +1,5 @@
 import { GAME, RARITY_CHANCES, rarityOrder } from './config'
-import { equipment, skills } from './data'
+import { equipment } from './data'
 import type { BattleResult, Fighter, OwnedEquipment, Rarity, SaveData, Stats } from './types'
 import { activeWarrior, primalWarriors, warriorDefinitions } from './warriors'
 
@@ -217,12 +217,8 @@ export function rollRarity(rng: Rng): Rarity {
   return 'Mythique'
 }
 
-export function rollChest(rng: Rng, owned: Record<string, OwnedEquipment>, knownSkills: string[]) {
+export function rollChest(rng: Rng, owned: Record<string, OwnedEquipment>) {
   const rarity = rollRarity(rng)
-  if (rarity === 'Mythique' && rng() < GAME.mythicalSkillWeight && knownSkills.length < skills.length) {
-    const pool = skills.filter((skill) => !knownSkills.includes(skill))
-    return { kind: 'skill' as const, skill: pool[Math.floor(rng() * pool.length)], rarity }
-  }
   const pool = equipment.filter((item) => item.rarity === rarity)
   const item = pool[Math.floor(rng() * pool.length)]
   const duplicate = Boolean(owned[item.id])
