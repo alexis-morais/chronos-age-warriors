@@ -22,11 +22,13 @@ export function freshSave(): SaveData {
     coins: 300,
     owned: {},
     equippedWeapon: '', equippedArmor: '', campaignNode: 1, defeatedNodes: [], campaignRemaining: 10,
+    nemesisUnlocked: false, nemesisCampaignNode: 1, nemesisDefeatedNodes: [], nemesisCompleted: false,
+    normalBossFirstClearRewardClaimed: false, nemesisBossFirstClearRewardClaimed: false,
     loadouts: {},
     totalWins: 0, adventureWins: 0, riftWins: 0, duelWins: 0, chests: 0,
     riftChestCount: 0, riftLossStreak: 0, riftRun: null, expedition: null, expeditionReturn: null,
     equipmentChestCount: 0, warriorChestCount: 0, speed: 1, badges: [],
-    lastReset: localDate(), bossTrophyPending: false, eraRewardClaimed: false,
+    lastReset: localDate(),
   }
 }
 
@@ -43,7 +45,7 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
       : key === PREVIOUS_ADMIN_SAVE_KEY ? [LEGACY_ADMIN_SAVE_KEY] : []
     const raw = storage.getItem(key) ?? fallbacks.map((fallback) => storage.getItem(fallback)).find(Boolean)
     if (!raw) return freshSave()
-    const parsed = JSON.parse(raw) as SaveData
+    const parsed = JSON.parse(raw) as SaveData & { bossTrophyPending?: boolean; eraRewardClaimed?: boolean }
     if (parsed.version !== SAVE_VERSION && parsed.version !== 3 && parsed.version !== 2) return freshSave()
     const oldId = 'dev-primordial-warrior'
     if (parsed.ownedWarriors?.[oldId]) {
@@ -73,6 +75,20 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     delete legacyTraining.trainingRemaining
     delete legacyTraining.trainingWins
     parsed.version = SAVE_VERSION
+    parsed.defeatedNodes = Array.isArray(parsed.defeatedNodes) ? [...new Set(parsed.defeatedNodes.filter((node) => Number.isInteger(node) && node >= 1 && node <= 20))] : []
+    parsed.campaignNode = Number.isInteger(parsed.campaignNode) ? Math.min(20, Math.max(1, parsed.campaignNode)) : 1
+    const normalComplete = parsed.defeatedNodes.includes(20) || parsed.eraRewardClaimed === true
+    if (parsed.eraRewardClaimed === true && !parsed.defeatedNodes.includes(20)) parsed.defeatedNodes.push(20)
+    parsed.nemesisUnlocked = normalComplete || parsed.nemesisUnlocked === true
+    parsed.nemesisDefeatedNodes = Array.isArray(parsed.nemesisDefeatedNodes) ? [...new Set(parsed.nemesisDefeatedNodes.filter((node) => Number.isInteger(node) && node >= 1 && node <= 20))] : []
+    parsed.nemesisCampaignNode = Number.isInteger(parsed.nemesisCampaignNode) ? Math.min(20, Math.max(1, parsed.nemesisCampaignNode)) : 1
+    parsed.nemesisCompleted = parsed.nemesisCompleted === true || parsed.nemesisDefeatedNodes.includes(20)
+    if (parsed.nemesisCompleted && !parsed.nemesisDefeatedNodes.includes(20)) parsed.nemesisDefeatedNodes.push(20)
+    // A legacy clear unlocks Némésis, but the new bonus is only earned on a future boss victory.
+    parsed.normalBossFirstClearRewardClaimed = parsed.normalBossFirstClearRewardClaimed === true
+    parsed.nemesisBossFirstClearRewardClaimed = parsed.nemesisBossFirstClearRewardClaimed === true
+    delete parsed.bossTrophyPending
+    delete parsed.eraRewardClaimed
     parsed.riftChestCount = Number.isSafeInteger(parsed.riftChestCount) && parsed.riftChestCount >= 0 ? parsed.riftChestCount : 0
     parsed.riftLossStreak = Number.isSafeInteger(parsed.riftLossStreak) && parsed.riftLossStreak >= 0 ? parsed.riftLossStreak : 0
     parsed.equipmentChestCount = Number.isSafeInteger(parsed.equipmentChestCount) && parsed.equipmentChestCount >= 0 ? parsed.equipmentChestCount : 0

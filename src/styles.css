@@ -136,6 +136,19 @@ h2 { font-size:clamp(1.35rem,2vw,2rem); }
 .adventure-page { min-height:calc(100dvh - 160px);position:relative;overflow:hidden;background:#121a17; }
 .adventure-copy { position:relative;z-index:5;display:flex;align-items:end;justify-content:space-between;gap:2rem;padding:clamp(1.5rem,3vw,2.5rem) max(1.25rem,calc((100vw - 1180px)/2));background:linear-gradient(110deg,#141c1b,#202821);border-bottom:1px solid #c8b67d30; }
 .adventure-copy h1 { font-size:clamp(2.05rem,3.6vw,3.5rem);margin:.4rem 0 .3rem;line-height:1.05; }.adventure-copy p { max-width:520px;margin:0;color:#b5bdb0;font-size:.88rem;line-height:1.5; }
+.adventure-mode-switch { display:inline-flex;gap:3px;margin-top:1rem;padding:3px;border:1px solid #c8b67d55;border-radius:10px;background:#101714; }
+.adventure-mode-switch button { min-width:92px;min-height:40px;padding:.45rem .8rem;border:0;border-radius:7px;background:transparent;color:#b9c0b4;font:700 .78rem 'DM Sans',sans-serif;cursor:pointer; }
+.adventure-mode-switch button[aria-pressed="true"] { background:#bba673;color:#181b17; }
+.adventure-mode-switch button:focus-visible { outline:2px solid #f1d89b;outline-offset:2px; }
+.adventure-page.is-nemesis { background:#130f17; }
+.adventure-page.is-nemesis .adventure-copy { background:linear-gradient(110deg,#17131c,#29202b);border-bottom-color:#b58c944d; }
+.adventure-page.is-nemesis .adventure-copy .eyebrow { color:#cda2ae; }
+.adventure-page.is-nemesis .adventure-progress strong { color:#edc9c1; }
+.adventure-page.is-nemesis .adventure-mode-switch button[aria-pressed="true"] { background:#aa788b;color:#190f19; }
+.adventure-page.is-nemesis .map-scene::before { content:'';position:absolute;inset:0;z-index:0;background:linear-gradient(#24192399,#251823ad);pointer-events:none; }
+.adventure-page.is-nemesis .map-route { z-index:1; }
+.adventure-page.is-nemesis .map-node.is-current { filter:drop-shadow(0 0 8px #d991a499); }
+.adventure-page.is-nemesis .map-node.is-current::before { border-color:#e9b6c0b3; }
 .adventure-progress { flex:none;display:grid;justify-items:end;gap:.25rem;text-align:right; }.adventure-progress>span:first-child { color:#9daba0;font-size:.62rem;font-weight:800;letter-spacing:.16em; }.adventure-progress strong { color:#f1d89b;font:1.55rem 'Marcellus',serif; }.adventure-progress small { color:#9ba79b;font-size:.9rem; }
 .daily-pill { display:inline-flex;align-items:center;gap:.45rem;padding:.3rem 0;color:#c5cbb9;font-size:.73rem; }.daily-pill .game-icon { width:15px;height:15px; }
 .map-scene { min-height:620px;height:clamp(620px,71dvh,760px);position:relative;overflow:hidden;background:radial-gradient(circle at 70% 40%,#56623a55,transparent 22%); }
@@ -172,7 +185,7 @@ h2 { font-size:clamp(1.35rem,2vw,2rem); }
 
 /* modals */
 .level-choice { position:relative;width:min(100%,480px);max-height:90dvh;overflow:auto;background:linear-gradient(145deg,color-mix(in srgb,var(--rarity,#aaa) 7%,#20241d),#121411);border:1px solid color-mix(in srgb,var(--rarity,#aaa) 35%,transparent);border-radius:26px;padding:2rem;text-align:center;box-shadow:0 30px 90px #000; }
-.level-choice { --rarity:#e9bd62; }.level-choice h2 { font-size:2rem;margin-bottom:.6rem; }.level-choice>p { color:#999f93; }.choice-grid { display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:1.3rem; }.choice-grid button,.trophy-grid button { min-height:58px;border:1px solid var(--line);border-radius:13px;background:#252a22; }.choice-grid .skill-choice { grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:.5rem;color:#f0cb70;border-color:#b68f45; }.trophy-grid { display:grid;grid-template-columns:1fr 1fr;gap:.8rem; }.trophy-grid button { color:var(--rarity);display:flex;flex-direction:column;align-items:center;padding:1rem; }.trophy-grid .equipment-art { width:100%;height:150px; }.trophy-grid strong { color:white; }.trophy-grid span { font-size:.72rem;color:#aaa;margin-top:.4rem; }
+.level-choice { --rarity:#e9bd62; }.level-choice h2 { font-size:2rem;margin-bottom:.6rem; }.level-choice>p { color:#999f93; }.choice-grid { display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:1.3rem; }.choice-grid button { min-height:58px;border:1px solid var(--line);border-radius:13px;background:#252a22; }.choice-grid .skill-choice { grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:.5rem;color:#f0cb70;border-color:#b68f45; }
 
 @media (max-width:1000px) {
   .hub-page { grid-template-columns:1fr; }.stats-panel { display:none; }.hub-bottom { padding-top:1rem; }.mobile-only { display:flex!important; }.desktop-only { display:none!important; }

@@ -124,14 +124,14 @@ describe('difficulté Primal fixe', () => {
     expect(enemyFor(20).name).toBe('Morgath, Roi Primordial')
   })
 
-  it('préserve 5 188 XP pour le parcours de 20 victoires et premier bonus Boss', () => {
+  it('préserve 4 688 XP de combat pour le parcours de 20 victoires, sans ancien bonus Boss', () => {
     const total = Array.from({ length: 20 }, (_, index) => {
       const node = index + 1
       return Math.round(campaignBaseXp(node) * (node === 20 ? 2.5 : [5,10,15].includes(node) ? 1.5 : 1))
-    }).reduce((sum, reward) => sum + reward, 500)
-    expect(total).toBe(5188)
+    }).reduce((sum, reward) => sum + reward, 0)
+    expect(total).toBe(4688)
     const save = establishedKargSave()
     addWarriorXp(save, total)
-    expect(save.ownedWarriors.karg).toMatchObject({ level: 9, xp: 678 })
+    expect(save.ownedWarriors.karg).toMatchObject({ level: 9, xp: 178 })
   })
 })

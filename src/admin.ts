@@ -4,6 +4,7 @@ import type { SaveData } from './types'
 import { primalWarriors } from './warriors'
 import { chestPrice, type ChestSelection } from './chestSystem'
 import { isWarriorOnExpedition } from './expedition'
+import { canEnterAdventureNode, type AdventureMode } from './nemesisCampaign'
 
 export const ADMIN_SAVE_KEY = 'chronos-age-warriors:admin:v4'
 export const ADMIN_COINS = 9_999_999
@@ -35,6 +36,6 @@ export function canStartBattle(save: SaveData, admin: boolean): boolean {
   return admin || save.campaignRemaining > 0
 }
 
-export function canEnterCampaignNode(save: SaveData, node: number, admin: boolean): boolean {
-  return (admin || node === save.campaignNode) && canStartBattle(save, admin)
+export function canEnterCampaignNode(save: SaveData, node: number, admin: boolean, mode: AdventureMode = 'normal'): boolean {
+  return canEnterAdventureNode(save, mode, node, admin) && canStartBattle(save, admin)
 }

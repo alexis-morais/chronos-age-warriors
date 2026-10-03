@@ -65,6 +65,12 @@ export interface SaveData {
   loadouts: Record<string, WarriorLoadout>
   campaignNode: number
   defeatedNodes: number[]
+  nemesisUnlocked: boolean
+  nemesisCampaignNode: number
+  nemesisDefeatedNodes: number[]
+  nemesisCompleted: boolean
+  normalBossFirstClearRewardClaimed: boolean
+  nemesisBossFirstClearRewardClaimed: boolean
   campaignRemaining: number
   totalWins: number
   adventureWins: number
@@ -82,8 +88,6 @@ export interface SaveData {
   badges: BadgeState[]
   /** Read only while migrating pre-V1 saves. */ pendingLevelChoice?: boolean
   lastReset: string
-  bossTrophyPending: boolean
-  eraRewardClaimed: boolean
 }
 
 export type BattleEventType = 'attack' | 'dodge' | 'damage' | 'critical' | 'skill' | 'heal' | 'bleed' | 'ko'

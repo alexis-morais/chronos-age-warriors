@@ -1,15 +1,15 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Award, Check, ChevronLeft, Sparkles } from 'lucide-react'
-import { ADMIN_SAVE_KEY, canEnterCampaignNode, canStartBattle, isLocalAdmin, withAdminAccess } from './admin'
+import { ADMIN_SAVE_KEY, canEnterCampaignNode, isLocalAdmin, withAdminAccess } from './admin'
 import { equipment } from './data'
-import { activateWarrior, addEquipmentCopy, addWarriorXp, claimWelcomeWarrior, effectiveStats, equipmentStats, equipItem, generateEnemy, rollWarriorChest, seededRng, simulateBattle, xpForLevel } from './game'
+import { activateWarrior, claimWelcomeWarrior, effectiveStats, equipmentStats, equipItem, generateEnemy, rollWarriorChest, seededRng, simulateBattle, xpForLevel } from './game'
 import { LEGACY_ADMIN_SAVE_KEY, LEGACY_SAVE_KEY, PREVIOUS_ADMIN_SAVE_KEY, PREVIOUS_SAVE_KEY, loadSave, persistSave, SAVE_KEY } from './storage'
 import type { BattleResult, EquipmentDefinition, Fighter, Rarity, SaveData, View } from './types'
-import { campaignBaseXp, campaignNodeTier } from './campaignProgression'
+import { campaignNodeTier } from './campaignProgression'
 import { getNewlyUnlockedWarriorPassives, getWarriorPassives, type WarriorPassiveDefinition } from './warriorPassives'
 import { MAX_WARRIOR_LEVEL } from './warriorProgression'
-import { EquipmentArt, GameIcon, ProductionEnemy, ProductionWarrior } from './components/Art'
+import { GameIcon, ProductionEnemy, ProductionWarrior } from './components/Art'
 import { WarriorCard, WarriorStats } from './components/WarriorCard'
 import { WarriorDetail } from './components/WarriorDetail'
 import { enemyIds, spriteStates, type EnemyId } from './art/assetsV04'
@@ -34,7 +34,8 @@ import { RiftPage } from './components/RiftPage'
 import { primalMapLayout } from './art/adventureMapLayout'
 import { activeWarrior, primalWarriors, warriorDefinitions } from './warriors'
 import { grantEarnedBadges } from './badgeSystem'
-import { recordBattleOutcome } from './victories'
+import { campaignProgress, settleCampaignBattle, type AdventureMode } from './nemesisCampaign'
+import { nemesisEnemy } from './nemesisBalance'
 import { createRiftEncounter, quitRift, resolveRiftStage, todayRiftRun, type RiftEncounter } from './rift'
 import { RIFT_REWARDS, RIFT_STAGE_LABELS } from './riftBalance'
 import { isWarriorOnExpedition } from './expedition'
@@ -46,7 +47,6 @@ const nav: { id: View; label: string; icon: string }[] = [
 ]
 
 const rarityClass = (rarity: Rarity) => `rarity-${rarity.toLowerCase().replace(' ', '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`
-const itemById = (id: string) => equipment.find((item) => item.id === id)!
 const clone = (save: SaveData): SaveData => structuredClone(save)
 
 const statMeta = { strength: { label: 'Force', icon: 'force' }, dodge: { label: 'Esquive', icon: 'dodge' }, speed: { label: 'Vitesse', icon: 'speed' }, hp: { label: 'PV', icon: 'pv' } }
@@ -150,16 +150,17 @@ function Chests({ save, setSave, admin }: { save: SaveData; setSave: (save: Save
   return <ChestPage save={save} setSave={setSave} admin={admin}/>
 }
 
-function Adventure({ save, startBattle, admin }: { save: SaveData; startBattle: (node: number) => void; admin: boolean }) {
-  return <div className="adventure-page page-enter">
-    <header className="adventure-copy"><div><span className="eyebrow">CARTE I · ÈRE PRIMORDIALE</span><h1>La Vallée des Titans</h1><p>La puissance qui sommeille au volcan déforme la faune et les guerriers.</p></div><div className="adventure-progress"><span>{save.defeatedNodes.includes(20) ? 'CAMPAGNE TERMINÉE' : 'PROCHAIN COMBAT'}</span><strong>{save.defeatedNodes.includes(20) ? 'Ère achevée' : <>Niveau {Math.min(save.campaignNode, 20)} <small>/ 20</small></>}</strong><span className="daily-pill"><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 combats récompensés</span></div></header>
+function Adventure({ save, mode, setMode, startBattle, admin }: { save: SaveData; mode: AdventureMode; setMode: (mode: AdventureMode) => void; startBattle: (node: number) => void; admin: boolean }) {
+  const progress = campaignProgress(save, mode)
+  return <div className={`adventure-page page-enter ${mode === 'nemesis' ? 'is-nemesis' : ''}`}>
+    <header className="adventure-copy"><div><span className="eyebrow">CARTE I · ÈRE PRIMORDIALE{mode === 'nemesis' ? ' · NÉMÉSIS' : ''}</span><h1>La Vallée des Titans</h1><p>{mode === 'nemesis' ? 'La vallée renaît sous les cendres. Chaque victoire se mérite.' : 'La puissance qui sommeille au volcan déforme la faune et les guerriers.'}</p>{save.nemesisUnlocked && <div className="adventure-mode-switch" role="group" aria-label="Mode Aventure"><button type="button" aria-pressed={mode === 'normal'} onClick={() => setMode('normal')}>Normal</button><button type="button" aria-pressed={mode === 'nemesis'} onClick={() => setMode('nemesis')}>Némésis</button></div>}</div><div className="adventure-progress"><span>{progress.completed ? 'CAMPAGNE TERMINÉE' : 'PROCHAIN COMBAT'}</span><strong>{progress.completed ? mode === 'nemesis' ? 'Némésis terminé' : 'Ère achevée' : <>Niveau {progress.node} <small>/ 20</small></>}</strong><span className="daily-pill"><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 combats récompensés</span></div></header>
     {isWarriorOnExpedition(save, save.activeWarriorId) && <p className="expedition-unavailable">Ce Warrior est en expédition.</p>}
-    <div className="map-scene"><AdventureMap layout={primalMapLayout} currentNode={save.campaignNode} defeatedNodes={save.defeatedNodes} canEnter={(node) => canEnterCampaignNode(save, node, admin)} onEnter={startBattle}/></div>
+    <div className="map-scene"><AdventureMap layout={primalMapLayout} currentNode={progress.node} defeatedNodes={progress.defeated} canEnter={(node) => canEnterCampaignNode(save, node, admin, mode)} onEnter={startBattle}/></div>
   </div>
 }
 
-interface ActiveBattle { result: BattleResult; mode: 'campaign' | 'rift'; node: number; enemyLevel: number; player: Fighter; enemyId?: EnemyId; riftToken?: Pick<RiftEncounter, 'dateKey' | 'stage' | 'seed'> }
-interface BattleSummary { xp: number; coins: number; levelUp: number; badges: string[]; campaignProgress?: string; riftChest?: boolean; unlockedPassives: readonly WarriorPassiveDefinition[] }
+interface ActiveBattle { result: BattleResult; mode: 'campaign' | 'nemesis' | 'rift'; node: number; enemyLevel: number; player: Fighter; enemyId?: EnemyId; riftToken?: Pick<RiftEncounter, 'dateKey' | 'stage' | 'seed'> }
+interface BattleSummary { xp: number; coins: number; levelUp: number; badges: string[]; campaignProgress?: string; riftChest?: boolean; bonusCoins?: number; bonusChests?: number; bonusChestKind?: 'warrior' | 'rift' | null; nemesisUnlockedNow?: boolean; unlockedPassives: readonly WarriorPassiveDefinition[] }
 
 export function PassiveUnlockModal({ passives, onContinue }: { passives: readonly WarriorPassiveDefinition[]; onContinue: () => void }) {
   return <div className="passive-unlock-overlay" role="dialog" aria-modal="true" aria-label="Passif débloqué"><section className="passive-unlock-sheet"><Sparkles aria-hidden="true"/><span className="eyebrow">{passives.length > 1 ? 'PASSIFS DÉBLOQUÉS' : 'PASSIF DÉBLOQUÉ'}</span><h2>{passives.length > 1 ? `${passives.length} nouveaux passifs` : passives[0].name}</h2><div className="passive-unlock-list">{passives.map((passive) => <article key={passive.id}><small>NIVEAU {passive.unlockLevel}</small>{passives.length > 1 && <strong>{passive.name}</strong>}<p>{passive.description}</p></article>)}</div><button className="primary wide" onClick={onContinue} autoFocus>CONTINUER</button></section></div>
@@ -178,13 +179,15 @@ export function BattleResultOverlay({ winner, enemyName, summary, warriorLevel, 
       {summary.levelUp > 0 && <div className="result-callout"><Sparkles/> Niveau {warriorLevel - summary.levelUp} → Niveau {warriorLevel}</div>}
       {summary.badges.map((badge) => <div className="result-callout" key={badge}><GameIcon group="stats" name="badge"/> Badge débloqué : {badge}</div>)}
       {summary.campaignProgress && <div className="campaign-result"><GameIcon group="navigation" name="adventure"/><span>{summary.campaignProgress}</span></div>}
+      {Boolean(summary.bonusCoins) && <div className="result-callout"><Sparkles/> Première victoire : +{summary.bonusCoins} pièces · +{summary.bonusChests} Coffres {summary.bonusChestKind === 'rift' ? 'de Faille' : 'Warrior'} stockés</div>}
+      {summary.nemesisUnlockedNow && <div className="result-callout"><Sparkles/> Mode Némésis débloqué dans Aventure</div>}
       {summary.riftChest && <div className="result-callout"><Sparkles/> +1 Coffre de Faille stocké</div>}
       <button className="result-continue" onClick={onContinue}>CONTINUER</button>
     </section>
   </div>
 }
 
-function Battle({ save, setSave, active, onExit, onQuit, admin }: { save: SaveData; setSave: (save: SaveData) => void; active: ActiveBattle; onExit: () => void; onQuit?: () => void; admin: boolean }) {
+function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin }: { save: SaveData; setSave: (save: SaveData) => void; onCampaignCommit: (save: SaveData) => void; active: ActiveBattle; onExit: () => void; onQuit?: () => void; admin: boolean }) {
   const [index, setIndex] = useState(-1), [done, setDone] = useState(false), [settled, setSettled] = useState(false), [summary, setSummary] = useState<BattleSummary | null>(null)
   const [passiveOpen, setPassiveOpen] = useState(false)
   const [quitConfirm, setQuitConfirm] = useState(false)
@@ -256,19 +259,12 @@ function Battle({ save, setSave, active, onExit, onQuit, admin }: { save: SaveDa
       setSettled(true)
       return
     }
-    const next = clone(save), won = active.result.winner === 'player', elite = [5,10,15].includes(active.node), boss = active.node === 20
+    const mode = active.mode === 'nemesis' ? 'nemesis' : 'normal'
     const previousLevel = activeWarrior(save).level
-    const baseXp = campaignBaseXp(active.node)
-    const xp = Math.round(baseXp * (won ? (boss ? 2.5 : elite ? 1.5 : 1) : 0.1))
-    const coins = won ? 50 : 10
-    let bonusXp = 0
-    next.coins += coins; addWarriorXp(next, xp)
-    recordBattleOutcome(next, 'adventure', active.result.winner)
-    next.campaignRemaining = Math.max(0, next.campaignRemaining - 1)
-    if (won) { if (!next.defeatedNodes.includes(active.node)) next.defeatedNodes.push(active.node); next.campaignNode = Math.min(20, active.node + 1); if (boss) { next.bossTrophyPending = true; if (!next.eraRewardClaimed) { next.coins += 100; next.chests += 3; bonusXp = 500; addWarriorXp(next, bonusXp); next.eraRewardClaimed = true } } }
+    const { save: next, xp, coins, bonusCoins, bonusChests, bonusChestKind, progress } = settleCampaignBattle(save, mode, active.node, active.result.winner)
     const earnedBadges = grantEarnedBadges(next).granted
-    setSummary({ xp: xp + bonusXp, coins, levelUp: activeWarrior(next).level - previousLevel, unlockedPassives: getNewlyUnlockedWarriorPassives(save.activeWarriorId, previousLevel, activeWarrior(next).level), badges: earnedBadges.map(({ title, coins: reward }) => `${title} · +${reward} pièces`), campaignProgress: won ? `Niveau ${active.node} terminé${active.node < 20 ? ` · prochain : niveau ${active.node + 1}` : ' · Ère achevée'}` : `Niveau ${active.node} à retenter` })
-    setSave(next); setSettled(true)
+    setSummary({ xp, coins, bonusCoins, bonusChests, bonusChestKind, nemesisUnlockedNow: !save.nemesisUnlocked && next.nemesisUnlocked, levelUp: activeWarrior(next).level - previousLevel, unlockedPassives: getNewlyUnlockedWarriorPassives(save.activeWarriorId, previousLevel, activeWarrior(next).level), badges: earnedBadges.map(({ title, coins: reward }) => `${title} · +${reward} pièces`), campaignProgress: progress })
+    onCampaignCommit(next); setSettled(true)
   }
   useEffect(() => {
     let live = true
@@ -376,7 +372,7 @@ function Battle({ save, setSave, active, onExit, onQuit, admin }: { save: SaveDa
     ...(battleGeometry?.approachDistance !== null && battleGeometry?.approachDistance !== undefined ? { '--sprite-approach-distance': `${battleGeometry.approachDistance}px` } : {}),
     ...(battleGeometry?.contactDistance !== null && battleGeometry?.contactDistance !== undefined ? { '--sprite-contact-distance': `${battleGeometry.contactDistance}px` } : {}),
   } as React.CSSProperties : undefined
-  return <div className={`battle-page ${isCritical ? 'screen-shake' : ''} ${ready ? 'assets-ready' : 'assets-loading'} ${skipped ? 'skip-to-final' : ''} ${qaFx ? 'qa-hold-fx' : ''}`} style={{ '--battle-speed': save.speed } as React.CSSProperties}><div className="battle-top"><div><span className="eyebrow">{active.mode === 'rift' ? `FAILLE · ${RIFT_STAGE_LABELS[active.node - 1].toUpperCase()}` : `NIVEAU ${active.node}`}</span><strong>Arène Primordiale</strong></div><div className="speed-control" role="group" aria-label="Vitesse du combat">{([1,2,3] as const).map((speed) => <button aria-pressed={save.speed === speed} className={save.speed === speed ? 'active' : ''} onClick={() => setSpeed(speed)} key={speed}>×{speed}</button>)}</div><button className="skip" onClick={skip}>Passer</button>{active.mode === 'rift' && <button className="rift-battle-quit" disabled={skipped || done} onClick={() => setQuitConfirm(true)}>Quitter la Faille</button>}</div>{admin && <span className="admin-indicator admin-battle-indicator">ADMIN LOCAL</span>}
+  return <div className={`battle-page ${isCritical ? 'screen-shake' : ''} ${ready ? 'assets-ready' : 'assets-loading'} ${skipped ? 'skip-to-final' : ''} ${qaFx ? 'qa-hold-fx' : ''}`} style={{ '--battle-speed': save.speed } as React.CSSProperties}><div className="battle-top"><div><span className="eyebrow">{active.mode === 'rift' ? `FAILLE · ${RIFT_STAGE_LABELS[active.node - 1].toUpperCase()}` : active.mode === 'nemesis' ? `NÉMÉSIS · NIVEAU ${active.node}` : `NIVEAU ${active.node}`}</span><strong>Arène Primordiale</strong></div><div className="speed-control" role="group" aria-label="Vitesse du combat">{([1,2,3] as const).map((speed) => <button aria-pressed={save.speed === speed} className={save.speed === speed ? 'active' : ''} onClick={() => setSpeed(speed)} key={speed}>×{speed}</button>)}</div><button className="skip" onClick={skip}>Passer</button>{active.mode === 'rift' && <button className="rift-battle-quit" disabled={skipped || done} onClick={() => setQuitConfirm(true)}>Quitter la Faille</button>}</div>{admin && <span className="admin-indicator admin-battle-indicator">ADMIN LOCAL</span>}
     <div ref={arenaRef} style={{ '--companion-distance': battleGeometry ? `${battleGeometry.companionDistance}px` : undefined, '--player-combat-text-lift': `${(battleBounds?.mobile ? spriteKit?.combatTextLift?.mobile ?? 110 : spriteKit?.combatTextLift?.desktop ?? 163) * warriorCombatFactor(warriorId, battleBounds?.mobile ?? false)}px`, '--enemy-combat-text-lift': `${enemyVisualSize ? enemyVisualSize.height + (battleBounds?.mobile ? 14 : 28) : battleBounds?.mobile ? 110 : 163}px` } as React.CSSProperties} className={`arena event-${event?.type ?? 'idle'} actor-${event?.actor ?? 'player'} ${hasSpriteKit ? 'has-warrior-sprite-kit' : ''}`}><img className="arena-layer arena-background" src={assetsV06.arena.background} alt=""/><img className="arena-layer arena-ground-v06" src={assetsV06.arena.ground} alt=""/><div className="battle-hud"><BattleFighterHud side="player" name={active.player.name} level={active.player.level ?? 1} hp={playerHp} maxHp={active.player.stats.hp} portrait={warriorDefinitions[warriorId]?.art ?? ''} portraitId={warriorId}/><BattleFighterHud side="enemy" name={active.result.enemy.name} level={active.enemyLevel} hp={enemyHp} maxHp={active.result.enemy.stats.hp} portrait={enemySprite(enemyId, 'idle')} portraitId={enemyId}/></div><div ref={playerRef} style={fighterStyle} className={`fighter player phase-${playerVisualState} ${hasSpriteKit ? 'has-sprite-kit' : ''} attack-${attackKind} motion-${weaponMotion(battleWeapon)}`}><img className="contact-shadow" src={assetsV06.arena.contactShadow} alt=""/><WarriorSprite warriorId={warriorId} weapon={battleWeapon} state={playerVisualState} combat/></div>
       {companionPhase !== 'idle' && <WarriorCompanion warriorId={warriorId} phase={companionPhase}/>}
       {showProjectile && <div className="warrior-projectile" style={{ '--projectile-aspect': `${spriteKit?.fxGeometry?.frameWidth ?? 543} / ${spriteKit?.fxGeometry?.frameHeight ?? 724}`, ...(battleGeometry?.projectile ? { '--projectile-start-x': `${battleGeometry.projectile.left}px`, '--projectile-bottom': `${battleGeometry.projectile.bottom}px`, '--projectile-width': `${battleGeometry.projectile.width}px`, '--projectile-travel-x': `${battleGeometry.projectile.travelX}px`, '--projectile-travel-y': `${-battleGeometry.projectile.travelY}px` } : {}) } as React.CSSProperties} key={`projectile-${timedFxSequence}`}><WarriorAttackFx warriorId={warriorId} source={spriteKit?.projectile}/></div>}
@@ -393,11 +389,6 @@ function Battle({ save, setSave, active, onExit, onQuit, admin }: { save: SaveDa
     {done && settled && summary && (passiveOpen ? <PassiveUnlockModal passives={summary.unlockedPassives} onContinue={onExit}/> : <BattleResultOverlay winner={active.result.winner} enemyName={active.result.enemy.name} summary={summary} warriorLevel={save.ownedWarriors[warriorId]?.level ?? active.player.level ?? 1} onContinue={() => summary.unlockedPassives.length ? setPassiveOpen(true) : onExit()}/>)}
     {quitConfirm && <div className="rift-confirm-overlay" role="dialog" aria-modal="true" aria-label="Confirmer l’abandon de la Faille"><div className="rift-confirm"><h3>Quitter la Faille ?</h3><p>La tentative du jour prendra fin. Vos récompenses restent acquises.</p><div><button onClick={() => setQuitConfirm(false)}>RESTER</button><button className="rift-danger" onClick={onQuit}>QUITTER LA FAILLE</button></div></div></div>}
   </div>
-}
-
-function TrophyChoice({ save, setSave }: { save: SaveData; setSave: (save: SaveData) => void }) {
-  const choose = (id: string) => { const next = addEquipmentCopy(save, id); next.bossTrophyPending = false; setSave(next) }
-  return <div className="modal-backdrop"><section className="level-choice"><span className="eyebrow">BOSS PRIMORDIAL VAINCU</span><h2>Choisis ton trophée</h2><div className="trophy-grid">{['mammoth-spear','mammoth-plate'].map((id) => { const item = itemById(id); return <button className={rarityClass(item.rarity)} onClick={() => choose(id)} key={id}><EquipmentArt item={item}/><strong>{item.name}</strong><span>{item.bonus}</span></button> })}</div></section></div>
 }
 
 function SpriteLabFigure({ children, label, state }: { children: React.ReactNode; label: string; state?: string }) {
@@ -431,12 +422,12 @@ function SpriteLab() {
   </main>
 }
 
-function createActiveBattle(save: SaveData, node: number): ActiveBattle {
-  const rng = seededRng(Date.now())
+function createActiveBattle(save: SaveData, node: number, mode: AdventureMode = 'normal', seed = Date.now()): ActiveBattle {
+  const rng = seededRng(seed)
   const enemyLevel = campaignNodeTier(node)
-  const enemy = generateEnemy(enemyLevel, node, rng)
+  const enemy = mode === 'nemesis' ? nemesisEnemy(node) : generateEnemy(enemyLevel, node, rng)
   const fighter: Fighter = { name: activeWarrior(save).name, stats: effectiveStats(save), skills: [], warriorId: save.activeWarriorId, level: activeWarrior(save).level, weapon: save.equippedWeapon, armor: save.equippedArmor }
-  return { result: simulateBattle(fighter, enemy, Date.now()), mode: 'campaign', node, enemyLevel, player: fighter }
+  return { result: simulateBattle(fighter, enemy, seed), mode: mode === 'nemesis' ? 'nemesis' : 'campaign', node, enemyLevel, player: fighter }
 }
 
 function riftActiveBattle(encounter: RiftEncounter): ActiveBattle {
@@ -450,12 +441,17 @@ function GameApp() {
   const query = new URLSearchParams(window.location.search)
   const desktopCombatPreview = import.meta.env.DEV && adminMode && query.has('desktopCombatPreview')
   const adventurePreview = import.meta.env.DEV && adminMode && query.has('adventurePreview')
+  const nemesisPreview = import.meta.env.DEV && adminMode && query.has('nemesisPreview')
+  const normalBossPreview = import.meta.env.DEV && adminMode && query.has('normalBossPreview')
+  const nemesisBossPreview = import.meta.env.DEV && adminMode && query.has('nemesisBossPreview')
   const riftPreview = import.meta.env.DEV && adminMode && query.has('riftPreview')
   const riftChestPreview = import.meta.env.DEV && adminMode && query.has('riftChestPreview')
   const expeditionPreview = import.meta.env.DEV && adminMode && query.has('expeditionPreview')
-  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || adventurePreview || riftPreview || riftChestPreview || expeditionPreview || (adminMode && (query.has('enemySpritePreview') || query.has('qaLevelChoice'))))
+  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || adventurePreview || nemesisPreview || normalBossPreview || nemesisBossPreview || riftPreview || riftChestPreview || expeditionPreview || (adminMode && (query.has('enemySpritePreview') || query.has('qaLevelChoice'))))
+  const requestedQaSeed = Number(query.get('qaSeed'))
+  const qaSeed = adminMode && qaMode && query.has('qaSeed') && Number.isSafeInteger(requestedQaSeed) && requestedQaSeed >= 0 ? requestedQaSeed : undefined
   const requestedQaNode = Number(query.get('qaNode'))
-  const qaNode = Number.isInteger(requestedQaNode) && requestedQaNode >= 1 && requestedQaNode <= 20 ? requestedQaNode : 1
+  const qaNode = normalBossPreview || nemesisBossPreview ? 20 : Number.isInteger(requestedQaNode) && requestedQaNode >= 1 && requestedQaNode <= 20 ? requestedQaNode : 1
   const [initialLoad] = useState(() => {
     const targetKey = adminMode ? ADMIN_SAVE_KEY : SAVE_KEY
     const legacyKeys = adminMode ? [PREVIOUS_ADMIN_SAVE_KEY, LEGACY_ADMIN_SAVE_KEY] : [PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY]
@@ -478,8 +474,10 @@ function GameApp() {
     const previewOwnedWarriors = qaLevel && ownedWarriors[activeWarriorId] ? { ...ownedWarriors, [activeWarriorId]: { ...ownedWarriors[activeWarriorId], level: qaLevel, xp: 0 } } : ownedWarriors
     return { ...loaded, activeWarriorId, ownedWarriors: previewOwnedWarriors, coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, unlockedSkills: [],
       riftChestCount: riftChestPreview ? Math.max(1, loaded.riftChestCount) : loaded.riftChestCount,
-      ...(adventurePreview ? { campaignNode: qaNode, defeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}) }
-  }), [view, setView] = useState<View>(() => desktopCombatPreview ? 'battle' : adventurePreview ? 'adventure' : riftPreview || expeditionPreview ? 'activities' : riftChestPreview ? 'chest' : createRiftEncounter(save) ? 'battle' : 'hub'), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => desktopCombatPreview ? createActiveBattle(save, qaNode) : adventurePreview || riftPreview || expeditionPreview || riftChestPreview ? null : createRiftEncounter(save) ? riftActiveBattle(createRiftEncounter(save)!) : null)
+      ...(adventurePreview ? { campaignNode: qaNode, defeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}),
+      ...(nemesisPreview || nemesisBossPreview ? { nemesisUnlocked: true, nemesisCampaignNode: qaNode, nemesisDefeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}) }
+  }), [view, setView] = useState<View>(() => desktopCombatPreview || normalBossPreview || nemesisBossPreview ? 'battle' : adventurePreview || nemesisPreview ? 'adventure' : riftPreview || expeditionPreview ? 'activities' : riftChestPreview ? 'chest' : createRiftEncounter(save) ? 'battle' : 'hub'), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => desktopCombatPreview || normalBossPreview || nemesisBossPreview ? createActiveBattle(save, qaNode, nemesisBossPreview ? 'nemesis' : 'normal', qaSeed) : adventurePreview || nemesisPreview || riftPreview || expeditionPreview || riftChestPreview ? null : createRiftEncounter(save) ? riftActiveBattle(createRiftEncounter(save)!) : null)
+  const [adventureMode, setAdventureMode] = useState<AdventureMode>(() => nemesisPreview || nemesisBossPreview ? 'nemesis' : 'normal')
   const [welcomeFlow, setWelcomeFlow] = useState(() => !adminMode && !qaMode && !save.welcomeChestOpened)
   const [badgeNotice, setBadgeNotice] = useState<{ label: string; coins: number } | null>(null)
   const badgeNoticeTimer = useRef<number | null>(null)
@@ -499,12 +497,17 @@ function GameApp() {
     if (!qaMode) persistSave(next, localStorage, adminMode ? ADMIN_SAVE_KEY : SAVE_KEY)
     setSave(next)
   }
+  const commitCampaign = (next: SaveData) => {
+    // Persist the complete reward receipt before the result can be refreshed or replayed.
+    if (!qaMode) persistSave(next, localStorage, adminMode ? ADMIN_SAVE_KEY : SAVE_KEY)
+    setSave(next)
+  }
   useEffect(() => () => { if (badgeNoticeTimer.current !== null) window.clearTimeout(badgeNoticeTimer.current) }, [])
   useEffect(() => { const first = initial.current; initial.current = false; if (!qaMode && (!first || initialLoad.granted || initialLoad.migrated)) persistSave(save, localStorage, adminMode ? ADMIN_SAVE_KEY : undefined) }, [save, qaMode, adminMode, initialLoad.granted, initialLoad.migrated])
   useEffect(() => { window.scrollTo({ top: 0 }) }, [view])
   const startBattle = (node: number) => {
-    if (!canStartBattle(save, adminMode)) return
-    setActiveBattle(createActiveBattle(save, node)); setView('battle')
+    if (!canEnterCampaignNode(save, node, adminMode, adventureMode)) return
+    setActiveBattle(createActiveBattle(save, node, adventureMode, qaSeed)); setView('battle')
   }
   const startRiftBattle = (next: SaveData) => {
     const encounter = createRiftEncounter(next)
@@ -516,16 +519,16 @@ function GameApp() {
     if (view === 'collection') return <Collection save={save} setSave={setSave} setWarriorDetail={setWarriorDetailId}/>
     if (view === 'chest') return <Chests save={save} setSave={setSave} admin={adminMode}/>
     if (view === 'activities') return <RiftPage save={save} setSave={setSave} onExpeditionCommit={commitExpedition} setView={setView} onStart={startRiftBattle} admin={adminMode} previewExpedition={expeditionPreview}/>
-    if (view === 'adventure') return <Adventure save={save} startBattle={startBattle} admin={adminMode}/>
+    if (view === 'adventure') return <Adventure save={save} mode={adventureMode} setMode={setAdventureMode} startBattle={startBattle} admin={adminMode}/>
     if (view === 'duel') return <div className="soon page-enter"><div className="duel-emblem"><GameIcon group="navigation" name="duel"/></div><span className="eyebrow">PORTAIL VERROUILLÉ</span><h1>Duel asynchrone</h1><p>Prochainement</p><span>Prépare ton build. Les autres Warriors arrivent d’une autre ligne du temps.</span></div>
     return null
-  }, [view, save])
+  }, [view, save, adventureMode])
   if (import.meta.env.DEV && adminMode && query.has('enemySpritePreview')) return <EnemySpritePreview/>
   if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('spriteLab')) return <SpriteLab/>
   const badgeToast = badgeNotice && createPortal(<div className="badge-unlock-toast" role="status" aria-live="polite"><Award aria-hidden="true"/><span>{badgeNotice.label}</span><b>+{badgeNotice.coins} pièces</b></div>, document.body)
-  if (view === 'battle' && activeBattle) return <><Battle save={save} setSave={setSave} active={activeBattle} admin={adminMode} onExit={() => { setView(activeBattle.mode === 'campaign' ? 'adventure' : 'activities'); setActiveBattle(null) }} onQuit={activeBattle.mode === 'rift' ? () => { setSave(quitRift(save)); setActiveBattle(null); setView('activities') } : undefined}/>{badgeToast}</>
+  if (view === 'battle' && activeBattle) return <><Battle save={save} setSave={setSave} onCampaignCommit={commitCampaign} active={activeBattle} admin={adminMode} onExit={() => { setView(activeBattle.mode === 'rift' ? 'activities' : 'adventure'); setActiveBattle(null) }} onQuit={activeBattle.mode === 'rift' ? () => { setSave(quitRift(save)); setActiveBattle(null); setView('activities') } : undefined}/>{badgeToast}</>
   return <><div className="app-shell" inert={welcomeFlow} aria-hidden={welcomeFlow}><Header save={save} view={view} setView={setView} admin={adminMode}/><main className="main-content">{content}</main><nav className="bottom-nav" aria-label="Navigation principale">{nav.map(({ id, label, icon }) => <button aria-label={label} className={view === id ? 'active' : ''} onClick={() => setView(id)} key={id}><GameIcon group="navigation" name={icon}/><span>{label}</span></button>)}</nav>
-    {warriorDetailId && view === 'collection' && <WarriorDetail save={save} warriorId={warriorDetailId} onClose={() => setWarriorDetailId(null)} onActivate={() => { if (!['fighting', 'between'].includes(todayRiftRun(save)?.status ?? '')) setSave(activateWarrior(save, warriorDetailId)); setWarriorDetailId(null) }}/>} {save.bossTrophyPending && <TrophyChoice save={save} setSave={setSave}/>}</div>{welcomeFlow && <WelcomeChest onClaim={(id) => setSave(claimWelcomeWarrior(save, id))} onDone={() => setWelcomeFlow(false)}/>}{badgeToast}</>
+    {warriorDetailId && view === 'collection' && <WarriorDetail save={save} warriorId={warriorDetailId} onClose={() => setWarriorDetailId(null)} onActivate={() => { if (!['fighting', 'between'].includes(todayRiftRun(save)?.status ?? '')) setSave(activateWarrior(save, warriorDetailId)); setWarriorDetailId(null) }}/>}</div>{welcomeFlow && <WelcomeChest onClaim={(id) => setSave(claimWelcomeWarrior(save, id))} onDone={() => setWelcomeFlow(false)}/>}{badgeToast}</>
 }
 
 export default function App() {
