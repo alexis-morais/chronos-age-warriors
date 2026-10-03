@@ -2,7 +2,7 @@ import { resolveEnemyId, type EnemyId } from './art/assetsV04'
 import { campaignNodeTier } from './campaignProgression'
 import type { Stats } from './types'
 
-/** Campaign-only budgets. Training still uses its existing level-based generator. */
+/** Campaign-only budgets; independent of the Warrior's level. */
 export const PRIMAL_TIER_BUDGETS: readonly Stats[] = [
   { strength: 5, dodge: 5, speed: 6, hp: 110 },
   { strength: 6, dodge: 6, speed: 7, hp: 125 },

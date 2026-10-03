@@ -3,8 +3,9 @@ import { equipment } from './data'
 import type { SaveData } from './types'
 import { primalWarriors } from './warriors'
 import { chestPrice, type ChestSelection } from './chestSystem'
+import { isWarriorOnExpedition } from './expedition'
 
-export const ADMIN_SAVE_KEY = 'chronos-age-warriors:admin:v3'
+export const ADMIN_SAVE_KEY = 'chronos-age-warriors:admin:v4'
 export const ADMIN_COINS = 9_999_999
 
 export function isLocalAdmin(location: Pick<Location, 'hostname' | 'search'>): boolean {
@@ -22,7 +23,6 @@ export function withAdminAccess(save: SaveData): SaveData {
   return {
     ...save, activeWarriorId: save.activeWarriorId || primalWarriors[0].id, welcomeChestOpened: true, ownedWarriors, owned, coins: ADMIN_COINS,
     campaignRemaining: Math.max(save.campaignRemaining, GAME.campaignDaily),
-    trainingRemaining: Math.max(save.trainingRemaining, GAME.trainingDaily),
   }
 }
 
@@ -30,10 +30,11 @@ export function canOpenChest(save: SaveData, admin: boolean, selection: ChestSel
   return admin || save.coins >= chestPrice(selection)
 }
 
-export function canStartBattle(save: SaveData, mode: 'training' | 'campaign', admin: boolean): boolean {
-  return admin || (mode === 'training' ? save.trainingRemaining : save.campaignRemaining) > 0
+export function canStartBattle(save: SaveData, admin: boolean): boolean {
+  if (isWarriorOnExpedition(save, save.activeWarriorId)) return false
+  return admin || save.campaignRemaining > 0
 }
 
 export function canEnterCampaignNode(save: SaveData, node: number, admin: boolean): boolean {
-  return (admin || node === save.campaignNode) && canStartBattle(save, 'campaign', admin)
+  return (admin || node === save.campaignNode) && canStartBattle(save, admin)
 }

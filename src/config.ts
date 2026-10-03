@@ -15,7 +15,6 @@ export const GAME = {
   speedExponent: 0.65,
   maxConsecutiveActions: 3,
   campaignDaily: 10,
-  trainingDaily: 100,
   maxWarriorLevel: MAX_WARRIOR_LEVEL,
 } as const
 

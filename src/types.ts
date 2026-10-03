@@ -2,7 +2,7 @@ export type StatKey = 'strength' | 'dodge' | 'speed' | 'hp'
 export type Rarity = 'Commun' | 'Peu commun' | 'Rare' | 'Épique' | 'Légendaire' | 'Mythique'
 export type EquipmentType = 'weapon' | 'armor'
 export type BattleSpeed = 1 | 2 | 3
-export type View = 'hub' | 'collection' | 'training' | 'chest' | 'duel' | 'adventure' | 'battle'
+export type View = 'hub' | 'collection' | 'activities' | 'chest' | 'duel' | 'adventure' | 'battle'
 export interface Stats { strength: number; dodge: number; speed: number; hp: number }
 
 export type WarriorClass = 'Ravageur' | 'Tempête' | 'Bastion' | 'Spectre' | 'Héraut' | 'Fléau'
@@ -26,6 +26,32 @@ export interface WarriorLoadout { weapon: string; armor: string }
 
 export interface BadgeState { id: string; unlockedAt?: string }
 
+export type RiftRunStatus = 'ready' | 'fighting' | 'between' | 'lost' | 'quit' | 'complete'
+export interface RiftRun {
+  dateKey: string
+  status: RiftRunStatus
+  warriorId: string
+  stage: number
+  lineup: string[]
+  seed: number
+  difficulty: number
+  earnedCoins: number
+  earnedXp: number
+}
+
+export interface ExpeditionState { warriorId: string; startedAt: number }
+export interface ExpeditionReturn {
+  id: string
+  warriorId: string
+  elapsedMs: number
+  xp: number
+  coins: number
+  equipmentIds: string[]
+  equipmentChest: boolean
+  warriorChest: boolean
+  levelsGained: number
+}
+
 export interface SaveData {
   version: number
   activeWarriorId: string
@@ -40,13 +66,18 @@ export interface SaveData {
   campaignNode: number
   defeatedNodes: number[]
   campaignRemaining: number
-  trainingRemaining: number
-  trainingWins: number
   totalWins: number
   adventureWins: number
   riftWins: number
   duelWins: number
   chests: number
+  riftChestCount: number
+  riftLossStreak: number
+  riftRun: RiftRun | null
+  expedition: ExpeditionState | null
+  expeditionReturn: ExpeditionReturn | null
+  equipmentChestCount: number
+  warriorChestCount: number
   speed: BattleSpeed
   badges: BadgeState[]
   /** Read only while migrating pre-V1 saves. */ pendingLevelChoice?: boolean

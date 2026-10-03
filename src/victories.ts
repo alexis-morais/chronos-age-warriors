@@ -1,6 +1,6 @@
 import type { BattleResult, SaveData } from './types'
 
-export type VictoryMode = 'adventure' | 'rift' | 'duel' | 'training'
+export type VictoryMode = 'adventure' | 'rift' | 'duel'
 const wins = (value: number | undefined) => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : 0
 
 /** Only these explicitly recorded victories qualify for global Exploits. */
@@ -15,6 +15,5 @@ export function recordBattleOutcome(save: SaveData, mode: VictoryMode, winner: B
   save.totalWins = wins(save.totalWins) + 1
   if (mode === 'adventure') save.adventureWins = wins(save.adventureWins) + 1
   else if (mode === 'rift') save.riftWins = wins(save.riftWins) + 1
-  else if (mode === 'duel') save.duelWins = wins(save.duelWins) + 1
-  else save.trainingWins = wins(save.trainingWins) + 1
+  else save.duelWins = wins(save.duelWins) + 1
 }

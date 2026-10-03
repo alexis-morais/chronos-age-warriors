@@ -242,8 +242,8 @@ describe('sauvegarde et reset quotidien', () => {
     expect(active.owned['flint-club'].quantity).toBe(1)
   })
   it('restaure les compteurs à une nouvelle date locale', () => {
-    const save = freshSave(); save.lastReset = '2025-01-01'; save.campaignRemaining = 0; save.trainingRemaining = 0
+    const save = freshSave(); save.lastReset = '2025-01-01'; save.campaignRemaining = 0
     dailyReset(save, '2025-01-02')
-    expect(save.campaignRemaining).toBe(10); expect(save.trainingRemaining).toBe(100)
+    expect(save.campaignRemaining).toBe(10)
   })
 })

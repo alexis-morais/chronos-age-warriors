@@ -26,7 +26,6 @@ describe('mode admin local', () => {
     const save = establishedKargSave()
     save.coins = 0
     save.campaignRemaining = 0
-    save.trainingRemaining = 0
     save.ownedWarriors.naya = { warriorId: 'naya', level: 4, xp: 19, bonusStats: { strength: 2, dodge: 0, speed: 0, hp: 0 } }
     save.owned['obsidian-axe'] = { level: 5, xp: 100, kills: 3 }
     const admin = withAdminAccess(save)
@@ -36,13 +35,12 @@ describe('mode admin local', () => {
     expect(admin.owned['obsidian-axe']).toEqual(save.owned['obsidian-axe'])
     expect(admin.coins).toBe(ADMIN_COINS)
     expect(admin.campaignRemaining).toBeGreaterThan(0)
-    expect(admin.trainingRemaining).toBeGreaterThan(0)
     expect(save.coins).toBe(0)
     expect(Object.keys(save.ownedWarriors)).toHaveLength(2)
     expect(canOpenChest(save, false)).toBe(false)
     expect(canOpenChest(save, true)).toBe(true)
-    expect(canStartBattle(save, 'training', false)).toBe(false)
-    expect(canStartBattle(save, 'training', true)).toBe(true)
+    expect(canStartBattle(save, false)).toBe(false)
+    expect(canStartBattle(save, true)).toBe(true)
     expect(canEnterCampaignNode(save, 20, false)).toBe(false)
     expect(canEnterCampaignNode(save, 20, true)).toBe(true)
   })

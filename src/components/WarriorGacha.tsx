@@ -15,7 +15,7 @@ function GachaCard({ warrior, winner }: { warrior: WarriorDefinition; winner: bo
 }
 
 /** Shared reveal for a paid single draw and the free welcome chest. */
-export function WarriorGacha({ warrior, duplicate, welcome = false, onContinue }: { warrior: WarriorDefinition; duplicate: boolean; welcome?: boolean; onContinue: () => void }) {
+export function WarriorGacha({ warrior, duplicate, welcome = false, source = 'warrior', onContinue }: { warrior: WarriorDefinition; duplicate: boolean; welcome?: boolean; source?: 'warrior' | 'rift'; onContinue: () => void }) {
   const [reel] = useState(() => createWarriorReel(warrior, Math.random))
   const [spinning, setSpinning] = useState(true)
   const revealed = useRef(false)
@@ -43,9 +43,9 @@ export function WarriorGacha({ warrior, duplicate, welcome = false, onContinue }
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [onContinue, reveal, spinning])
 
-  return <div className="chest-result-overlay" role="dialog" aria-modal="true" aria-label={welcome ? 'Coffre Warrior de bienvenue' : 'Tirage du Coffre Warrior'}>
+  return <div className={`chest-result-overlay ${source === 'rift' ? 'rift-gacha-overlay' : ''}`} role="dialog" aria-modal="true" aria-label={welcome ? 'Coffre Warrior de bienvenue' : source === 'rift' ? 'Tirage du Coffre de Faille' : 'Tirage du Coffre Warrior'}>
     <section className="gacha-panel">
-      <div className="gacha-panel-heading"><span className="eyebrow">{welcome ? 'COFFRE WARRIOR OFFERT' : 'COFFRE WARRIOR'}</span><h2>{spinning ? 'Le destin se révèle…' : 'Votre Warrior'}</h2></div>
+      <div className="gacha-panel-heading"><span className="eyebrow">{welcome ? 'COFFRE WARRIOR OFFERT' : source === 'rift' ? 'COFFRE DE FAILLE' : 'COFFRE WARRIOR'}</span><h2>{spinning ? 'Le destin se révèle…' : 'Votre Warrior'}</h2></div>
       <button className={`gacha-roulette ${spinning ? 'is-spinning' : 'is-finished'}`} type="button" onClick={reveal} disabled={!spinning} aria-label={spinning ? 'Toucher ou cliquer pour passer la roulette' : 'Roulette des Warriors'} style={{ '--gacha-winner-index': WARRIOR_WINNER_INDEX } as CSSProperties}>
         <span className="gacha-roulette-marker" aria-hidden="true"/>
         <div className="gacha-roulette-track">{reel.map((entry, index) => <GachaCard key={`${entry.id}-${index}`} warrior={entry} winner={!spinning && index === WARRIOR_WINNER_INDEX}/>)}</div>

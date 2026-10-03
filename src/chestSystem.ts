@@ -21,6 +21,29 @@ export type ChestDraw =
 
 export interface ChestPurchase { save: SaveData; draws: ChestDraw[]; cost: number }
 
+/** Expedition chests are stored draws, opened later through the existing loot tables. */
+export function openStoredChest(save: SaveData, kind: ChestKind, rng: Rng = Math.random): ChestPurchase | null {
+  const field = kind === 'warrior' ? 'warriorChestCount' : 'equipmentChestCount'
+  if (save[field] <= 0 || !hasCompletePool(kind)) return null
+  let next = structuredClone(save)
+  let draw: ChestDraw
+  if (kind === 'warrior') {
+    const warrior = rollWarriorChest(rng)
+    if (!warrior) return null
+    draw = { kind, warrior, duplicate: Boolean(next.ownedWarriors[warrior.id]) }
+    next = grantWarrior(next, warrior.id)
+  } else {
+    const reward = rollChest(rng, next.owned)
+    if (!reward.item) return null
+    draw = { kind, item: reward.item, duplicate: Boolean(next.owned[reward.item.id]), quantityAfter: 0 }
+    next = addEquipmentCopy(next, reward.item.id)
+    draw.quantityAfter = next.owned[reward.item.id].quantity ?? 1
+  }
+  next[field] -= 1
+  next.chests += 1
+  return { save: next, draws: [draw], cost: 0 }
+}
+
 function hasCompletePool(kind: ChestKind): boolean {
   const catalog = kind === 'warrior' ? primalWarriors : equipment
   return rarityOrder.every((rarity) => RARITY_CHANCES[rarity] <= 0 || catalog.some((entry) => entry.rarity === rarity))

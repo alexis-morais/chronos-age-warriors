@@ -247,12 +247,11 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
   return { winner, events, enemy, consecutiveMax }
 }
 
-export function generateEnemy(level: number, node = 0, rng: Rng = Math.random): Fighter {
+export function generateEnemy(_level: number, node: number, rng: Rng = Math.random): Fighter {
   const boss = node === 20
-  const trainingScale = 1 + level * 0.12
   return {
-    name: node ? (['Ramasseur des brumes','Chasseur de cornes','Veilleuse des fougères','Pilleur de silex','Brak le Colossal','Traqueur des marais','Dompteuse de raptors','Gardien des os','Éclaireur du volcan','Ura la Balafrée','Briseur de défenses','Prêtresse du feu','Fils du Smilodon','Sentinelle noire','Korga Croc-de-Fer','Champion des cendres','Champion du tonnerre','Champion des abysses','Champion du Titan','Morgath, Roi Primordial'][node - 1]) : 'Guerrier errant',
-    stats: node > 0 ? primalEnemyStats(node, rng) : { strength: Math.round((4 + rng() * 4) * trainingScale), dodge: Math.round((4 + rng() * 4) * trainingScale), speed: Math.round((4 + rng() * 4) * trainingScale), hp: Math.round((95 + rng() * 35) * trainingScale) },
+    name: ['Ramasseur des brumes','Chasseur de cornes','Veilleuse des fougères','Pilleur de silex','Brak le Colossal','Traqueur des marais','Dompteuse de raptors','Gardien des os','Éclaireur du volcan','Ura la Balafrée','Briseur de défenses','Prêtresse du feu','Fils du Smilodon','Sentinelle noire','Korga Croc-de-Fer','Champion des cendres','Champion du tonnerre','Champion des abysses','Champion du Titan','Morgath, Roi Primordial'][node - 1],
+    stats: primalEnemyStats(node, rng),
     skills: node > 12 ? ['Peau Dure', ...(boss ? ['Frappe Dévastatrice', 'Second Souffle'] : [])] : [],
     weapon: boss ? 'mammoth-spear' : undefined,
     armor: boss ? 'mammoth-plate' : undefined,

@@ -4,21 +4,10 @@ import { establishedKargSave } from './testFixtures'
 import { eligibleGlobalWins, recordBattleOutcome } from './victories'
 
 describe('victoires éligibles aux Exploits', () => {
-  it('une défaite Entraînement ne débloque jamais Premier Impact, même avec un ancien totalWins', () => {
+  it('un ancien totalWins contenant potentiellement des victoires Entraînement ne débloque pas Premier Impact', () => {
     const save = establishedKargSave()
-    save.totalWins = 12 // Legacy Training history must not qualify.
-    recordBattleOutcome(save, 'training', 'enemy')
-    expect(save.trainingWins).toBe(0)
+    save.totalWins = 12
     expect(save.totalWins).toBe(12)
-    expect(eligibleGlobalWins(save)).toBe(0)
-    expect(hasBadgeReward(grantEarnedBadges(save).save, 'exploit-first-impact')).toBe(false)
-  })
-
-  it('une victoire Entraînement reste hors du total éligible', () => {
-    const save = establishedKargSave()
-    recordBattleOutcome(save, 'training', 'player')
-    expect(save.trainingWins).toBe(1)
-    expect(save.totalWins).toBe(1) // Preserved legacy statistic.
     expect(eligibleGlobalWins(save)).toBe(0)
     expect(hasBadgeReward(grantEarnedBadges(save).save, 'exploit-first-impact')).toBe(false)
   })
