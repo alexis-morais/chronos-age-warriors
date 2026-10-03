@@ -1,4 +1,5 @@
 import type { Rarity } from './types'
+import { MAX_WARRIOR_LEVEL } from './warriorProgression'
 
 export const GAME = {
   baseDamage: 6,
@@ -15,7 +16,7 @@ export const GAME = {
   maxConsecutiveActions: 3,
   campaignDaily: 10,
   trainingDaily: 100,
-  maxWarriorLevel: 100,
+  maxWarriorLevel: MAX_WARRIOR_LEVEL,
 } as const
 
 export const RARITY_CHANCES: Record<Rarity, number> = {

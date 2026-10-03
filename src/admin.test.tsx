@@ -119,19 +119,14 @@ describe('mode admin local', () => {
     expect(localStorage.getItem(ADMIN_SAVE_KEY)).toBe(admin)
   })
 
-  it('prévisualise les cinq choix du niveau 5 sans changer leur effet ni la sauvegarde admin', () => {
+  it('ne réactive plus le choix legacy via son ancienne URL QA', () => {
     const adminSave = establishedKargSave()
     persistSave(adminSave, localStorage, ADMIN_SAVE_KEY)
     const original = localStorage.getItem(ADMIN_SAVE_KEY)
     window.history.replaceState({}, '', '/?admin&qaLevelChoice&qaWarrior=karg')
     const { unmount } = render(<App/>)
-    const dialog = screen.getByRole('dialog', { name: 'Faveur du niveau' })
-    expect(within(dialog).getByText('NIVEAU 5')).toBeTruthy()
-    for (const label of ['+2 Force', '+2 Esquive', '+2 Vitesse', '+40 PV', 'Compétence aléatoire']) {
-      expect(within(dialog).getByRole('button', { name: label })).toBeTruthy()
-    }
-    fireEvent.click(within(dialog).getByRole('button', { name: '+2 Force' }))
     expect(screen.queryByRole('dialog', { name: 'Faveur du niveau' })).toBeNull()
+    expect(screen.getByText('Passifs du Warrior')).toBeTruthy()
     expect(localStorage.getItem(ADMIN_SAVE_KEY)).toBe(original)
     unmount()
   })

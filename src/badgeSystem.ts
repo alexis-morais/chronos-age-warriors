@@ -2,6 +2,7 @@ import type { SaveData } from './types'
 import { rarityOrder } from './config'
 import { primalWarriors, warriorDefinitions } from './warriors'
 import { eligibleGlobalWins } from './victories'
+import { MAX_WARRIOR_LEVEL } from './warriorProgression'
 
 export type BadgeGrade = 'bronze' | 'silver' | 'gold' | 'platinum'
 export interface BadgeProgress { current: number; target: number }
@@ -59,10 +60,8 @@ export const primalBadges: readonly EraBadgeDefinition[] = [
   { id: 'primal-nemesis', title: 'Dominateur du Primal', description: 'Terminez l’Ère Primordiale en Némésis.', grade: 'platinum', binary: true, progress: (save) => count(Number(hasCompletedPrimalNemesis(save)), 1) },
 ]
 
-/** The planned 1→10 Warrior progression is not live. Do not reward old level-100 data. */
-export function levelTenWarriorCount(_save: SaveData): number {
-  void _save
-  return 0
+export function levelTenWarriorCount(save: SaveData): number {
+  return ownedWarriors(save).filter((id) => save.ownedWarriors[id].level >= MAX_WARRIOR_LEVEL).length
 }
 
 export const exploits: readonly BadgeDefinition[] = [

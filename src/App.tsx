@@ -1,11 +1,14 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Award, Check, ChevronLeft, Sparkles, X } from 'lucide-react'
+import { Award, Check, ChevronLeft, Sparkles } from 'lucide-react'
 import { ADMIN_SAVE_KEY, canEnterCampaignNode, canStartBattle, isLocalAdmin, withAdminAccess } from './admin'
-import { equipment, skillDescriptions, skills } from './data'
+import { equipment } from './data'
 import { activateWarrior, addEquipmentCopy, addWarriorXp, claimWelcomeWarrior, effectiveStats, equipmentStats, equipItem, generateEnemy, rollWarriorChest, seededRng, simulateBattle, xpForLevel } from './game'
-import { loadSave, persistSave } from './storage'
-import type { BattleResult, EquipmentDefinition, Fighter, Rarity, SaveData, StatKey, View } from './types'
+import { LEGACY_ADMIN_SAVE_KEY, LEGACY_SAVE_KEY, loadSave, persistSave, SAVE_KEY } from './storage'
+import type { BattleResult, EquipmentDefinition, Fighter, Rarity, SaveData, View } from './types'
+import { campaignBaseXp, campaignNodeTier } from './campaignProgression'
+import { getNewlyUnlockedWarriorPassives, getWarriorPassives, type WarriorPassiveDefinition } from './warriorPassives'
+import { MAX_WARRIOR_LEVEL } from './warriorProgression'
 import { EquipmentArt, GameIcon, ProductionEnemy, ProductionWarrior } from './components/Art'
 import { WarriorCard, WarriorStats } from './components/WarriorCard'
 import { WarriorDetail } from './components/WarriorDetail'
@@ -43,8 +46,6 @@ const itemById = (id: string) => equipment.find((item) => item.id === id)!
 const clone = (save: SaveData): SaveData => structuredClone(save)
 
 const statMeta = { strength: { label: 'Force', icon: 'force' }, dodge: { label: 'Esquive', icon: 'dodge' }, speed: { label: 'Vitesse', icon: 'speed' }, hp: { label: 'PV', icon: 'pv' } }
-type SkillFilter = 'all' | 'owned' | 'locked'
-const skillIcon = (index: number) => ['force', 'dodge', 'speed', 'pv'][index % 4]
 const formatStats = (item: EquipmentDefinition) => Object.entries(equipmentStats(item.id)).map(([key, value]) => `+${value} ${statMeta[key as keyof typeof statMeta].label}`)
 const equipmentIcon = (type: EquipmentDefinition['type']) => `/assets/icons/collection/${type}.png`
 
@@ -66,7 +67,7 @@ function Header({ save, view, setView, admin }: { save: SaveData; view: View; se
 }
 
 function EmptyHub() {
-  return <div className="hub-page empty-hub page-enter"><section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="empty-warrior-space"><GameIcon group="navigation" name="collection"/><span>Ton premier Warrior t’attend</span></div><div className="hero-name"><h1>Aucun Warrior actif</h1></div><div className="resource-row mobile-only"><span>Le coffre de bienvenue est prêt.</span></div><button className="adventure-button" disabled>AVENTURE</button></section><section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><p>Ouvre le coffre de bienvenue pour révéler ton Warrior.</p></section><section className="hub-bottom"><div className="skill-panel"><span className="eyebrow">PASSIFS</span><h2>Compétences</h2><p>À découvrir avec ton Warrior.</p></div></section></div>
+  return <div className="hub-page empty-hub page-enter"><section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="empty-warrior-space"><GameIcon group="navigation" name="collection"/><span>Ton premier Warrior t’attend</span></div><div className="hero-name"><h1>Aucun Warrior actif</h1></div><div className="resource-row mobile-only"><span>Le coffre de bienvenue est prêt.</span></div><button className="adventure-button" disabled>AVENTURE</button></section><section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><p>Ouvre le coffre de bienvenue pour révéler ton Warrior.</p></section><section className="hub-bottom"><div className="skill-panel"><span className="eyebrow">PASSIFS</span><h2>Passifs du Warrior</h2><p>À découvrir avec ton Warrior.</p></div></section></div>
 }
 
 function WelcomeChest({ onClaim, onDone }: { onClaim: (warriorId: string) => void; onDone: () => void }) {
@@ -84,34 +85,19 @@ function Hub({ save, setView }: { save: SaveData; setView: (view: View) => void 
   const warrior = activeWarrior(save)
   const stats = warrior.stats
   const weapon = equipment.find((item) => item.id === save.equippedWeapon), armor = equipment.find((item) => item.id === save.equippedArmor)
-  const [skillFilter, setSkillFilter] = useState<SkillFilter>('all')
-  const [skillsOpen, setSkillsOpen] = useState(false)
-  const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
-  const previewSkills = activeWarrior(save).skills.filter((skill) => skills.includes(skill)).slice(0, 3)
-  const visibleSkills = skills.filter((skill) => skillFilter === 'all' || (skillFilter === 'owned') === activeWarrior(save).skills.includes(skill))
-  useEffect(() => {
-    if (!skillsOpen && !selectedSkill) return
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return
-      if (selectedSkill) setSelectedSkill(null)
-      else setSkillsOpen(false)
-    }
-    window.addEventListener('keydown', onEscape)
-    return () => window.removeEventListener('keydown', onEscape)
-  }, [skillsOpen, selectedSkill])
+  const passives = getWarriorPassives(warrior.id)
+  const unlockedCount = passives.filter((passive) => warrior.level >= passive.unlockLevel).length
+  const nextXp = xpForLevel(warrior.level)
   return <div className="hub-page page-enter">
     <section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="hero-avatar"><WarriorCard warrior={warrior} level={warrior.level} className="hub-warrior-card" loading="eager"/></div><div className="hero-name"><h1>{warrior.name}</h1><div className="warrior-tags"><span>{warrior.warriorClass}</span><span className={`warrior-rarity ${rarityClass(warrior.rarity)}`}>{warrior.rarity}</span></div></div><WarriorStats stats={stats} className="hub-warrior-stats"/>
       <div className="resource-row mobile-only"><span><GameIcon group="stats" name="xp"/>{save.campaignRemaining} / 10 combats récompensés</span></div>
       <button className="adventure-button" onClick={() => setView('adventure')}><GameIcon group="navigation" name="adventure"/><span><small>CAMPAGNE</small>AVENTURE</span><i>→</i></button>
     </section>
-    <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><GameIcon group="stats" name="pv"/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{activeWarrior(save).xp} / {xpForLevel(activeWarrior(save).level)}</b></span><div className="progress"><i style={{ width: `${activeWarrior(save).xp / xpForLevel(activeWarrior(save).level) * 100}%` }}/></div></div><div className="daily"><span><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 Campagne</span></div></div></section>
-    <section className="hub-bottom"><div className="skill-panel skill-summary"><div className="section-title"><div><span className="eyebrow">PASSIFS</span><h2>Compétences</h2></div><span>{activeWarrior(save).skills.length} / {skills.length} débloquées</span></div>
-      {previewSkills.length ? <div className="skill-preview-list">{previewSkills.map((skill) => <button className="skill-preview" onClick={() => setSelectedSkill(skill)} key={skill}><GameIcon group="stats" name={skillIcon(skills.indexOf(skill))}/><span><strong>{skill}</strong><small>Débloquée</small></span><ChevronLeft aria-hidden="true"/></button>)}</div> : <p className="skill-preview-empty">Aucune compétence débloquée <span>Progresse pour éveiller ton premier passif.</span></p>}
-      <button className="skill-see-all" onClick={() => { setSkillFilter('all'); setSkillsOpen(true) }}>Voir toutes <span aria-hidden="true">→</span></button></div>
+    <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><GameIcon group="stats" name="pv"/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{nextXp ? `${warrior.xp} / ${nextXp}` : 'Niveau maximum'}</b></span><div className="progress"><i style={{ width: `${nextXp ? warrior.xp / nextXp * 100 : 100}%` }}/></div></div><div className="daily"><span><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 Campagne</span></div></div></section>
+    <section className="hub-bottom"><div className="skill-panel skill-summary"><div className="section-title"><div><span className="eyebrow">PASSIFS</span><h2>Passifs du Warrior</h2></div><span>{unlockedCount} / 3 débloqués</span></div>
+      <div className="passive-milestones">{passives.map((passive) => <article className={`passive-milestone ${warrior.level >= passive.unlockLevel ? 'reached' : 'locked'}`} key={passive.id}><span className="passive-level">Niv. {passive.unlockLevel} · {warrior.level >= passive.unlockLevel ? 'Débloqué' : 'Verrouillé'}</span><strong>{passive.name}</strong><p>{passive.description}</p></article>)}</div></div>
       <div className="hub-equipment" aria-label="Équipement du Warrior actif"><span className="eyebrow">ÉQUIPEMENT</span><div className="hub-equipment-grid"><HubEquipmentSlot type="weapon" item={weapon}/><HubEquipmentSlot type="armor" item={armor}/></div></div>
     </section>
-    {skillsOpen && createPortal(<div className="skills-sheet-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSkillsOpen(false) }}><section className="skills-sheet" role="dialog" aria-modal="true" aria-label="Toutes les compétences"><div className="skills-sheet-header"><div><span className="eyebrow">PASSIFS DU WARRIOR</span><h2>Compétences</h2><p>{activeWarrior(save).skills.length} / {skills.length} débloquées</p></div><button className="skills-sheet-close" aria-label="Fermer les compétences" onClick={() => setSkillsOpen(false)} autoFocus><X/></button></div><div className="skill-filters" aria-label="Filtrer les compétences">{([['all','Toutes'],['owned','Débloquées'],['locked','Verrouillées']] as [SkillFilter,string][]).map(([filter,label]) => <button aria-pressed={skillFilter === filter} className={skillFilter === filter ? 'active' : ''} onClick={() => setSkillFilter(filter)} key={filter}>{label}</button>)}</div><div className="skill-list">{visibleSkills.map((skill) => { const index = skills.indexOf(skill), owned = activeWarrior(save).skills.includes(skill); return <button className={`skill-card ${owned ? 'owned' : 'locked-skill'}`} onClick={() => setSelectedSkill(skill)} key={skill}>{owned ? <GameIcon group="stats" name={skillIcon(index)}/> : <GameIcon group="system" name="lock"/>}<span><strong>{owned ? skill : '???'}</strong><small>{owned ? skillDescriptions[skill] : 'Verrouillée'}</small></span></button> })}</div>{visibleSkills.length === 0 && <p className="skills-empty">Aucune compétence dans ce filtre.</p>}</section></div>, document.body)}
-    {selectedSkill && createPortal(<div className="skill-detail-modal" role="dialog" aria-modal="true" aria-label="Détail de compétence" onClick={() => setSelectedSkill(null)} onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); setSelectedSkill(null) } }}><section onClick={(event) => event.stopPropagation()}><button className="close" aria-label="Fermer" onClick={() => setSelectedSkill(null)} autoFocus><X/></button><GameIcon group={activeWarrior(save).skills.includes(selectedSkill) ? 'stats' : 'system'} name={activeWarrior(save).skills.includes(selectedSkill) ? skillIcon(skills.indexOf(selectedSkill)) : 'lock'}/><span className="eyebrow">{activeWarrior(save).skills.includes(selectedSkill) ? 'COMPÉTENCE DÉBLOQUÉE' : 'COMPÉTENCE VERROUILLÉE'}</span><h2>{activeWarrior(save).skills.includes(selectedSkill) ? selectedSkill : '???'}</h2><p>{activeWarrior(save).skills.includes(selectedSkill) ? skillDescriptions[selectedSkill] : 'Continue ta progression pour révéler cette compétence.'}</p><button className="primary wide" onClick={() => setSelectedSkill(null)}>FERMER</button></section></div>, document.body)}
   </div>
 }
 
@@ -168,7 +154,11 @@ function Adventure({ save, startBattle, admin }: { save: SaveData; startBattle: 
 }
 
 interface ActiveBattle { result: BattleResult; mode: 'training' | 'campaign'; node: number; enemyLevel: number }
-interface BattleSummary { xp: number; coins: number; levelUp: number; badges: string[]; campaignProgress?: string }
+interface BattleSummary { xp: number; coins: number; levelUp: number; badges: string[]; campaignProgress?: string; unlockedPassives: readonly WarriorPassiveDefinition[] }
+
+export function PassiveUnlockModal({ passives, onContinue }: { passives: readonly WarriorPassiveDefinition[]; onContinue: () => void }) {
+  return <div className="passive-unlock-overlay" role="dialog" aria-modal="true" aria-label="Passif débloqué"><section className="passive-unlock-sheet"><Sparkles aria-hidden="true"/><span className="eyebrow">{passives.length > 1 ? 'PASSIFS DÉBLOQUÉS' : 'PASSIF DÉBLOQUÉ'}</span><h2>{passives.length > 1 ? `${passives.length} nouveaux passifs` : passives[0].name}</h2><div className="passive-unlock-list">{passives.map((passive) => <article key={passive.id}><small>NIVEAU {passive.unlockLevel}</small>{passives.length > 1 && <strong>{passive.name}</strong>}<p>{passive.description}</p></article>)}</div><button className="primary wide" onClick={onContinue} autoFocus>CONTINUER</button></section></div>
+}
 
 export function BattleResultOverlay({ winner, enemyName, summary, warriorLevel, onContinue }: { winner: BattleResult['winner']; enemyName: string; summary: BattleSummary; warriorLevel: number; onContinue: () => void }) {
   return <div className="result-overlay" role="dialog" aria-modal="true" aria-label="Résultat du combat">
@@ -180,7 +170,7 @@ export function BattleResultOverlay({ winner, enemyName, summary, warriorLevel, 
         <span><GameIcon group="stats" name="xp"/><b>+{summary.xp} XP</b></span>
         <span><GameIcon group="stats" name="coins"/><b>+{summary.coins} pièces</b></span>
       </div>
-      {summary.levelUp > 0 && <div className="result-callout"><Sparkles/> Niveau {warriorLevel} atteint</div>}
+      {summary.levelUp > 0 && <div className="result-callout"><Sparkles/> Niveau {warriorLevel - summary.levelUp} → Niveau {warriorLevel}</div>}
       {summary.badges.map((badge) => <div className="result-callout" key={badge}><GameIcon group="stats" name="badge"/> Badge débloqué : {badge}</div>)}
       {summary.campaignProgress && <div className="campaign-result"><GameIcon group="navigation" name="adventure"/><span>{summary.campaignProgress}</span></div>}
       <button className="result-continue" onClick={onContinue}>CONTINUER</button>
@@ -190,6 +180,7 @@ export function BattleResultOverlay({ winner, enemyName, summary, warriorLevel, 
 
 function Battle({ save, setSave, active, onExit, admin }: { save: SaveData; setSave: (save: SaveData) => void; active: ActiveBattle; onExit: () => void; admin: boolean }) {
   const [index, setIndex] = useState(-1), [done, setDone] = useState(false), [settled, setSettled] = useState(false), [summary, setSummary] = useState<BattleSummary | null>(null)
+  const [passiveOpen, setPassiveOpen] = useState(false)
   const [playerState, setPlayerState] = useState<PlayerState>('idle'), [enemyState, setEnemyState] = useState<EnemyVisualPose>('idle'), [ready, setReady] = useState(false)
   const [enemyKitReady, setEnemyKitReady] = useState(false), [enemyMotion, setEnemyMotion] = useState<EnemyMotion>('idle')
   const [enemyFxVisible, setEnemyFxVisible] = useState(false), [enemyFxSequence, setEnemyFxSequence] = useState(0)
@@ -240,15 +231,16 @@ function Battle({ save, setSave, active, onExit, admin }: { save: SaveData; setS
     if (settled) return
     const next = clone(save), won = active.result.winner === 'player', elite = [5,10,15].includes(active.node), boss = active.node === 20
     const previousLevel = activeWarrior(save).level
-    const baseXp = 100 + 12 * active.enemyLevel
+    const baseXp = active.mode === 'campaign' ? campaignBaseXp(active.node) : 100 + 12 * active.enemyLevel
     const xp = active.mode === 'training' ? (won ? 1 : 0) : Math.round(baseXp * (won ? (boss ? 2.5 : elite ? 1.5 : 1) : 0.1))
     const coins = active.mode === 'training' ? (won ? 1 : 0) : won ? 50 : 10
+    let bonusXp = 0
     next.coins += coins; addWarriorXp(next, xp)
     recordBattleOutcome(next, active.mode === 'campaign' ? 'adventure' : 'training', active.result.winner)
     if (active.mode === 'training') next.trainingRemaining = Math.max(0, next.trainingRemaining - 1)
-    else { next.campaignRemaining = Math.max(0, next.campaignRemaining - 1); if (won) { if (!next.defeatedNodes.includes(active.node)) next.defeatedNodes.push(active.node); next.campaignNode = Math.min(20, active.node + 1); if (boss) { next.bossTrophyPending = true; if (!next.eraRewardClaimed) { next.coins += 100; next.chests += 3; addWarriorXp(next, 500); next.eraRewardClaimed = true } } } }
+    else { next.campaignRemaining = Math.max(0, next.campaignRemaining - 1); if (won) { if (!next.defeatedNodes.includes(active.node)) next.defeatedNodes.push(active.node); next.campaignNode = Math.min(20, active.node + 1); if (boss) { next.bossTrophyPending = true; if (!next.eraRewardClaimed) { next.coins += 100; next.chests += 3; bonusXp = 500; addWarriorXp(next, bonusXp); next.eraRewardClaimed = true } } } }
     const earnedBadges = grantEarnedBadges(next).granted
-    setSummary({ xp, coins, levelUp: activeWarrior(next).level - previousLevel, badges: earnedBadges.map(({ title, coins: reward }) => `${title} · +${reward} pièces`), campaignProgress: active.mode === 'campaign' ? (won ? `Niveau ${active.node} terminé${active.node < 20 ? ` · prochain : niveau ${active.node + 1}` : ' · Ère achevée'}` : `Niveau ${active.node} à retenter`) : undefined })
+    setSummary({ xp: xp + bonusXp, coins, levelUp: activeWarrior(next).level - previousLevel, unlockedPassives: getNewlyUnlockedWarriorPassives(save.activeWarriorId, previousLevel, activeWarrior(next).level), badges: earnedBadges.map(({ title, coins: reward }) => `${title} · +${reward} pièces`), campaignProgress: active.mode === 'campaign' ? (won ? `Niveau ${active.node} terminé${active.node < 20 ? ` · prochain : niveau ${active.node + 1}` : ' · Ère achevée'}` : `Niveau ${active.node} à retenter`) : undefined })
     setSave(next); setSettled(true)
   }
   useEffect(() => {
@@ -370,14 +362,8 @@ function Battle({ save, setSave, active, onExit, admin }: { save: SaveData; setS
       {floatingText && <FloatingCombatText key={`combat-text-${index}`} text={floatingText}/>}
       {enemyKitReady && enemyKit && enemyFxVisible && (enemyKit.attackKind === 'ranged' ? enemyProjectile && <div key={`enemy-projectile-${enemyFxSequence}`} className="enemy-projectile-flight" style={{ '--enemy-projectile-left': `${enemyProjectile.left}px`, '--enemy-projectile-bottom': `${enemyProjectile.bottom}px`, '--enemy-projectile-dx': `${enemyProjectile.travelX}px`, '--enemy-projectile-dy': `${enemyProjectile.travelY}px`, '--enemy-projectile-width': `${enemyProjectile.width}px`, '--enemy-projectile-ms': `${enemyKit.attackMs - enemyKit.fxAtMs}ms`, '--enemy-fx-ratio': `${enemyKit.geometry['attack-fx'][0]} / ${enemyKit.geometry['attack-fx'][1]}` } as React.CSSProperties}><EnemyAttackFx enemyId={enemyId} projectile/></div> : <div key={`enemy-fx-${enemyFxSequence}`} className={`enemy-attack-fx-zone fx-${enemyId}`} style={{ '--enemy-fx-ratio': `${enemyKit.geometry['attack-fx'][0]} / ${enemyKit.geometry['attack-fx'][1]}` } as React.CSSProperties}><EnemyAttackFx enemyId={enemyId}/></div>)}
       <div ref={enemyRef} style={enemyKitReady && enemyKit ? { '--enemy-approach-distance': `${enemyApproachDistance}px`, '--enemy-attack-ms': `${enemyKit.attackMs}ms`, '--enemy-return-ms': `${enemyKit.returnMs}ms` } as React.CSSProperties : undefined} className={`fighter enemy phase-${enemyState} ${enemyId === 'mammoth' ? 'boss-fighter' : ''} ${enemyKitReady ? `enemy-modern motion-${enemyMotion}` : ''}`}><img className="contact-shadow" src={enemyId === 'mammoth' ? assetsV06.arena.bossShadow : assetsV06.arena.contactShadow} alt=""/>{enemyKitReady ? <EnemySprite enemyId={enemyId} pose={enemyState} koFinal={skipped && enemyState === 'ko'} combat/> : <ProductionEnemy enemyId={enemyId} state={enemyState === 'hit' ? 'hurt' : enemyState === 'run' ? 'idle' : enemyState === 'block' ? 'dodge' : enemyState} boss={active.node === 20}/>}</div><img className="arena-layer arena-foreground" src={assetsV06.arena.foreground} alt=""/></div>
-    {done && settled && summary && <BattleResultOverlay winner={active.result.winner} enemyName={active.result.enemy.name} summary={summary} warriorLevel={activeWarrior(save).level} onContinue={onExit}/>}
+    {done && settled && summary && (passiveOpen ? <PassiveUnlockModal passives={summary.unlockedPassives} onContinue={onExit}/> : <BattleResultOverlay winner={active.result.winner} enemyName={active.result.enemy.name} summary={summary} warriorLevel={activeWarrior(save).level} onContinue={() => summary.unlockedPassives.length ? setPassiveOpen(true) : onExit()}/>)}
   </div>
-}
-
-function LevelChoice({ save, setSave }: { save: SaveData; setSave: (save: SaveData) => void }) {
-  const chooseStat = (stat: StatKey) => { const next = clone(save); next.ownedWarriors[next.activeWarriorId].bonusStats[stat] += stat === 'hp' ? 40 : 2; next.pendingLevelChoice = false; setSave(next) }
-  const chooseSkill = () => { const pool = skills.filter((skill) => !save.unlockedSkills.includes(skill)); const next = clone(save); if (pool.length) next.unlockedSkills.push(pool[Math.floor(Math.random() * pool.length)]); next.pendingLevelChoice = false; setSave(next) }
-  return <div className="modal-backdrop level-choice-backdrop"><section className="level-choice level-choice-premium" role="dialog" aria-modal="true" aria-label="Faveur du niveau"><span className="level-choice-mark" aria-hidden="true">✦</span><span className="eyebrow">NIVEAU {activeWarrior(save).level}</span><h2>Le temps t’accorde une faveur</h2><p>Choisis un attribut ou laisse le hasard éveiller une compétence.</p><div className="choice-grid">{([['strength','+2 Force'],['dodge','+2 Esquive'],['speed','+2 Vitesse'],['hp','+40 PV']] as [StatKey,string][]).map(([stat,label]) => <button onClick={() => chooseStat(stat)} key={stat}>{label}</button>)}<button className="skill-choice" onClick={chooseSkill}><GameIcon group="stats" name="xp"/>Compétence aléatoire</button></div></section></div>
 }
 
 function TrophyChoice({ save, setSave }: { save: SaveData; setSave: (save: SaveData) => void }) {
@@ -418,9 +404,9 @@ function SpriteLab() {
 
 function createActiveBattle(save: SaveData, mode: 'training' | 'campaign', node: number): ActiveBattle {
   const rng = seededRng(Date.now())
-  const enemyLevel = Math.max(1, activeWarrior(save).level + (mode === 'training' ? Math.floor(rng() * 3) - 1 : Math.floor(node / 3)))
+  const enemyLevel = mode === 'campaign' ? campaignNodeTier(node) : Math.max(1, activeWarrior(save).level + Math.floor(rng() * 3) - 1)
   const enemy = generateEnemy(enemyLevel, node, rng)
-  const fighter: Fighter = { name: activeWarrior(save).name, stats: effectiveStats(save), skills: activeWarrior(save).skills, weapon: save.equippedWeapon, armor: save.equippedArmor }
+  const fighter: Fighter = { name: activeWarrior(save).name, stats: effectiveStats(save), skills: [], warriorId: save.activeWarriorId, level: activeWarrior(save).level, weapon: save.equippedWeapon, armor: save.equippedArmor }
   return { result: simulateBattle(fighter, enemy, Date.now()), mode, node, enemyLevel }
 }
 
@@ -429,27 +415,30 @@ function GameApp() {
   const query = new URLSearchParams(window.location.search)
   const desktopCombatPreview = import.meta.env.DEV && adminMode && query.has('desktopCombatPreview')
   const adventurePreview = import.meta.env.DEV && adminMode && query.has('adventurePreview')
-  const qaLevelChoice = import.meta.env.DEV && adminMode && query.has('qaLevelChoice')
-  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || adventurePreview || qaLevelChoice || (adminMode && query.has('enemySpritePreview')))
+  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || adventurePreview || (adminMode && (query.has('enemySpritePreview') || query.has('qaLevelChoice'))))
   const requestedQaNode = Number(query.get('qaNode'))
   const qaNode = Number.isInteger(requestedQaNode) && requestedQaNode >= 1 && requestedQaNode <= 20 ? requestedQaNode : 1
   const [initialLoad] = useState(() => {
+    const targetKey = adminMode ? ADMIN_SAVE_KEY : SAVE_KEY
+    const legacyKey = adminMode ? LEGACY_ADMIN_SAVE_KEY : LEGACY_SAVE_KEY
+    const migrated = !localStorage.getItem(targetKey) && Boolean(localStorage.getItem(legacyKey))
     const initialSave = adminMode ? withAdminAccess(loadSave(localStorage, ADMIN_SAVE_KEY)) : loadSave()
     const initialBadges = grantEarnedBadges(initialSave)
-    return { loaded: adminMode ? withAdminAccess(initialBadges.save) : initialBadges.save, granted: initialBadges.granted.length > 0 }
+    return { loaded: adminMode ? withAdminAccess(initialBadges.save) : initialBadges.save, granted: initialBadges.granted.length > 0, migrated }
   })
   const [save, setSaveState] = useState<SaveData>(() => {
     const loaded = initialLoad.loaded
     if (!qaMode) return loaded
-    const qaWeapon = query.get('qaWeapon'), qaSkills = query.get('qaSkills'), qaWarrior = query.get('qaWarrior') ?? (desktopCombatPreview ? 'karg' : null)
-    const qaSkillCount = qaSkills && /^\d+$/.test(qaSkills) ? Math.min(skills.length, Number(qaSkills)) : null
+    const qaWeapon = query.get('qaWeapon'), qaWarrior = query.get('qaWarrior') ?? (desktopCombatPreview ? 'karg' : null)
     const weapon = qaWeapon && equipment.some((item) => item.type === 'weapon' && item.id === qaWeapon) ? qaWeapon : loaded.equippedWeapon
     const owned = !weapon || loaded.owned[weapon] ? loaded.owned : { ...loaded.owned, [weapon]: { quantity: 1, level: 1, xp: 0, kills: 0 } }
     const previewWarrior = qaWarrior && warriorDefinitions[qaWarrior]
-    const ownedWarriors = previewWarrior && !loaded.ownedWarriors[qaWarrior] ? { ...loaded.ownedWarriors, [qaWarrior]: { warriorId: qaWarrior, level: 1, xp: 0, bonusStats: { strength: 0, dodge: 0, speed: 0, hp: 0 } } } : loaded.ownedWarriors
+    const ownedWarriors = previewWarrior && !loaded.ownedWarriors[qaWarrior] ? { ...loaded.ownedWarriors, [qaWarrior]: { warriorId: qaWarrior, level: 1, xp: 0 } } : loaded.ownedWarriors
     const activeWarriorId = previewWarrior ? qaWarrior : loaded.activeWarriorId
-    const previewOwnedWarriors = qaLevelChoice ? { ...ownedWarriors, [activeWarriorId]: { ...ownedWarriors[activeWarriorId], level: 5 } } : ownedWarriors
-    return { ...loaded, activeWarriorId, ownedWarriors: previewOwnedWarriors, pendingLevelChoice: qaLevelChoice || loaded.pendingLevelChoice, coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, unlockedSkills: qaSkills === 'all' ? [...skills] : qaSkillCount !== null ? skills.slice(0, qaSkillCount) : loaded.unlockedSkills, ...(adventurePreview ? { campaignNode: qaNode, defeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}) }
+    const requestedLevel = Number(query.get('qaLevel'))
+    const qaLevel = adminMode && Number.isInteger(requestedLevel) && requestedLevel >= 1 ? Math.min(MAX_WARRIOR_LEVEL, requestedLevel) : null
+    const previewOwnedWarriors = qaLevel && ownedWarriors[activeWarriorId] ? { ...ownedWarriors, [activeWarriorId]: { ...ownedWarriors[activeWarriorId], level: qaLevel, xp: 0 } } : ownedWarriors
+    return { ...loaded, activeWarriorId, ownedWarriors: previewOwnedWarriors, coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, unlockedSkills: [], ...(adventurePreview ? { campaignNode: qaNode, defeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}) }
   }), [view, setView] = useState<View>(desktopCombatPreview ? 'battle' : adventurePreview ? 'adventure' : 'hub'), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => desktopCombatPreview ? createActiveBattle(save, 'campaign', qaNode) : null)
   const [welcomeFlow, setWelcomeFlow] = useState(() => !adminMode && !qaMode && !save.welcomeChestOpened)
   const [badgeNotice, setBadgeNotice] = useState<{ label: string; coins: number } | null>(null)
@@ -466,7 +455,7 @@ function GameApp() {
     }
   }
   useEffect(() => () => { if (badgeNoticeTimer.current !== null) window.clearTimeout(badgeNoticeTimer.current) }, [])
-  useEffect(() => { const first = initial.current; initial.current = false; if (!qaMode && (!first || initialLoad.granted)) persistSave(save, localStorage, adminMode ? ADMIN_SAVE_KEY : undefined) }, [save, qaMode, adminMode, initialLoad.granted])
+  useEffect(() => { const first = initial.current; initial.current = false; if (!qaMode && (!first || initialLoad.granted || initialLoad.migrated)) persistSave(save, localStorage, adminMode ? ADMIN_SAVE_KEY : undefined) }, [save, qaMode, adminMode, initialLoad.granted, initialLoad.migrated])
   useEffect(() => { window.scrollTo({ top: 0 }) }, [view])
   const startBattle = (mode: 'training' | 'campaign', node = 0) => {
     if (!canStartBattle(save, mode, adminMode)) return
@@ -486,7 +475,7 @@ function GameApp() {
   const badgeToast = badgeNotice && createPortal(<div className="badge-unlock-toast" role="status" aria-live="polite"><Award aria-hidden="true"/><span>{badgeNotice.label}</span><b>+{badgeNotice.coins} pièces</b></div>, document.body)
   if (view === 'battle' && activeBattle) return <><Battle save={save} setSave={setSave} active={activeBattle} admin={adminMode} onExit={() => { setView(activeBattle.mode === 'campaign' ? 'adventure' : 'training'); setActiveBattle(null) }}/>{badgeToast}</>
   return <><div className="app-shell" inert={welcomeFlow} aria-hidden={welcomeFlow}><Header save={save} view={view} setView={setView} admin={adminMode}/><main className="main-content">{content}</main><nav className="bottom-nav" aria-label="Navigation principale">{nav.map(({ id, label, icon }) => <button aria-label={label} className={view === id ? 'active' : ''} onClick={() => setView(id)} key={id}><GameIcon group="navigation" name={icon}/><span>{label}</span></button>)}</nav>
-    {warriorDetailId && view === 'collection' && <WarriorDetail save={save} warriorId={warriorDetailId} onClose={() => setWarriorDetailId(null)} onActivate={() => { setSave(activateWarrior(save, warriorDetailId)); setWarriorDetailId(null) }}/>} {save.pendingLevelChoice && <LevelChoice save={save} setSave={setSave}/>} {save.bossTrophyPending && <TrophyChoice save={save} setSave={setSave}/>}</div>{welcomeFlow && <WelcomeChest onClaim={(id) => setSave(claimWelcomeWarrior(save, id))} onDone={() => setWelcomeFlow(false)}/>}{badgeToast}</>
+    {warriorDetailId && view === 'collection' && <WarriorDetail save={save} warriorId={warriorDetailId} onClose={() => setWarriorDetailId(null)} onActivate={() => { setSave(activateWarrior(save, warriorDetailId)); setWarriorDetailId(null) }}/>} {save.bossTrophyPending && <TrophyChoice save={save} setSave={setSave}/>}</div>{welcomeFlow && <WelcomeChest onClaim={(id) => setSave(claimWelcomeWarrior(save, id))} onDone={() => setWelcomeFlow(false)}/>}{badgeToast}</>
 }
 
 export default function App() {

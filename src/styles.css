@@ -759,57 +759,26 @@ body { background:#0d0e0d; }
 .sprite-lab-grid.player-v06-lab .warrior-sprite { width:270px;height:180px; }
 
 .skill-panel { max-width:1120px; }
-.skill-filters { display:flex;gap:.45rem;margin:.15rem 0 1rem; }
-.skill-filters button { min-height:38px;padding:.45rem .8rem;border:1px solid var(--line);border-radius:999px;background:#171b16;color:#8f9688;font-size:.72rem; }
-.skill-filters button.active { border-color:#dbb65e;background:#e4c06a;color:#21190d; }
-.skill-list { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.6rem;overflow:visible;padding:0; }
-.skill-list .skill-card { width:100%;min-width:0;min-height:82px;padding:.75rem;border:1px solid #ffffff12;border-radius:14px;background:linear-gradient(145deg,#232820,#181b17);display:grid;grid-template-columns:34px 1fr;align-items:center;gap:.65rem;color:#e8dfc9;text-align:left; }
-.skill-list .skill-card>.game-icon { width:28px;height:28px;justify-self:center; }
-.skill-list .skill-card>span { min-width:0;padding:0;background:none;border:0;border-radius:0;display:block; }
-.skill-list .skill-card strong,.skill-list .skill-card small { display:block;white-space:normal;overflow:visible;text-overflow:clip; }
-.skill-list .skill-card strong { font-size:.75rem;line-height:1.2; }.skill-list .skill-card small { margin-top:.22rem;color:#8e9588;font-size:.61rem; }
-.skill-list .locked-skill { opacity:.62;background:#171a16;color:#9ba095; }.skill-list .locked-skill>.game-icon{opacity:.7}
-.skills-empty { padding:1.2rem;border:1px dashed #ffffff19;border-radius:14px;color:#858c80;text-align:center; }
-.skill-detail-modal { position:fixed;z-index:210;inset:0;display:grid;place-items:center;padding:1rem;background:#070907d9;backdrop-filter:blur(12px); }
-.skill-detail-modal>section { position:relative;width:min(100%,420px);padding:2rem;border:1px solid #e4bd6245;border-radius:24px;background:linear-gradient(145deg,#252a21,#151814);text-align:center;box-shadow:0 30px 90px #000; }
-.skill-detail-modal>section>.game-icon { width:58px;height:58px;margin-bottom:1rem; }.skill-detail-modal h2{margin:.35rem 0 .7rem}.skill-detail-modal p{color:#adb2a7;margin-bottom:1.4rem}.skill-detail-modal .close{position:absolute;right:.8rem;top:.8rem;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:50%;background:#ffffff0d}.skill-detail-modal .close svg{width:18px}
 .skill-summary { max-width:1000px; }
 .skill-summary .section-title h2 { margin-bottom:.7rem; }
-.skill-preview-list { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem; }
-.skill-preview { min-width:0;min-height:64px;padding:.7rem .8rem;display:flex;align-items:center;gap:.65rem;border:1px solid #ffffff12;border-radius:13px;background:#20251ed9;color:#eee4cf;text-align:left;cursor:pointer;transition:background .18s ease; }
-.skill-preview:hover { background:#2b3229; }
-.skill-preview>.game-icon { width:27px;height:27px;flex:none; }
-.skill-preview>span { min-width:0;flex:1; }
-.skill-preview strong,.skill-preview small { display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
-.skill-preview strong { font-size:.78rem; }.skill-preview small { margin-top:.12rem;color:#a5ad9d;font-size:.62rem; }
-.skill-preview>svg { width:16px;height:16px;flex:none;transform:rotate(180deg);color:#bba777; }
-.skill-preview-empty { margin:0;padding:.85rem 0;color:#e2d6ba;font-size:.84rem; }
-.skill-preview-empty span { display:block;margin-top:.2rem;color:#9ba391;font-size:.72rem; }
-.skill-see-all { min-height:44px;margin-top:.55rem;padding:.45rem 0;border:0;background:none;color:#eac779;font-size:.78rem;font-weight:700;cursor:pointer; }
-.skill-see-all span { margin-left:.4rem; }
-.skills-sheet-backdrop { position:fixed;z-index:200;inset:0;display:grid;place-items:center;padding:1rem;background:#080a08dd;backdrop-filter:blur(9px); }
-.skills-sheet { width:min(100%,1040px);max-height:calc(100dvh - 2rem);overflow-y:auto;overscroll-behavior:contain;padding:1.5rem;border:1px solid #dfbd7140;border-radius:22px;background:#171c17;box-shadow:0 24px 70px #0009; }
-.skills-sheet-header { display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem; }
-.skills-sheet-header h2 { margin:.2rem 0 .15rem;font:clamp(1.7rem,3vw,2.3rem) 'Marcellus',serif; }
-.skills-sheet-header p { margin:0;color:#aab29f;font-size:.8rem; }
-.skills-sheet-close { width:44px;height:44px;flex:none;display:grid;place-items:center;border:0;border-radius:50%;background:#ffffff12;color:#eee4cf;cursor:pointer; }
-.skills-sheet-close svg { width:20px;height:20px; }
-.skills-sheet .skill-filters { overflow:visible;flex-wrap:wrap; }
-.skills-sheet .skill-filters button { min-width:0;min-height:44px;cursor:pointer; }
-.skills-sheet .skill-card { cursor:pointer; }
-.skill-preview:focus-visible,.skill-see-all:focus-visible,.skills-sheet button:focus-visible,.skill-detail-modal button:focus-visible { outline:2px solid #f3d98d;outline-offset:2px; }
+.passive-milestones { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem; }
+.passive-milestone { min-width:0;min-height:105px;padding:.75rem .85rem;display:flex;flex-direction:column;justify-content:center;gap:.25rem;border:1px solid #ffffff12;border-radius:13px;background:#20251ed9;color:#eee4cf; }
+.passive-milestone strong { font-size:.88rem;line-height:1.2; }.passive-milestone span { color:#a5ad9d;font-size:.66rem; }
+.passive-milestone p { margin:0;color:#aeb5a5;font-size:.72rem;line-height:1.35; }
+.passive-milestone.locked { opacity:.7; }.passive-milestone.reached .passive-level { color:#dbc482; }
+.passive-milestone.reached { border-color:#d4b66a69; }.passive-milestone.reached span { color:#dbc482; }
+.passive-unlock-overlay { position:fixed;z-index:220;inset:0;display:grid;place-items:center;padding:16px;background:#080b08df;backdrop-filter:blur(10px); }
+.passive-unlock-sheet { width:min(100%,450px);max-height:calc(100dvh - 32px);overflow:auto;padding:1.5rem;border:1px solid #d4b66a59;border-radius:22px;background:#1b211b;color:#efe9d8;text-align:center;box-shadow:0 22px 70px #0009; }
+.passive-unlock-sheet>svg { width:30px;height:30px;color:#e7c875; }.passive-unlock-sheet .eyebrow { display:block;margin:.45rem 0; }.passive-unlock-sheet h2 { margin:.3rem 0 1rem;font:1.7rem 'Marcellus',serif; }
+.passive-unlock-list { display:grid;gap:.55rem;margin-bottom:1.2rem;text-align:left; }.passive-unlock-list article { padding:.75rem .85rem;border:1px solid #ffffff16;border-radius:12px;background:#ffffff08; }.passive-unlock-list small,.passive-unlock-list strong { display:block; }.passive-unlock-list small { color:#d8be77;font-size:.64rem;letter-spacing:.1em; }.passive-unlock-list strong { margin-top:.2rem;font-size:.92rem; }.passive-unlock-list p { margin:.35rem 0 0;color:#c2c8b9;font-size:.75rem;line-height:1.4; }
+.passive-unlock-sheet button:focus-visible { outline:2px solid #e7c875;outline-offset:3px; }
 
 @media (max-width:1000px) {
   .hero-avatar { height:390px;min-height:390px; }.hero-portrait{width:min(82%,330px)}
-  .skill-list{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media (max-width:700px) {
-  .skill-preview-list { grid-template-columns:1fr; }
-  .skills-sheet-backdrop { align-items:end;padding:0; }
-  .skills-sheet { max-height:calc(100dvh - env(safe-area-inset-top) - 1rem);padding:1.1rem 1rem calc(1.2rem + env(safe-area-inset-bottom));border-radius:22px 22px 0 0; }
-  .skills-sheet .skill-list { grid-template-columns:1fr; }
-  .skills-sheet .skill-filters { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.35rem; }
-  .skills-sheet .skill-filters button { padding:.45rem .2rem;font-size:.67rem; }
+  .passive-milestones { grid-template-columns:1fr; }
+  .passive-milestone { min-height:0;padding:.65rem .8rem; }
   .hero-avatar { height:330px;min-height:330px;padding-block:14px 18px; }.hero-portrait{width:min(82%,285px)}
   .fighter.player{width:clamp(600px,75vh,690px);height:auto;aspect-ratio:3/2}
   .skill-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}.skill-list .skill-card{min-height:76px;padding:.6rem;grid-template-columns:28px 1fr;gap:.5rem}.skill-list .skill-card>.game-icon{width:23px;height:23px}
@@ -824,22 +793,6 @@ body { background:#0d0e0d; }
   .hero-portrait{animation:none!important}
 }
 
-/* The level-up favour is intentionally scoped away from the Boss trophy choice. */
-.level-choice-backdrop { background:#060807b8;backdrop-filter:blur(16px) saturate(.75);padding:max(18px,env(safe-area-inset-top)) 16px max(18px,env(safe-area-inset-bottom)); }
-.level-choice-premium { width:min(100%,430px);max-height:calc(100dvh - 36px);overflow:auto;padding:30px 28px 27px;border:1px solid #dfc37b36;border-radius:24px;background:linear-gradient(150deg,#252923f0,#171b18f5 52%,#101411f7);box-shadow:0 24px 70px #0009,0 1px 0 #ffffff0b inset;animation:level-choice-enter .3s cubic-bezier(.2,.8,.2,1) both; }
-.level-choice-premium .level-choice-mark { display:grid;place-items:center;width:34px;height:34px;margin:0 auto 17px;border-radius:50%;background:#e7c87d14;color:#e8c87d;font-size:20px;line-height:1; }
-.level-choice-premium .eyebrow { display:block;color:#d9bb77;font-size:.66rem;font-weight:800;letter-spacing:.23em; }
-.level-choice-premium h2 { max-width:340px;margin:9px auto 8px;color:#f5efdf;font:clamp(1.65rem,4vw,2.05rem)/1.13 'Marcellus',serif;letter-spacing:-.015em; }
-.level-choice-premium>p { max-width:310px;margin:0 auto;color:#a9b0a5;font-size:.78rem;line-height:1.5; }
-.level-choice-premium .choice-grid { gap:8px;margin-top:26px; }
-.level-choice-premium .choice-grid button { min-height:57px;border:1px solid #ffffff13;border-radius:11px;background:#ffffff08;color:#e9e7db;font-size:.83rem;font-weight:700;cursor:pointer;transition:background .17s ease,border-color .17s ease,transform .17s ease; }
-.level-choice-premium .choice-grid button:hover { background:#ffffff12;border-color:#e8c87865;transform:translateY(-2px); }
-.level-choice-premium .choice-grid button:active { transform:translateY(0); }
-.level-choice-premium .choice-grid button:focus-visible { outline:2px solid #f1d88e;outline-offset:2px; }
-.level-choice-premium .choice-grid .skill-choice { min-height:56px;margin-top:6px;border-color:#e4bd6938;background:#d5ac5413;color:#eed194; }
-.level-choice-premium .skill-choice .game-icon { width:22px;height:22px; }
-@keyframes level-choice-enter { from { opacity:0;transform:translateY(8px) scale(.985) } to { opacity:1;transform:none } }
-@media (max-width:370px) { .level-choice-premium { padding:23px 18px 20px }.level-choice-premium .choice-grid { margin-top:20px }.level-choice-premium .choice-grid button { min-height:53px } }
 @media (prefers-reduced-motion:reduce) { .level-choice-premium { animation:none!important }.level-choice-premium .choice-grid button { transition:none } }
 
 /* Gameplay-only Warrior sprite pipeline. Premium card artwork stays untouched. */

@@ -2,6 +2,10 @@ import { GAME, RARITY_CHANCES, rarityOrder } from './config'
 import { equipment } from './data'
 import type { BattleResult, Fighter, OwnedEquipment, Rarity, SaveData, Stats } from './types'
 import { activeWarrior, primalWarriors, warriorDefinitions } from './warriors'
+import { xpForLevel } from './warriorProgression'
+import { WarriorPassiveRuntime } from './warriorPassives'
+import { primalEnemyStats } from './primalEnemyBalance'
+export { xpForLevel } from './warriorProgression'
 
 export type Rng = () => number
 
@@ -16,7 +20,6 @@ export function seededRng(seed: number): Rng {
   }
 }
 
-export const xpForLevel = (level: number) => Math.round(250 + 35 * level + 1.2 * level ** 2)
 export const damageForStrength = (strength: number) => GAME.baseDamage + GAME.strengthScale * strength ** GAME.strengthExponent
 export const dodgeChance = (dodge: number) => Math.min(GAME.dodgeCap, GAME.dodgeBase + GAME.dodgeScale * dodge / (dodge + 100))
 export const speedWeight = (speed: number) => (speed + GAME.speedOffset) ** GAME.speedExponent
@@ -83,7 +86,7 @@ export function grantWarrior(save: SaveData, warriorId: string): SaveData {
   if (!warriorDefinitions[warriorId]) return save
   const next = structuredClone(save)
   if (!next.ownedWarriors[warriorId]) {
-    next.ownedWarriors[warriorId] = { warriorId, level: 1, xp: 0, bonusStats: { strength: 0, dodge: 0, speed: 0, hp: 0 } }
+    next.ownedWarriors[warriorId] = { warriorId, level: 1, xp: 0 }
     next.loadouts[warriorId] = { weapon: '', armor: '' }
   }
   return next.activeWarriorId ? next : activateWarrior(next, warriorId)
@@ -121,6 +124,7 @@ function owns(fighter: Fighter, skill: string) { return fighter.skills.includes(
 
 export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): BattleResult {
   const rng = seededRng(seed)
+  const passives = new WarriorPassiveRuntime(player.warriorId, player.level)
   let playerHp = player.stats.hp
   let enemyHp = enemy.stats.hp
   let previous: 'player' | 'enemy' | null = null
@@ -133,18 +137,27 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
   let enemySecondWind = false
   let playerBleed = 0
   let enemyBleed = 0
+  let vorkaBleedTicks = 0
+  let vorkaBleedDamage = 0
   const events: BattleResult['events'] = []
   const hp = () => ({ playerHp: Math.max(0, Math.round(playerHp)), enemyHp: Math.max(0, Math.round(enemyHp)) })
 
   while (playerHp > 0 && enemyHp > 0 && turns < 160) {
     turns += 1
-    const pWeight = speedWeight(player.stats.speed) * (owns(player, 'Accélération') ? 1.12 : 1)
-    const eWeight = speedWeight(enemy.stats.speed) * (owns(enemy, 'Accélération') ? 1.12 : 1)
+    if (vorkaBleedTicks > 0) {
+      enemyHp -= vorkaBleedDamage
+      vorkaBleedTicks--
+      events.push({ type: 'bleed', actor: 'player', target: 'enemy', value: vorkaBleedDamage, label: 'Saignement', ...hp() })
+      if (enemyHp <= 0) break
+    }
+    const pWeight = speedWeight(player.stats.speed) * (owns(player, 'Accélération') ? 1.12 : 1) * passives.actionRateMultiplier()
+    const eWeight = speedWeight(enemy.stats.speed) * (owns(enemy, 'Accélération') ? 1.12 : 1) * passives.opponentRateMultiplier()
     let actor: 'player' | 'enemy' = rng() < pWeight / (pWeight + eWeight) ? 'player' : 'enemy'
     if (actor === previous && consecutive >= GAME.maxConsecutiveActions) actor = actor === 'player' ? 'enemy' : 'player'
     consecutive = actor === previous ? consecutive + 1 : 1
     consecutiveMax = Math.max(consecutiveMax, consecutive)
     previous = actor
+    if (actor === 'player') passives.onAction()
     const target = actor === 'player' ? 'enemy' : 'player'
     const attacker = actor === 'player' ? player : enemy
     const defender = actor === 'player' ? enemy : player
@@ -152,8 +165,17 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
     events.push({ type: 'attack', actor, target, ...hp() })
 
     const hitChance = owns(attacker, 'Précision') ? 0.05 : 0
-    if (rng() < Math.max(0, dodgeChance(defender.stats.dodge) - hitChance)) {
+    const baseDodge = Math.max(0, dodgeChance(defender.stats.dodge) - hitChance)
+    const finalDodge = target === 'player' ? passives.dodgeChance(baseDodge, GAME.dodgeCap) : baseDodge
+    if (rng() < finalDodge) {
       events.push({ type: 'dodge', actor: target, target: actor, label: 'Esquive', ...hp() })
+      if (target === 'player') passives.onDodge()
+      else passives.onMiss()
+      continue
+    }
+    if (target === 'player' && passives.blockChance() > 0 && rng() < passives.blockChance()) {
+      passives.onBlock()
+      events.push({ type: 'skill', actor: 'player', target: 'enemy', label: 'Parade', ...hp() })
       continue
     }
     let damage = damageForStrength(attacker.stats.strength) * (0.9 + rng() * 0.2)
@@ -165,17 +187,47 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
     if (attacker.weapon === 'bone-spear' && attackCount === 1) damage *= 1.1
     if (attacker.weapon === 'tyrant-claw' && rng() < 0.12) damage *= 1.5
     if (attacker.weapon === 'titan-heart' && rng() < 0.07) damage *= 1.8
+    const normalAttackDamage = damage
     const crit = rng() < GAME.criticalChance + (owns(attacker, 'Élan') ? 0.03 : 0)
     if (crit) { damage *= GAME.criticalMultiplier; events.push({ type: 'critical', actor, target, label: 'Critique', ...hp() }) }
+    const passiveHit = actor === 'player' ? passives.onSuccessfulAttack(enemyHp, enemy.stats.hp, vorkaBleedTicks > 0 || enemyBleed > 0, rng) : null
+    if (passiveHit) {
+      damage *= passiveHit.multiplier
+      for (const label of passiveHit.labels) events.push({ type: 'skill', actor, target, label, ...hp() })
+      if (passiveHit.consumeBleed) { vorkaBleedTicks = 0; enemyBleed = 0 }
+    }
+    const offensiveDamage = damage
     if (owns(defender, 'Peau Dure')) damage *= 0.9
     if (owns(defender, 'Parade') && rng() < 0.1) { damage *= 0.55; events.push({ type: 'skill', actor: target, target: actor, label: 'Parade', ...hp() }) }
     if (defender.armor === 'hunter-hides' && attackCount === 1) damage *= 0.95
     if (defender.armor === 'bone-harness' && rng() < 0.05) damage *= 0.75
     if (defender.armor === 'white-titan-fur' && (target === 'player' ? playerHp / player.stats.hp : enemyHp / enemy.stats.hp) > 0.5) damage *= 0.92
     if (defender.armor === 'primordial-titan-skin' && attackCount <= 3) damage *= 0.8
+    if (target === 'player') damage *= passives.incomingMultiplier(playerHp, player.stats.hp)
+    const bonusStrikeBasis = normalAttackDamage * damage / offensiveDamage
     damage = Math.max(1, Math.round(damage))
     if (target === 'player') playerHp -= damage; else enemyHp -= damage
     events.push({ type: 'damage', actor, target, value: damage, ...hp() })
+    if (target === 'player') {
+      const reaction = passives.onDamageTaken(playerHp, player.stats.hp)
+      if (reaction.heal > 0) {
+        const beforeHeal = Math.max(0, playerHp)
+        playerHp = Math.min(player.stats.hp, beforeHeal + reaction.heal)
+        events.push({ type: 'heal', actor: 'player', target: 'player', value: playerHp - beforeHeal, label: 'Endurance de Matriarche', ...hp() })
+      }
+      for (const label of reaction.labels) events.push({ type: 'skill', actor: 'player', target: 'player', label, ...hp() })
+      passives.updateThresholds(playerHp, player.stats.hp)
+    }
+    if (passiveHit?.applyBleed && enemyHp > 0) { vorkaBleedTicks = 2; vorkaBleedDamage = Math.max(1, Math.round(damage * .10)) }
+    if (passiveHit?.bonusStrikes.length && enemyHp > 0) {
+      for (const portion of passiveHit.bonusStrikes) {
+        if (enemyHp <= 0) break
+        const extraDamage = Math.max(1, Math.round(bonusStrikeBasis * portion))
+        events.push({ type: 'attack', actor: 'player', target: 'enemy', label: 'Coup supplémentaire', ...hp() })
+        enemyHp -= extraDamage
+        events.push({ type: 'damage', actor: 'player', target: 'enemy', value: extraDamage, ...hp() })
+      }
+    }
     if (owns(attacker, 'Vampirisme')) {
       const heal = Math.max(1, Math.round(damage * 0.08))
       if (actor === 'player') playerHp = Math.min(player.stats.hp, playerHp + heal); else enemyHp = Math.min(enemy.stats.hp, enemyHp + heal)
@@ -196,14 +248,11 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
 }
 
 export function generateEnemy(level: number, node = 0, rng: Rng = Math.random): Fighter {
-  const elite = node > 0 && [5, 10, 15].includes(node)
-  const champion = node >= 16 && node < 20
   const boss = node === 20
-  const scale = 1 + level * 0.12 + node * 0.055
-  const wall = boss ? 1.85 : elite ? 1.35 : champion ? 1.48 : 1
+  const trainingScale = 1 + level * 0.12
   return {
     name: node ? (['Ramasseur des brumes','Chasseur de cornes','Veilleuse des fougères','Pilleur de silex','Brak le Colossal','Traqueur des marais','Dompteuse de raptors','Gardien des os','Éclaireur du volcan','Ura la Balafrée','Briseur de défenses','Prêtresse du feu','Fils du Smilodon','Sentinelle noire','Korga Croc-de-Fer','Champion des cendres','Champion du tonnerre','Champion des abysses','Champion du Titan','Morgath, Roi Primordial'][node - 1]) : 'Guerrier errant',
-    stats: { strength: Math.round((4 + rng() * 4) * scale * wall), dodge: Math.round((4 + rng() * 4) * scale * wall), speed: Math.round((4 + rng() * 4) * scale * wall), hp: Math.round((95 + rng() * 35) * scale * wall) },
+    stats: node > 0 ? primalEnemyStats(node, rng) : { strength: Math.round((4 + rng() * 4) * trainingScale), dodge: Math.round((4 + rng() * 4) * trainingScale), speed: Math.round((4 + rng() * 4) * trainingScale), hp: Math.round((95 + rng() * 35) * trainingScale) },
     skills: node > 12 ? ['Peau Dure', ...(boss ? ['Frappe Dévastatrice', 'Second Souffle'] : [])] : [],
     weapon: boss ? 'mammoth-spear' : undefined,
     armor: boss ? 'mammoth-plate' : undefined,
@@ -227,18 +276,15 @@ export function rollChest(rng: Rng, owned: Record<string, OwnedEquipment>) {
 
 export function addWarriorXp(save: SaveData, amount: number, rng: Rng = Math.random) {
   const warrior = save.ownedWarriors[save.activeWarriorId]
-  warrior.xp += amount
+  if (!warrior || warrior.level >= GAME.maxWarriorLevel || !Number.isFinite(amount) || amount <= 0) return 0
+  warrior.xp += Math.trunc(amount)
   let levels = 0
   while (warrior.level < GAME.maxWarriorLevel && warrior.xp >= xpForLevel(warrior.level)) {
     warrior.xp -= xpForLevel(warrior.level)
     warrior.level += 1
-    warrior.bonusStats.strength += 1
-    warrior.bonusStats.dodge += 1
-    warrior.bonusStats.speed += 1
-    warrior.bonusStats.hp += 10
     levels += 1
-    if (warrior.level % 5 === 0) save.pendingLevelChoice = true
   }
+  if (warrior.level >= GAME.maxWarriorLevel) warrior.xp = 0
   void rng
   return levels
 }

@@ -8,7 +8,7 @@ export interface Stats { strength: number; dodge: number; speed: number; hp: num
 export type WarriorClass = 'Ravageur' | 'Tempête' | 'Bastion' | 'Spectre' | 'Héraut' | 'Fléau'
 export interface WarriorPassive { name: string; description: string }
 export interface WarriorDefinition { id: string; name: string; title: string; era: string; rarity: Rarity; warriorClass: WarriorClass; passive?: WarriorPassive; baseStats: Stats; art: string; artPosition: string }
-export interface OwnedWarrior { warriorId: string; level: number; xp: number; bonusStats: Stats }
+export interface OwnedWarrior { warriorId: string; level: number; xp: number; /** Read only while migrating pre-V1 saves. */ bonusStats?: Stats }
 
 export interface EquipmentDefinition {
   id: string
@@ -49,7 +49,7 @@ export interface SaveData {
   chests: number
   speed: BattleSpeed
   badges: BadgeState[]
-  pendingLevelChoice: boolean
+  /** Read only while migrating pre-V1 saves. */ pendingLevelChoice?: boolean
   lastReset: string
   bossTrophyPending: boolean
   eraRewardClaimed: boolean
@@ -70,6 +70,9 @@ export interface Fighter {
   name: string
   stats: Stats
   skills: string[]
+  /** Player-only, derived passive kit. Enemies never receive this identity. */
+  warriorId?: string
+  level?: number
   weapon?: string
   armor?: string
 }

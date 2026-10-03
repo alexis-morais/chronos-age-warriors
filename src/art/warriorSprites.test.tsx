@@ -314,7 +314,7 @@ describe('pipeline de sprites Warrior', () => {
   })
 
   it('affiche la même fenêtre sobre en victoire et en défaite', () => {
-    const summary = { xp: 1, coins: 1, levelUp: 0, badges: [] }
+    const summary = { xp: 1, coins: 1, levelUp: 0, badges: [], unlockedPassives: [] }
     const { rerender } = render(<BattleResultOverlay winner="player" enemyName="Guerrier errant" summary={summary} warriorLevel={1} onContinue={() => {}}/>)
     expect(screen.getByRole('dialog', { name: 'Résultat du combat' })).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'VICTOIRE' })).toBeTruthy()

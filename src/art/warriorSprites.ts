@@ -336,7 +336,7 @@ export function playerReactionForEvent(event: BattleEvent, previous?: BattleEven
   if (event.actor === 'player' && event.type === 'dodge') return 'dodge'
   if (event.actor === 'player' && event.type === 'skill' && event.label === 'Parade') return 'block'
   if ((event.type === 'damage' || event.type === 'bleed') && event.target === 'player') {
-    if (event.playerHp === 0 && !(next?.type === 'heal' && next.label === 'Second Souffle')) return 'ko'
+    if (event.playerHp === 0 && next?.type !== 'heal') return 'ko'
     if (previous?.type === 'skill' && previous.label === 'Parade' && previous.actor === 'player') return 'block'
     return 'hurt'
   }

@@ -1,4 +1,5 @@
 import type { SaveData, Stats, WarriorDefinition } from './types'
+import { getWarriorLevelStats } from './warriorProgression'
 
 export const KARG_ID = 'karg'
 export const KARG: WarriorDefinition = {
@@ -39,11 +40,8 @@ export function ownedWarrior(save: SaveData, warriorId: string) {
   const owned = save.ownedWarriors[warriorId]
   const definition = warriorDefinitions[warriorId]
   if (!owned || !definition || owned.warriorId !== definition.id) throw new Error('Warrior definition or ownership is missing')
-  const stats = (Object.keys(definition.baseStats) as (keyof Stats)[]).reduce((result, key) => {
-    result[key] = definition.baseStats[key] + owned.bonusStats[key]
-    return result
-  }, {} as Stats)
-  return { ...definition, level: owned.level, xp: owned.xp, stats, skills: save.unlockedSkills }
+  const stats = getWarriorLevelStats(warriorId, owned.level)
+  return { ...definition, level: owned.level, xp: owned.xp, stats, skills: [] as string[] }
 }
 
 export function activeWarrior(save: SaveData) { return ownedWarrior(save, save.activeWarriorId) }

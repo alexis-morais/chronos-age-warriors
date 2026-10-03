@@ -36,7 +36,7 @@ describe('Karg dans le Hub et la Collection', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Voir la fiche de Karg' }))
     const dialog = screen.getByRole('dialog', { name: 'Fiche de Karg' })
     expect(within(dialog).getByText('Premier Chasseur')).toBeTruthy()
-    expect(within(dialog).getByText('23 / 286 XP')).toBeTruthy()
+    expect(within(dialog).getByText('23 / 120 XP')).toBeTruthy()
     expect(within(dialog).getByText('Furie')).toBeTruthy()
     expect(within(dialog).getByText('+5 % dégâts par attaque réussie, max ×3. Raté = reset.')).toBeTruthy()
     expect(dialog.querySelectorAll('.warrior-equipment-slot')).toHaveLength(2)

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { RARITY_CHANCES } from './config'
 import { activateWarrior, addEquipmentCopy, addWarriorXp, claimWelcomeWarrior, compareEquipmentStats, damageForStrength, dodgeChance, effectiveStats, equipmentStats, equipItem, grantWarrior, rollChest, rollWarriorChest, seededRng, simulateBattle, speedWeight, xpForLevel } from './game'
-import { dailyReset, freshSave, loadSave, persistSave, SAVE_KEY } from './storage'
+import { dailyReset, freshSave, LEGACY_SAVE_KEY, loadSave, persistSave, SAVE_KEY, SAVE_VERSION } from './storage'
 import type { Fighter } from './types'
 import { KARG, KARG_ID, primalWarriors } from './warriors'
 import { establishedKargSave } from './testFixtures'
@@ -28,15 +28,23 @@ describe('formules de combat', () => {
 
 describe('progression', () => {
   it('respecte la courbe XP Warrior', () => {
-    expect(xpForLevel(1)).toBe(286)
+    expect(Array.from({ length: 9 }, (_, index) => xpForLevel(index + 1))).toEqual([120, 180, 280, 410, 560, 750, 970, 1240, 1580])
+    expect(xpForLevel(10)).toBe(0)
   })
-  it('propose un choix au niveau 5 et permet l’attribution de compétence', () => {
-    const save = establishedKargSave(); save.ownedWarriors[save.activeWarriorId].level = 4
-    addWarriorXp(save, xpForLevel(4), seededRng(1))
-    expect(save.ownedWarriors[save.activeWarriorId].level).toBe(5)
-    expect(save.pendingLevelChoice).toBe(true)
-    save.unlockedSkills.push('Rage')
-    expect(save.unlockedSkills).toContain('Rage')
+  it('franchit automatiquement plusieurs niveaux sans choix ni compétence', () => {
+    const save = establishedKargSave()
+    expect(addWarriorXp(save, 119, seededRng(1))).toBe(0)
+    expect(save.ownedWarriors.karg).toMatchObject({ level: 1, xp: 119 })
+    expect(addWarriorXp(save, 1)).toBe(1)
+    expect(save.ownedWarriors.karg).toMatchObject({ level: 2, xp: 0 })
+    expect(addWarriorXp(save, 180)).toBe(1)
+    expect(save.ownedWarriors.karg).toMatchObject({ level: 3, xp: 0 })
+    expect(addWarriorXp(save, 5790)).toBe(7)
+    expect(save.ownedWarriors.karg).toMatchObject({ level: 10, xp: 0 })
+    expect(addWarriorXp(save, 100000)).toBe(0)
+    expect(save.ownedWarriors.karg).toMatchObject({ level: 10, xp: 0 })
+    expect(save.pendingLevelChoice).toBeUndefined()
+    expect(save.unlockedSkills).toEqual([])
   })
 })
 
@@ -159,17 +167,19 @@ describe('sauvegarde et reset quotidien', () => {
     expect(loaded.activeWarriorId).toBe('')
     expect(memory.has('chronos-age-warriors:v1')).toBe(true)
   })
-  it('convertit le Warrior de développement v2 en Karg sans perdre la progression', () => {
+  it('convertit le Warrior de développement v2 en Karg avec reset ciblé de progression', () => {
     const oldId = 'dev-primordial-warrior'
     const save = establishedKargSave()
     save.activeWarriorId = oldId
     save.ownedWarriors = { [oldId]: { warriorId: oldId, level: 4, xp: 123, bonusStats: { strength: 2, dodge: 1, speed: 0, hp: 3 } } }
     save.coins = 843
     save.speed = 3
-    const memory = new Map([[SAVE_KEY, JSON.stringify(save)]])
+    save.version = 2
+    const memory = new Map([[LEGACY_SAVE_KEY, JSON.stringify(save)]])
     const loaded = loadSave({ getItem: (key: string) => memory.get(key) ?? null })
     expect(loaded.activeWarriorId).toBe(KARG_ID)
-    expect(loaded.ownedWarriors[KARG_ID]).toEqual({ warriorId: KARG_ID, level: 4, xp: 123, bonusStats: { strength: 2, dodge: 1, speed: 0, hp: 3 } })
+    expect(loaded.ownedWarriors[KARG_ID]).toEqual({ warriorId: KARG_ID, level: 1, xp: 0 })
+    expect(loaded.version).toBe(SAVE_VERSION)
     expect(loaded.ownedWarriors[oldId]).toBeUndefined()
     expect(loaded.coins).toBe(843)
     expect(loaded.speed).toBe(3)
