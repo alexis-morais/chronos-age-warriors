@@ -1,19 +1,5 @@
-import { resolveEnemyId, type EnemyId } from './art/assetsV04'
-import { campaignNodeTier } from './campaignProgression'
+import type { EnemyId } from './art/assetsV04'
 import type { Stats } from './types'
-
-/** Campaign-only budgets; independent of the Warrior's level. */
-export const PRIMAL_TIER_BUDGETS: readonly Stats[] = [
-  { strength: 5, dodge: 5, speed: 6, hp: 110 },
-  { strength: 6, dodge: 6, speed: 7, hp: 125 },
-  { strength: 7, dodge: 7, speed: 8, hp: 145 },
-  { strength: 9, dodge: 9, speed: 10, hp: 175 },
-  { strength: 11, dodge: 10, speed: 12, hp: 205 },
-  { strength: 13, dodge: 11, speed: 13, hp: 230 },
-  { strength: 15, dodge: 13, speed: 15, hp: 260 },
-  { strength: 17, dodge: 14, speed: 16, hp: 290 },
-  { strength: 19, dodge: 15, speed: 18, hp: 260 },
-]
 
 /** Enemy identities follow the same node-to-sprite mapping as the battle scene. */
 export const PRIMAL_ENEMY_PROFILES: Record<EnemyId, Stats> = {
@@ -26,14 +12,32 @@ export const PRIMAL_ENEMY_PROFILES: Record<EnemyId, Stats> = {
   mammoth: { strength: 1.07, dodge: .85, speed: .82, hp: 1.12 },
 }
 
-const CHAMPION_MODIFIERS: readonly Stats[] = [
-  { strength: 1.30, dodge: 1.10, speed: 1.12, hp: 1.38 },
-  { strength: 1.24, dodge: 1.11, speed: 1.14, hp: 1.29 },
-  { strength: 1.17, dodge: 1.12, speed: 1.16, hp: 1.25 },
-  { strength: 1.20, dodge: 1.14, speed: 1.18, hp: 1.29 },
-]
-
 export type PrimalNodeKind = 'standard' | 'elite' | 'champion' | 'boss'
+
+/** V0.14 fixed encounters: no player-dependent scaling and no random stat jitter. */
+export const PRIMAL_NODE_STATS: readonly Stats[] = [
+  { strength: 8, dodge: 6, speed: 8, hp: 110 },
+  { strength: 9, dodge: 9, speed: 10, hp: 120 },
+  { strength: 11, dodge: 8, speed: 10, hp: 145 },
+  { strength: 12, dodge: 8, speed: 11, hp: 165 },
+  { strength: 27, dodge: 10, speed: 14, hp: 360 },
+  { strength: 24, dodge: 13, speed: 19, hp: 310 },
+  { strength: 23, dodge: 17, speed: 25, hp: 320 },
+  { strength: 27, dodge: 12, speed: 19, hp: 355 },
+  { strength: 28, dodge: 15, speed: 21, hp: 375 },
+  { strength: 42, dodge: 15, speed: 23, hp: 550 },
+  { strength: 38, dodge: 14, speed: 24, hp: 500 },
+  { strength: 38, dodge: 18, speed: 26, hp: 515 },
+  { strength: 43, dodge: 21, speed: 30, hp: 540 },
+  { strength: 46, dodge: 20, speed: 28, hp: 590 },
+  // V0.14.1: fixed final approach (+15%, +20%, +25% Force/HP); nodes 1–14 intact.
+  { strength: 75, dodge: 18, speed: 30, hp: 920 },
+  { strength: 72, dodge: 19, speed: 32, hp: 874 },
+  { strength: 78, dodge: 20, speed: 33, hp: 932 },
+  { strength: 89, dodge: 22, speed: 35, hp: 1044 },
+  { strength: 100, dodge: 23, speed: 37, hp: 1188 },
+  { strength: 166, dodge: 24, speed: 45, hp: 1720 },
+]
 
 export function primalNodeKind(node: number): PrimalNodeKind {
   if (node === 20) return 'boss'
@@ -42,22 +46,10 @@ export function primalNodeKind(node: number): PrimalNodeKind {
   return 'standard'
 }
 
-export function primalNodeModifier(node: number): Stats {
-  const kind = primalNodeKind(node)
-  if (kind === 'elite') return { strength: 1.20, dodge: 1.06, speed: 1.06, hp: 1.30 }
-  if (kind === 'boss') return { strength: 1.12, dodge: 1.10, speed: .32, hp: 1.35 }
-  if (kind === 'champion') return CHAMPION_MODIFIERS[node - 16]
-  return { strength: 1, dodge: 1, speed: 1, hp: 1 }
-}
-
-/** Stable for a given node and RNG seed; never reads the player or its rarity. */
-export function primalEnemyStats(node: number, rng: () => number): Stats {
-  const budget = PRIMAL_TIER_BUDGETS[campaignNodeTier(node) - 1]
-  const profile = PRIMAL_ENEMY_PROFILES[resolveEnemyId(node, node === 20)]
-  const modifier = primalNodeModifier(node)
-  const result = {} as Stats
-  for (const stat of ['strength', 'dodge', 'speed', 'hp'] as const) {
-    result[stat] = Math.max(1, Math.round(budget[stat] * profile[stat] * modifier[stat] * (.94 + rng() * .12)))
-  }
-  return result
+/** Fixed per node; never reads RNG, the player or its rarity. */
+export function primalEnemyStats(node: number, _rng: () => number): Stats {
+  void _rng
+  const stats = PRIMAL_NODE_STATS[node - 1]
+  if (!stats) throw new RangeError(`Invalid Primal node: ${node}`)
+  return { ...stats }
 }

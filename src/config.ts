@@ -19,12 +19,19 @@ export const GAME = {
 } as const
 
 export const RARITY_CHANCES: Record<Rarity, number> = {
-  Commun: 43.49,
-  'Peu commun': 40,
-  Rare: 15,
-  'Épique': 1,
-  'Légendaire': 0.5,
+  Commun: 70,
+  'Peu commun': 22,
+  Rare: 7,
+  'Épique': 0.85,
+  'Légendaire': 0.14,
   Mythique: 0.01,
 }
+
+export const EQUIPMENT_CHANCES: Record<Rarity, number> = {
+  Commun: 63, 'Peu commun': 27, Rare: 8.5, Épique: 1.35, Légendaire: .14, Mythique: .01,
+}
+
+/** Basis points: exact integer thresholds, including 1/10,000 Mythique. */
+export const rarityWeights = (chances: Record<Rarity, number>) => rarityOrder.map((rarity) => Math.round(chances[rarity] * 100))
 
 export const rarityOrder: Rarity[] = ['Commun', 'Peu commun', 'Rare', 'Épique', 'Légendaire', 'Mythique']

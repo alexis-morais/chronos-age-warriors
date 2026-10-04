@@ -1,13 +1,13 @@
 var e = [
 	120,
 	180,
-	280,
-	410,
-	560,
-	750,
-	970,
-	1240,
-	1580
+	300,
+	450,
+	650,
+	850,
+	1100,
+	1400,
+	1800
 ], t = {
 	karg: [
 		[
@@ -47,28 +47,28 @@ var e = [
 			199
 		],
 		[
-			22,
+			29,
 			15,
 			18,
-			217
+			306
 		],
 		[
-			24,
+			40,
 			16,
-			19,
-			234
+			20,
+			455
 		],
 		[
-			26,
+			54,
 			17,
-			21,
-			252
+			22,
+			626
 		],
 		[
+			99,
 			28,
-			18,
-			22,
-			270
+			40,
+			1139
 		]
 	],
 	naya: [
@@ -109,28 +109,28 @@ var e = [
 			162
 		],
 		[
-			17,
+			21,
 			22,
 			25,
-			177
+			235
 		],
 		[
-			18,
+			28,
 			24,
 			26,
-			191
+			338
 		],
 		[
-			20,
+			37,
 			25,
 			28,
-			206
+			455
 		],
 		[
-			21,
-			27,
-			30,
-			220
+			73,
+			45,
+			55,
+			900
 		]
 	],
 	brakk: [
@@ -171,28 +171,28 @@ var e = [
 			248
 		],
 		[
-			20,
+			27,
 			12,
 			14,
-			268
+			356
 		],
 		[
-			21,
+			38,
 			13,
 			15,
-			289
+			507
 		],
 		[
-			23,
+			51,
 			14,
-			16,
-			309
+			17,
+			680
 		],
 		[
-			24,
-			15,
-			17,
-			330
+			95,
+			25,
+			32,
+			1260
 		]
 	],
 	eyla: [
@@ -233,28 +233,28 @@ var e = [
 			175
 		],
 		[
-			19,
+			26,
 			17,
 			23,
-			190
+			282
 		],
 		[
-			20,
+			38,
 			19,
-			24,
-			205
+			25,
+			432
 		],
 		[
-			22,
+			52,
 			20,
-			26,
-			220
+			27,
+			604
 		],
 		[
-			23,
-			21,
-			28,
-			235
+			94,
+			35,
+			50,
+			1099
 		]
 	],
 	asha: [
@@ -295,28 +295,28 @@ var e = [
 			220
 		],
 		[
-			22,
+			29,
 			17,
 			20,
-			240
+			327
 		],
 		[
-			24,
+			40,
 			19,
 			22,
-			260
+			477
 		],
 		[
-			26,
+			54,
 			20,
 			23,
-			280
+			648
 		],
 		[
-			28,
-			21,
-			25,
-			300
+			99,
+			30,
+			43,
+			1179
 		]
 	],
 	rhex: [
@@ -357,28 +357,28 @@ var e = [
 			207
 		],
 		[
-			22,
+			29,
 			19,
 			24,
-			225
+			312
 		],
 		[
-			23,
+			40,
 			20,
 			25,
-			243
+			458
 		],
 		[
-			25,
+			54,
 			22,
 			27,
-			262
+			626
 		],
 		[
-			27,
-			23,
-			29,
-			280
+			98,
+			35,
+			50,
+			1139
 		]
 	],
 	ursak: [
@@ -419,28 +419,28 @@ var e = [
 			272
 		],
 		[
-			26,
+			32,
 			14,
 			18,
-			297
+			370
 		],
 		[
-			28,
+			42,
 			15,
 			19,
-			321
+			507
 		],
 		[
-			30,
+			54,
 			16,
 			21,
-			346
+			663
 		],
 		[
-			32,
-			17,
-			22,
-			370
+			98,
+			26,
+			38,
+			1206
 		]
 	],
 	saar: [
@@ -481,28 +481,28 @@ var e = [
 			232
 		],
 		[
-			27,
+			32,
 			26,
 			28,
-			252
+			331
 		],
 		[
-			29,
+			42,
 			28,
 			30,
-			271
+			468
 		],
 		[
-			31,
+			54,
 			29,
 			32,
-			291
+			626
 		],
 		[
-			33,
-			31,
-			34,
-			310
+			99,
+			44,
+			54,
+			1139
 		]
 	],
 	morga: [
@@ -543,28 +543,28 @@ var e = [
 			320
 		],
 		[
-			28,
+			33,
 			12,
 			15,
-			345
+			419
 		],
 		[
-			30,
+			43,
 			13,
 			16,
-			370
+			557
 		],
 		[
-			32,
+			55,
 			14,
 			18,
-			395
+			715
 		],
 		[
-			34,
-			15,
-			19,
-			420
+			100,
+			24,
+			33,
+			1300
 		]
 	],
 	vorka: [
@@ -605,28 +605,28 @@ var e = [
 			284
 		],
 		[
-			31,
+			36,
 			22,
 			26,
-			308
+			380
 		],
 		[
-			33,
+			45,
 			24,
 			28,
-			332
+			513
 		],
 		[
-			35,
+			56,
 			25,
 			30,
-			356
+			666
 		],
 		[
-			37,
-			27,
-			32,
-			380
+			103,
+			38,
+			50,
+			1233
 		]
 	],
 	urgath: [
@@ -667,28 +667,28 @@ var e = [
 			361
 		],
 		[
-			34,
+			38,
 			13,
 			17,
-			388
+			457
 		],
 		[
-			37,
+			46,
 			15,
 			18,
-			416
+			591
 		],
 		[
-			39,
+			56,
 			16,
 			20,
-			443
+			744
 		],
 		[
-			41,
-			17,
-			21,
-			470
+			102,
+			26,
+			35,
+			1353
 		]
 	],
 	tyrak: [
@@ -729,28 +729,28 @@ var e = [
 			387
 		],
 		[
-			37,
+			41,
 			15,
 			21,
-			415
+			480
 		],
 		[
-			39,
+			49,
 			16,
 			22,
-			443
+			610
 		],
 		[
-			42,
+			58,
 			17,
 			24,
-			472
+			759
 		],
 		[
-			44,
-			18,
-			25,
-			500
+			106,
+			28,
+			42,
+			1380
 		]
 	]
 };
@@ -798,8 +798,9 @@ var i = {
 		name: "Massue de silex",
 		type: "weapon",
 		rarity: "Commun",
-		bonus: "+1 Force",
-		effect: "5 % de chance de +20 % dégâts",
+		stats: { strength: 3 },
+		bonus: "+3 Force",
+		effect: "5 % : +20 % dégâts",
 		art: "club"
 	},
 	{
@@ -807,8 +808,12 @@ var i = {
 		name: "Lance d’os",
 		type: "weapon",
 		rarity: "Commun",
-		bonus: "+1 Vitesse",
-		effect: "Première attaque +10 %",
+		stats: {
+			strength: 1,
+			speed: 4
+		},
+		bonus: "+1 Force · +4 Vitesse",
+		effect: "Premier coup : +10 % dégâts",
 		art: "spear"
 	},
 	{
@@ -816,8 +821,12 @@ var i = {
 		name: "Hache d’obsidienne",
 		type: "weapon",
 		rarity: "Peu commun",
-		bonus: "+1 Force et +5 PV",
-		effect: "6 % de chance de saignement",
+		stats: {
+			strength: 7,
+			hp: 20
+		},
+		bonus: "+7 Force · +20 PV",
+		effect: "6 % : saignement, 3 dégâts ×2",
 		art: "axe"
 	},
 	{
@@ -825,8 +834,12 @@ var i = {
 		name: "Arc du chasseur",
 		type: "weapon",
 		rarity: "Peu commun",
-		bonus: "+1 Vitesse et +5 PV",
-		effect: "Réduit légèrement l’Esquive adverse",
+		stats: {
+			strength: 4,
+			speed: 8
+		},
+		bonus: "+4 Force · +8 Vitesse",
+		effect: "Esquive adverse : −3 points",
 		art: "bow"
 	},
 	{
@@ -834,8 +847,12 @@ var i = {
 		name: "Crocs du Smilodon",
 		type: "weapon",
 		rarity: "Rare",
-		bonus: "+1 Force et +1 Vitesse",
-		effect: "8 % de chance d’un second coup à 50 %",
+		stats: {
+			strength: 14,
+			speed: 10
+		},
+		bonus: "+14 Force · +10 Vitesse",
+		effect: "8 % : second coup à 50 %",
 		art: "fangs"
 	},
 	{
@@ -843,8 +860,12 @@ var i = {
 		name: "Lance du Mammouth ancestral",
 		type: "weapon",
 		rarity: "Rare",
-		bonus: "+1 Force et +10 PV",
-		effect: "10 % de chance d’ignorer la protection",
+		stats: {
+			strength: 18,
+			hp: 50
+		},
+		bonus: "+18 Force · +50 PV",
+		effect: "10 % : ignore les réductions de dégâts",
 		art: "mammoth"
 	},
 	{
@@ -852,17 +873,39 @@ var i = {
 		name: "Marteau volcanique",
 		type: "weapon",
 		rarity: "Épique",
-		bonus: "+2 Force et +5 PV",
-		effect: "10 % de chance de brûlure",
+		stats: {
+			strength: 38,
+			hp: 100
+		},
+		bonus: "+38 Force · +100 PV",
+		effect: "10 % : brûlure, 3 dégâts ×2",
 		art: "hammer"
+	},
+	{
+		id: "storm-javelin",
+		name: "Javelot des Tempêtes",
+		type: "weapon",
+		rarity: "Épique",
+		stats: {
+			strength: 30,
+			speed: 20,
+			dodge: 8
+		},
+		bonus: "+30 Force · +20 Vitesse · +8 Esquive",
+		effect: "Premier coup : +20 % dégâts",
+		art: "spear"
 	},
 	{
 		id: "tyrant-claw",
 		name: "Griffe du Tyran",
 		type: "weapon",
 		rarity: "Légendaire",
-		bonus: "+2 Force et +1 Vitesse",
-		effect: "12 % de chance de +50 % dégâts",
+		stats: {
+			strength: 55,
+			speed: 14
+		},
+		bonus: "+55 Force · +14 Vitesse",
+		effect: "12 % : +50 % dégâts",
 		art: "claw"
 	},
 	{
@@ -870,8 +913,13 @@ var i = {
 		name: "Cœur du Titan Primordial",
 		type: "weapon",
 		rarity: "Mythique",
-		bonus: "+2 Force, +1 Vitesse et +5 PV",
-		effect: "7 % de chance de +80 % dégâts",
+		stats: {
+			strength: 75,
+			speed: 22,
+			hp: 100
+		},
+		bonus: "+75 Force · +22 Vitesse · +100 PV",
+		effect: "7 % : +80 % dégâts",
 		art: "heart"
 	},
 	{
@@ -879,8 +927,22 @@ var i = {
 		name: "Peaux du chasseur",
 		type: "armor",
 		rarity: "Commun",
-		bonus: "+10 PV",
-		effect: "Première attaque reçue −5 %",
+		stats: { hp: 30 },
+		bonus: "+30 PV",
+		effect: "Premier coup reçu : −5 % dégâts",
+		art: "hide"
+	},
+	{
+		id: "reed-mantle",
+		name: "Manteau des Roseaux",
+		type: "armor",
+		rarity: "Commun",
+		stats: {
+			hp: 15,
+			dodge: 4
+		},
+		bonus: "+15 PV · +4 Esquive",
+		effect: "Premier coup reçu : −5 % dégâts",
 		art: "hide"
 	},
 	{
@@ -888,34 +950,92 @@ var i = {
 		name: "Harnais d’os",
 		type: "armor",
 		rarity: "Peu commun",
-		bonus: "+5 PV et +1 Force",
-		effect: "5 % de chance de réduire une attaque de 25 %",
+		stats: {
+			hp: 65,
+			strength: 3
+		},
+		bonus: "+65 PV · +3 Force",
+		effect: "5 % : −25 % dégâts reçus",
 		art: "bones"
+	},
+	{
+		id: "raptor-scales",
+		name: "Écailles du Raptor",
+		type: "armor",
+		rarity: "Peu commun",
+		stats: {
+			hp: 45,
+			speed: 6,
+			dodge: 6
+		},
+		bonus: "+45 PV · +6 Vitesse · +6 Esquive",
+		effect: "Premier coup reçu : −10 % dégâts",
+		art: "hide"
 	},
 	{
 		id: "mammoth-plate",
 		name: "Cuirasse du Mammouth ancestral",
 		type: "armor",
 		rarity: "Rare",
-		bonus: "+10 PV et +1 Force",
-		effect: "Critiques supplémentaires réduits de 20 %",
+		stats: {
+			hp: 140,
+			strength: 6
+		},
+		bonus: "+140 PV · +6 Force",
+		effect: "Bonus de critique adverse : −20 %",
 		art: "plate"
+	},
+	{
+		id: "smilodon-cloak",
+		name: "Cape du Smilodon",
+		type: "armor",
+		rarity: "Rare",
+		stats: {
+			hp: 95,
+			dodge: 14,
+			speed: 8
+		},
+		bonus: "+95 PV · +14 Esquive · +8 Vitesse",
+		effect: "Premier coup reçu : −15 % dégâts",
+		art: "fur"
 	},
 	{
 		id: "volcanic-shell",
 		name: "Carapace volcanique",
 		type: "armor",
 		rarity: "Épique",
-		bonus: "+15 PV et +1 Force",
-		effect: "Peut brûler l’attaquant",
+		stats: {
+			hp: 320,
+			strength: 10
+		},
+		bonus: "+320 PV · +10 Force",
+		effect: "10 % : brûle l’attaquant, 3 dégâts ×2",
 		art: "shell"
+	},
+	{
+		id: "ancestor-guard",
+		name: "Garde des Ancêtres",
+		type: "armor",
+		rarity: "Épique",
+		stats: {
+			hp: 260,
+			dodge: 20,
+			speed: 12
+		},
+		bonus: "+260 PV · +20 Esquive · +12 Vitesse",
+		effect: "Les 3 premiers coups reçus : −15 % dégâts",
+		art: "plate"
 	},
 	{
 		id: "white-titan-fur",
 		name: "Fourrure du Titan blanc",
 		type: "armor",
 		rarity: "Légendaire",
-		bonus: "+20 PV et +1 Force",
+		stats: {
+			hp: 450,
+			strength: 15
+		},
+		bonus: "+450 PV · +15 Force",
 		effect: "Au-dessus de 50 % PV : −8 % dégâts reçus",
 		art: "fur"
 	},
@@ -924,8 +1044,12 @@ var i = {
 		name: "Peau du Titan primordial",
 		type: "armor",
 		rarity: "Mythique",
-		bonus: "+25 PV et +1 Esquive",
-		effect: "Les 3 premières attaques reçues font −20 % dégâts",
+		stats: {
+			hp: 650,
+			dodge: 25
+		},
+		bonus: "+650 PV · +25 Esquive",
+		effect: "Les 3 premiers coups reçus : −20 % dégâts",
 		art: "titan"
 	}
 ], s = "karg", c = {
@@ -1054,204 +1178,204 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 		[
 			3,
 			"Premier Sang",
-			"Sa première attaque réussie inflige 25 % de dégâts supplémentaires."
+			"Votre première attaque réussie inflige +25 % de dégâts."
 		],
 		[
 			7,
 			"Pression du chasseur",
-			"Ses coups consécutifs renforcent progressivement sa prochaine attaque."
+			"Chaque coup consécutif ajoute +6 % de dégâts au suivant (maximum +18 %). Une esquive adverse annule les charges."
 		],
 		[
 			10,
 			"Coup de Grâce",
-			"Inflige 30 % de dégâts supplémentaires aux adversaires affaiblis."
+			"Infligez +30 % de dégâts aux cibles à 30 % de PV ou moins."
 		]
 	]),
 	naya: m("naya", [
 		[
 			3,
 			"Pas d’Ombre",
-			"Elle est particulièrement difficile à toucher lors du premier assaut."
+			"Votre chance d’esquiver le premier assaut est multipliée par 1,25 (plafond 35 %)."
 		],
 		[
 			7,
 			"Tempo fantôme",
-			"Après le premier assaut, esquive renforcée ; chaque esquive accélère sa prochaine action et arme une riposte à +40 %."
+			"Après le premier assaut, esquive ×2 (plafond 35 %). Chaque esquive donne +30 % de cadence à la prochaine action et +40 % de dégâts au prochain coup réussi."
 		],
 		[
 			10,
 			"Embuscade décisive",
-			"Après une esquive, sa prochaine attaque réussie inflige 80 % de dégâts supplémentaires au lieu de 40 %."
+			"Après une esquive, le prochain coup réussi inflige +60 % de dégâts au lieu de +40 %."
 		]
 	]),
 	brakk: m("brakk", [
 		[
 			3,
 			"Garde rocheuse",
-			"Réduit les dégâts de ses trois premiers impacts subis."
+			"Les 3 premiers coups reçus infligent −12 % de dégâts."
 		],
 		[
 			7,
 			"Riposte du Bastion",
-			"12 % de chance de bloquer entièrement une attaque ; sa prochaine attaque réussie inflige alors +30 % de dégâts."
+			"12 % de chance de bloquer entièrement une attaque. Le prochain coup réussi inflige alors +30 % de dégâts."
 		],
 		[
 			10,
 			"Dernière Résistance",
-			"Sous 30 % de PV, il réduit fortement les trois prochains impacts."
+			"À 30 % de PV ou moins, les 3 prochains coups reçus infligent −35 % de dégâts. Une fois par combat."
 		]
 	]),
 	eyla: m("eyla", [
 		[
 			3,
 			"Mise en joue",
-			"Sa première flèche réussie inflige 20 % de dégâts supplémentaires."
+			"Votre première attaque réussie inflige +20 % de dégâts."
 		],
 		[
 			7,
 			"Cadence précise",
-			"Chaque troisième attaque réussie déclenche un tir supplémentaire."
+			"Chaque 3e attaque réussie ajoute un tir à 45 % des dégâts normaux. Ce tir ne déclenche pas vos passifs d’attaque."
 		],
 		[
 			10,
 			"Flèche fatale",
-			"Punit brutalement la première ouverture d’un adversaire affaibli."
+			"Le premier coup réussi contre une cible à 50 % de PV ou moins inflige +40 % de dégâts."
 		]
 	]),
 	asha: m("asha", [
 		[
 			3,
 			"Marque de Braise",
-			"Ses attaques accumulent jusqu’à trois charges de Braise."
+			"Chaque coup réussi ajoute une Braise (maximum 3). Chaque Braise déjà présente ajoute +3 % de dégâts."
 		],
 		[
 			7,
 			"Foyer ardent",
-			"À trois Braises, sa prochaine attaque les consume pour provoquer une explosion."
+			"Avec 3 Braises, le prochain coup réussi les consume et inflige +30 % de dégâts."
 		],
 		[
 			10,
 			"Crescendo incandescent",
-			"Ses détonations deviennent plus violentes et accélèrent son prochain sort."
+			"Les détonations infligent +50 % au lieu de +30 % et donnent +20 % de cadence à la prochaine action."
 		]
 	]),
 	rhex: m("rhex", [
 		[
 			3,
 			"Signal de meute",
-			"Chaque troisième attaque réussie appelle un raptor à l’assaut."
+			"Chaque 3e attaque réussie ajoute une morsure à 35 % des dégâts normaux, sans déclencher vos passifs d’attaque."
 		],
 		[
 			7,
 			"Relais de meute",
-			"Les assauts de ses raptors accélèrent le rythme de la meute."
+			"Chaque assaut de raptor donne +20 % de cadence à votre prochaine action."
 		],
 		[
 			10,
 			"Assaut coordonné",
-			"Ses deux raptors frappent ensemble lors des assauts de meute."
+			"Chaque assaut ajoute 2 morsures à 30 % des dégâts normaux chacune, au lieu d’une à 35 %."
 		]
 	]),
 	ursak: m("ursak", [
 		[
 			3,
 			"Fureur cavernicole",
-			"Les coups reçus alimentent la puissance de sa prochaine attaque."
+			"Chaque coup reçu ajoute +8 % de dégâts au prochain coup réussi (maximum 3 charges)."
 		],
 		[
 			7,
 			"Endurance sous pression",
-			"Résiste davantage lorsqu’il combat sous la moitié de ses PV."
+			"À 50 % de PV ou moins, recevez −15 % de dégâts."
 		],
 		[
 			10,
 			"Fureur ancestrale",
-			"À l’agonie, il entre dans une fureur qui augmente dégâts et cadence."
+			"À 30 % de PV ou moins, gagnez +20 % de dégâts et +15 % de cadence jusqu’à la fin du combat."
 		]
 	]),
 	saar: m("saar", [
 		[
 			3,
 			"Pas félin",
-			"Chaque esquive le replace immédiatement dans le rythme du combat."
+			"Chaque esquive donne +25 % de cadence à votre prochaine action."
 		],
 		[
 			7,
 			"Frénésie féline",
-			"Plus il frappe sans être touché, plus sa cadence augmente."
+			"Chaque coup réussi donne +5 % de cadence (maximum +15 %). Un coup reçu annule les charges."
 		],
 		[
 			10,
 			"Contre-attaque prédatrice",
-			"Après une esquive, sa prochaine attaque devient une contre-attaque prédatrice."
+			"Après une esquive, le prochain coup réussi inflige +45 % de dégâts."
 		]
 	]),
 	morga: m("morga", [
 		[
 			3,
 			"Garde d’Ivoire",
-			"Sa défense d’ivoire amortit ses quatre premiers impacts."
+			"Les 4 premiers coups reçus infligent −12 % de dégâts."
 		],
 		[
 			7,
 			"Protection de la tribu",
-			"Sous 60 % de PV, elle renforce temporairement sa protection."
+			"À 60 % de PV ou moins, les 3 prochains coups reçus infligent −20 % de dégâts. Une fois par combat."
 		],
 		[
 			10,
 			"Endurance de Matriarche",
-			"Au bord de la chute, elle récupère une partie de ses PV et durcit sa défense."
+			"À 25 % de PV ou moins, récupérez 15 % des PV maximum et recevez −15 % de dégâts jusqu’à la fin. Une fois par combat."
 		]
 	]),
 	vorka: m("vorka", [
 		[
 			3,
 			"Entaille d’obsidienne",
-			"Ses coups peuvent provoquer un saignement persistant."
+			"25 % de chance d’infliger un saignement : 10 % des dégâts du coup pendant 2 actions, sans cumul."
 		],
 		[
 			7,
 			"Pression persistante",
-			"Ses attaques sont plus dangereuses contre une cible qui saigne."
+			"Infligez +15 % de dégâts aux cibles qui saignent."
 		],
 		[
 			10,
 			"Coupure décisive",
-			"Achève brutalement une cible affaiblie déjà victime de son saignement."
+			"Le premier coup contre une cible qui saigne à 40 % de PV ou moins inflige +45 % de dégâts et consume le saignement."
 		]
 	]),
 	urgath: m("urgath", [
 		[
 			3,
 			"Rempart glacial",
-			"Son corps titanesque réduit les dégâts de ses cinq premiers impacts."
+			"Les 5 premiers coups reçus infligent −12 % de dégâts."
 		],
 		[
 			7,
 			"Froid écrasant",
-			"Ses coups ralentissent progressivement le rythme de son adversaire."
+			"Chaque coup réussi réduit la cadence adverse de 5 % (maximum −15 %)."
 		],
 		[
 			10,
 			"Résilience du Titan",
-			"Sous 40 % de PV, sa résistance légendaire réduit fortement les dégâts reçus."
+			"À 40 % de PV ou moins, recevez −20 % de dégâts."
 		]
 	]),
 	tyrak: m("tyrak", [
 		[
 			3,
 			"Présence primordiale",
-			"Sa présence impose sa domination dès les premiers échanges."
+			"Les 3 premiers coups reçus infligent −10 % de dégâts."
 		],
 		[
 			7,
 			"Sursaut cristallin",
-			"Blessé, Tyrak réagit par un violent sursaut de puissance."
+			"À 65 % de PV ou moins, gagnez +35 % de cadence à la prochaine action et +30 % de dégâts au prochain coup réussi. Une fois par combat."
 		],
 		[
 			10,
 			"Domination du Roi",
-			"Sous 35 % de PV, le Roi Primordial devient plus violent et plus difficile à abattre."
+			"À 35 % de PV ou moins, gagnez +25 % de dégâts et recevez −12 % de dégâts jusqu’à la fin du combat."
 		]
 	])
 }, g = class {
@@ -1298,7 +1422,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 	}
 	dodgeChance(e, t) {
 		let n = this.targetedAttacks++ === 0;
-		return this.warriorId !== "naya" || !this.has(3) ? e : n ? Math.min(t, e * 1.25) : this.has(7) ? Math.min(t, e * 2.6) : e;
+		return this.warriorId !== "naya" || !this.has(3) ? e : n ? Math.min(t, e * 1.25) : this.has(7) ? Math.min(t, e * 2) : e;
 	}
 	onDodge() {
 		this.warriorId === "naya" && this.has(7) && (this.credit(.3), this.counterReady = !0), this.warriorId === "saar" && (this.has(3) && this.credit(.25), this.has(10) && (this.counterReady = !0));
@@ -1336,7 +1460,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 				this.has(3) && l && (i *= 1.25, s.push("Premier Sang")), this.has(7) && (i *= 1 + .06 * this.pressure, this.pressure = Math.min(3, this.pressure + 1)), this.has(10) && e <= t * .3 && (i *= 1.3, s.push("Coup de Grâce"));
 				break;
 			case "naya":
-				this.has(7) && this.counterReady && (i *= this.has(10) ? 1.8 : 1.4, this.counterReady = !1, s.push(this.has(10) ? "Embuscade décisive" : "Tempo fantôme"));
+				this.has(7) && this.counterReady && (i *= this.has(10) ? 1.6 : 1.4, this.counterReady = !1, s.push(this.has(10) ? "Embuscade décisive" : "Tempo fantôme"));
 				break;
 			case "brakk":
 				this.has(7) && this.riposteReady && (i *= 1.3, this.riposteReady = !1, s.push("Riposte du Bastion"));
@@ -1345,7 +1469,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 				this.has(3) && l && (i *= 1.2, s.push("Mise en joue")), this.has(10) && !this.finalShotUsed && e <= t * .5 && (i *= 1.4, this.finalShotUsed = !0, s.push("Flèche fatale")), this.has(7) && this.landedHits % 3 == 0 && (c.push(.45), s.push("Cadence précise"));
 				break;
 			case "asha":
-				this.has(3) && (this.has(7) && this.braise === 3 && (i *= this.has(10) ? 1.5 : 1.3, this.braise = 0, this.has(10) && this.credit(.2), s.push(this.has(10) ? "Crescendo incandescent" : "Foyer ardent")), this.braise = Math.min(3, this.braise + 1));
+				this.has(3) && (this.has(7) && this.braise === 3 || (i *= 1 + .03 * this.braise), this.has(7) && this.braise === 3 && (i *= this.has(10) ? 1.5 : 1.3, this.braise = 0, this.has(10) && this.credit(.2), s.push(this.has(10) ? "Crescendo incandescent" : "Foyer ardent")), this.braise = Math.min(3, this.braise + 1));
 				break;
 			case "rhex":
 				this.has(3) && this.landedHits % 3 == 0 && (c.push(...this.has(10) ? [.3, .3] : [.35]), this.has(7) && this.credit(.2), s.push(this.has(10) ? "Assaut coordonné" : "Signal de meute"));
@@ -1375,36 +1499,10 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 	updateThresholds(e, t) {
 		this.warriorId === "tyrak" && this.has(10) && e <= t * .35 && (this.enraged = !0);
 	}
-}, _ = [
-	"flint-club",
-	"bone-spear",
-	"obsidian-axe",
-	"hunter-bow",
-	"smilodon-fangs",
-	"mammoth-spear",
-	"volcanic-hammer",
-	"tyrant-claw",
-	"titan-heart"
-], v = [
-	"hunter-hides",
-	"bone-harness",
-	"mammoth-plate",
-	"volcanic-shell",
-	"white-titan-fur",
-	"primordial-titan-skin"
-], y = [
-	"tribal-hunter",
-	"tribal-warrior",
-	"cave-brute",
-	"shaman",
-	"raptor",
-	"smilodon",
-	"mammoth"
-];
-new Set(_), new Set(v), new Set(y);
+};
 //#endregion
 //#region src/game.ts
-function b(e) {
+function _(e) {
 	let t = e >>> 0;
 	return () => {
 		t += 1831565813;
@@ -1412,222 +1510,253 @@ function b(e) {
 		return e = Math.imul(e ^ e >>> 15, e | 1), e ^= e + Math.imul(e ^ e >>> 7, e | 61), ((e ^ e >>> 14) >>> 0) / 4294967296;
 	};
 }
-var ee = (e) => i.baseDamage + i.strengthScale * e ** i.strengthExponent, te = (e) => Math.min(i.dodgeCap, i.dodgeBase + i.dodgeScale * e / (e + 100)), ne = (e) => (e + i.speedOffset) ** i.speedExponent;
-function x(e) {
-	let t = {}, n = (e, n) => {
-		t[e] = (t[e] ?? 0) + n;
-	};
-	return e === "flint-club" && n("strength", 1), e === "bone-spear" && n("speed", 1), ["obsidian-axe", "bone-harness"].includes(e) && (n("strength", 1), n("hp", 5)), e === "hunter-bow" && (n("speed", 1), n("hp", 5)), e === "smilodon-fangs" && (n("strength", 1), n("speed", 1)), ["mammoth-spear", "mammoth-plate"].includes(e) && (n("strength", 1), n("hp", 10)), e === "volcanic-hammer" && (n("strength", 2), n("hp", 5)), e === "volcanic-shell" && (n("strength", 1), n("hp", 15)), e === "tyrant-claw" && (n("strength", 2), n("speed", 1)), e === "titan-heart" && (n("strength", 2), n("speed", 1), n("hp", 5)), e === "hunter-hides" && n("hp", 10), e === "white-titan-fur" && (n("strength", 1), n("hp", 20)), e === "primordial-titan-skin" && (n("dodge", 1), n("hp", 25)), t;
+var ee = (e) => i.baseDamage + i.strengthScale * e ** i.strengthExponent, te = (e) => Math.min(i.dodgeCap, i.dodgeBase + i.dodgeScale * e / (e + 100)), v = (e) => (e + i.speedOffset) ** i.speedExponent;
+function y(e) {
+	return { ...o.find((t) => t.id === e)?.stats };
 }
-function S(e) {
-	let t = { ...p(e).stats }, n = (n) => {
-		if (!e.owned[n]) return;
-		let r = x(n);
-		for (let [e, n] of Object.entries(r)) t[e] += n;
-	};
-	return n(e.equippedWeapon), n(e.equippedArmor), t;
+function b(e, t, r = "", i = "") {
+	let a = n(e, t);
+	for (let e of [r, i]) {
+		let t = y(e);
+		for (let [e, n] of Object.entries(t)) a[e] += n;
+	}
+	return a;
 }
-function C(e, t) {
+function x(e, t = e.activeWarriorId) {
+	let n = f(e, t), r = t === e.activeWarriorId ? {
+		weapon: e.equippedWeapon,
+		armor: e.equippedArmor
+	} : e.loadouts[t] ?? {
+		weapon: "",
+		armor: ""
+	};
+	return b(t, n.level, e.owned[r.weapon] ? r.weapon : "", e.owned[r.armor] ? r.armor : "");
+}
+function S(e, t) {
 	return e.skills.includes(t);
 }
-function w(e, t, n) {
-	let r = b(n), a = new g(e.warriorId, e.level), o = new g(t.warriorId, t.level), s = e.stats.hp, c = t.stats.hp, l = null, u = 0, d = 0, f = 0, p = 0, m = 0, h = !1, _ = !1, v = 0, y = 0, x = 0, S = 0, w = 0, T = 0, E = [], D = () => ({
+function C(e, t, n) {
+	let r = _(n), a = new g(e.warriorId, e.level), o = new g(t.warriorId, t.level), s = e.stats.hp, c = t.stats.hp, l = null, u = 0, d = 0, f = 0, p = 0, m = 0, h = !1, y = !1, b = 0, x = 0, C = 0, w = 0, T = 0, E = 0, D = [], O = () => ({
 		playerHp: Math.max(0, Math.round(s)),
 		enemyHp: Math.max(0, Math.round(c))
 	});
-	for (; s > 0 && c > 0 && f < 160 && (f += 1, !(x > 0 && (c -= S, x--, E.push({
+	for (; s > 0 && c > 0 && f < 160 && (f += 1, !(C > 0 && (c -= w, C--, D.push({
 		type: "bleed",
 		actor: "player",
 		target: "enemy",
-		value: S,
+		value: w,
 		label: "Saignement",
-		...D()
-	}), c <= 0) || w > 0 && (s -= T, w--, E.push({
+		...O()
+	}), c <= 0) || T > 0 && (s -= E, T--, D.push({
 		type: "bleed",
 		actor: "enemy",
 		target: "player",
-		value: T,
+		value: E,
 		label: "Saignement",
-		...D()
+		...O()
 	}), s <= 0)));) {
-		let n = ne(e.stats.speed) * (C(e, "Accélération") ? 1.12 : 1) * a.actionRateMultiplier() * o.opponentRateMultiplier(), f = ne(t.stats.speed) * (C(t, "Accélération") ? 1.12 : 1) * o.actionRateMultiplier() * a.opponentRateMultiplier(), g = r() < n / (n + f) ? "player" : "enemy";
+		let n = v(e.stats.speed) * (S(e, "Accélération") ? 1.12 : 1) * a.actionRateMultiplier() * o.opponentRateMultiplier(), f = v(t.stats.speed) * (S(t, "Accélération") ? 1.12 : 1) * o.actionRateMultiplier() * a.opponentRateMultiplier(), g = r() < n / (n + f) ? "player" : "enemy";
 		g === l && u >= i.maxConsecutiveActions && (g = g === "player" ? "enemy" : "player"), u = g === l ? u + 1 : 1, d = Math.max(d, u), l = g;
-		let b = g === "player" ? a : o, O = g === "player" ? o : a;
-		b.onAction();
-		let k = g === "player" ? "enemy" : "player", A = g === "player" ? e : t, j = g === "player" ? t : e, M = g === "player" ? ++p : ++m;
-		E.push({
-			type: "attack",
-			actor: g,
-			target: k,
-			...D()
-		});
-		let N = C(A, "Précision") ? .05 : 0, P = Math.max(0, te(j.stats.dodge) - N), F = O.dodgeChance(P, i.dodgeCap);
-		if (r() < F) {
-			E.push({
-				type: "dodge",
-				actor: k,
-				target: g,
-				label: "Esquive",
-				...D()
-			}), O.onDodge(), b.onMiss();
-			continue;
-		}
-		if (O.blockChance() > 0 && r() < O.blockChance()) {
-			O.onBlock(), E.push({
-				type: "skill",
-				actor: k,
-				target: g,
-				label: "Parade",
-				...D()
-			});
-			continue;
-		}
-		let I = ee(A.stats.strength) * (.9 + r() * .2);
-		M === 1 && C(A, "Premier Sang") && (I *= 1.22), C(A, "Frappe Dévastatrice") && r() < .12 && (I *= 1.45, E.push({
-			type: "skill",
-			actor: g,
-			target: k,
-			label: "Frappe Dévastatrice",
-			...D()
-		})), C(A, "Rage") && (I *= 1 + (1 - (g === "player" ? s / e.stats.hp : c / t.stats.hp)) * .22), C(A, "Opportuniste") && (k === "player" ? s / e.stats.hp : c / t.stats.hp) < .3 && (I *= 1.25), A.weapon === "flint-club" && r() < .05 && (I *= 1.2), A.weapon === "bone-spear" && M === 1 && (I *= 1.1), A.weapon === "tyrant-claw" && r() < .12 && (I *= 1.5), A.weapon === "titan-heart" && r() < .07 && (I *= 1.8);
-		let L = I;
-		r() < i.criticalChance + (C(A, "Élan") ? .03 : 0) && (I *= i.criticalMultiplier, E.push({
-			type: "critical",
-			actor: g,
-			target: k,
-			label: "Critique",
-			...D()
-		}));
-		let R = k === "player" ? s : c, z = k === "player" ? w > 0 || v > 0 : x > 0 || y > 0, B = A.warriorId ? b.onSuccessfulAttack(R, j.stats.hp, z, r) : null;
-		if (B) {
-			I *= B.multiplier;
-			for (let e of B.labels) E.push({
-				type: "skill",
-				actor: g,
-				target: k,
-				label: e,
-				...D()
-			});
-			B.consumeBleed && (k === "player" ? (w = 0, v = 0) : (x = 0, y = 0));
-		}
-		let V = I;
-		C(j, "Peau Dure") && (I *= .9), C(j, "Parade") && r() < .1 && (I *= .55, E.push({
-			type: "skill",
-			actor: k,
-			target: g,
-			label: "Parade",
-			...D()
-		})), j.armor === "hunter-hides" && M === 1 && (I *= .95), j.armor === "bone-harness" && r() < .05 && (I *= .75), j.armor === "white-titan-fur" && (k === "player" ? s / e.stats.hp : c / t.stats.hp) > .5 && (I *= .92), j.armor === "primordial-titan-skin" && M <= 3 && (I *= .8), I *= O.incomingMultiplier(R, j.stats.hp);
-		let H = L * I / V;
-		I = Math.max(1, Math.round(I)), k === "player" ? s -= I : c -= I, E.push({
-			type: "damage",
-			actor: g,
-			target: k,
-			value: I,
-			...D()
-		});
-		{
-			let e = k === "player" ? s : c, t = O.onDamageTaken(e, j.stats.hp);
-			if (t.heal > 0) {
-				let n = Math.max(0, e), r = Math.min(j.stats.hp, n + t.heal);
-				k === "player" ? s = r : c = r, E.push({
-					type: "heal",
-					actor: k,
-					target: k,
-					value: r - n,
-					label: "Endurance de Matriarche",
-					...D()
-				});
-			}
-			for (let e of t.labels) E.push({
-				type: "skill",
-				actor: k,
-				target: k,
-				label: e,
-				...D()
-			});
-			O.updateThresholds(k === "player" ? s : c, j.stats.hp);
-		}
-		if (B?.applyBleed && (k === "player" ? s > 0 : c > 0) && (k === "player" ? (w = 2, T = Math.max(1, Math.round(I * .1))) : (x = 2, S = Math.max(1, Math.round(I * .1)))), B?.bonusStrikes.length && (k === "player" ? s > 0 : c > 0)) for (let e of B.bonusStrikes) {
-			if (k === "player" ? s <= 0 : c <= 0) break;
-			let t = Math.max(1, Math.round(H * e));
-			E.push({
-				type: "attack",
-				actor: g,
-				target: k,
-				label: "Coup supplémentaire",
-				...D()
-			}), k === "player" ? s -= t : c -= t, E.push({
+		let _ = g === "player" ? a : o, k = g === "player" ? o : a;
+		_.onAction();
+		let A = g === "player" ? "enemy" : "player", j = g === "player" ? e : t, M = g === "player" ? t : e, N = (e) => {
+			A === "player" ? s -= e : c -= e, D.push({
 				type: "damage",
 				actor: g,
-				target: k,
-				value: t,
-				...D()
+				target: A,
+				value: e,
+				...O()
 			});
+			let t = A === "player" ? s : c, n = k.onDamageTaken(t, M.stats.hp);
+			if (n.heal > 0) {
+				let e = Math.max(0, t), r = Math.min(M.stats.hp, e + n.heal);
+				A === "player" ? s = r : c = r, D.push({
+					type: "heal",
+					actor: A,
+					target: A,
+					value: r - e,
+					label: "Endurance de Matriarche",
+					...O()
+				});
+			}
+			for (let e of n.labels) D.push({
+				type: "skill",
+				actor: A,
+				target: A,
+				label: e,
+				...O()
+			});
+			k.updateThresholds(A === "player" ? s : c, M.stats.hp);
+		}, P = g === "player" ? ++p : ++m;
+		D.push({
+			type: "attack",
+			actor: g,
+			target: A,
+			...O()
+		});
+		let F = (S(j, "Précision") ? .05 : 0) + (j.weapon === "hunter-bow" ? .03 : 0), I = Math.max(0, te(M.stats.dodge) - F), L = k.dodgeChance(I, i.dodgeCap);
+		if (r() < L) {
+			D.push({
+				type: "dodge",
+				actor: A,
+				target: g,
+				label: "Esquive",
+				...O()
+			}), k.onDodge(), _.onMiss();
+			continue;
 		}
-		if (C(A, "Vampirisme")) {
-			let n = Math.max(1, Math.round(I * .08));
-			g === "player" ? s = Math.min(e.stats.hp, s + n) : c = Math.min(t.stats.hp, c + n), E.push({
+		if (k.blockChance() > 0 && r() < k.blockChance()) {
+			k.onBlock(), D.push({
+				type: "skill",
+				actor: A,
+				target: g,
+				label: "Parade",
+				...O()
+			});
+			continue;
+		}
+		let R = ee(j.stats.strength) * (.9 + r() * .2);
+		P === 1 && S(j, "Premier Sang") && (R *= 1.22), S(j, "Frappe Dévastatrice") && r() < .12 && (R *= 1.45, D.push({
+			type: "skill",
+			actor: g,
+			target: A,
+			label: "Frappe Dévastatrice",
+			...O()
+		})), S(j, "Rage") && (R *= 1 + (1 - (g === "player" ? s / e.stats.hp : c / t.stats.hp)) * .22), S(j, "Opportuniste") && (A === "player" ? s / e.stats.hp : c / t.stats.hp) < .3 && (R *= 1.25), j.weapon === "flint-club" && r() < .05 && (R *= 1.2), j.weapon === "bone-spear" && P === 1 && (R *= 1.1), j.weapon === "storm-javelin" && P === 1 && (R *= 1.2), j.weapon === "tyrant-claw" && r() < .12 && (R *= 1.5), j.weapon === "titan-heart" && r() < .07 && (R *= 1.8);
+		let ne = R, z = r() < i.criticalChance + (S(j, "Élan") ? .03 : 0);
+		z && (R *= M.armor === "mammoth-plate" ? 1 + (i.criticalMultiplier - 1) * .8 : i.criticalMultiplier, D.push({
+			type: "critical",
+			actor: g,
+			target: A,
+			label: "Critique",
+			...O()
+		}));
+		let B = A === "player" ? s : c, re = A === "player" ? T > 0 || b > 0 : C > 0 || x > 0, V = j.warriorId ? _.onSuccessfulAttack(B, M.stats.hp, re, r) : null;
+		if (V) {
+			R *= V.multiplier;
+			for (let e of V.labels) D.push({
+				type: "skill",
+				actor: g,
+				target: A,
+				label: e,
+				...O()
+			});
+			V.consumeBleed && (A === "player" ? (T = 0, b = 0) : (C = 0, x = 0));
+		}
+		let H = j.weapon === "mammoth-spear" && r() < .1;
+		H && z && M.armor === "mammoth-plate" && (R *= i.criticalMultiplier / (1 + (i.criticalMultiplier - 1) * .8));
+		let U = R;
+		H || (S(M, "Peau Dure") && (R *= .9), S(M, "Parade") && r() < .1 && (R *= .55, D.push({
+			type: "skill",
+			actor: A,
+			target: g,
+			label: "Parade",
+			...O()
+		})), ["hunter-hides", "reed-mantle"].includes(M.armor ?? "") && k.receivedHits === 0 && (R *= .95), M.armor === "raptor-scales" && k.receivedHits === 0 && (R *= .9), M.armor === "smilodon-cloak" && k.receivedHits === 0 && (R *= .85), M.armor === "bone-harness" && r() < .05 && (R *= .75), M.armor === "white-titan-fur" && (A === "player" ? s / e.stats.hp : c / t.stats.hp) > .5 && (R *= .92), M.armor === "primordial-titan-skin" && k.receivedHits < 3 && (R *= .8), M.armor === "ancestor-guard" && k.receivedHits < 3 && (R *= .85), R *= k.incomingMultiplier(B, M.stats.hp));
+		let W = ne * R / U;
+		if (R = Math.max(1, Math.round(R)), N(R), V?.applyBleed && (A === "player" ? s > 0 : c > 0) && (A === "player" ? (T = 2, E = Math.max(1, Math.round(R * .1))) : (C = 2, w = Math.max(1, Math.round(R * .1)))), V?.bonusStrikes.length && (A === "player" ? s > 0 : c > 0)) for (let e of V.bonusStrikes) {
+			if (A === "player" ? s <= 0 : c <= 0) break;
+			let t = Math.max(1, Math.round(W * e));
+			D.push({
+				type: "attack",
+				actor: g,
+				target: A,
+				label: "Coup supplémentaire",
+				...O()
+			}), N(t);
+		}
+		if (S(j, "Vampirisme")) {
+			let n = Math.max(1, Math.round(R * .08));
+			g === "player" ? s = Math.min(e.stats.hp, s + n) : c = Math.min(t.stats.hp, c + n), D.push({
 				type: "heal",
 				actor: g,
 				target: g,
 				value: n,
 				label: "Vampirisme",
-				...D()
+				...O()
 			});
 		}
-		let U = C(A, "Saignement") ? .12 : A.weapon === "obsidian-axe" ? .06 : 0;
-		r() < U && (k === "player" ? v = 2 : y = 2, E.push({
+		let ie = S(j, "Saignement") ? .12 : j.weapon === "obsidian-axe" ? .06 : j.weapon === "volcanic-hammer" ? .1 : 0;
+		r() < ie && (A === "player" ? b = 2 : x = 2, D.push({
 			type: "skill",
 			actor: g,
-			target: k,
-			label: "Saignement",
-			...D()
-		})), v > 0 && (s -= 3, --v, E.push({
+			target: A,
+			label: j.weapon === "volcanic-hammer" ? "Brûlure" : "Saignement",
+			...O()
+		})), M.armor === "volcanic-shell" && r() < .1 && (g === "player" ? b = 2 : x = 2, D.push({
+			type: "skill",
+			actor: A,
+			target: g,
+			label: "Brûlure",
+			...O()
+		})), b > 0 && (s -= 3, --b, D.push({
 			type: "bleed",
 			actor: "enemy",
 			target: "player",
 			value: 3,
-			...D()
-		})), y > 0 && (c -= 3, --y, E.push({
+			...O()
+		})), x > 0 && (c -= 3, --x, D.push({
 			type: "bleed",
 			actor: "player",
 			target: "enemy",
 			value: 3,
-			...D()
-		})), s <= 0 && C(e, "Second Souffle") && !h && (s = Math.round(e.stats.hp * .18), h = !0, E.push({
+			...O()
+		})), s <= 0 && S(e, "Second Souffle") && !h && (s = Math.round(e.stats.hp * .18), h = !0, D.push({
 			type: "heal",
 			actor: "player",
 			target: "player",
 			value: s,
 			label: "Second Souffle",
-			...D()
-		})), c <= 0 && C(t, "Second Souffle") && !_ && (c = Math.round(t.stats.hp * .18), _ = !0, E.push({
+			...O()
+		})), c <= 0 && S(t, "Second Souffle") && !y && (c = Math.round(t.stats.hp * .18), y = !0, D.push({
 			type: "heal",
 			actor: "enemy",
 			target: "enemy",
 			value: c,
 			label: "Second Souffle",
-			...D()
+			...O()
 		}));
-		let W = C(A, "Double Frappe") ? .1 : A.weapon === "smilodon-fangs" ? .08 : 0;
-		r() < W && s > 0 && c > 0 && (l = null);
+		let ae = S(j, "Double Frappe") ? .1 : j.weapon === "smilodon-fangs" ? .08 : 0;
+		if (r() < ae && s > 0 && c > 0) {
+			let n = Math.max(1, Math.round(W * .5));
+			D.push({
+				type: "attack",
+				actor: g,
+				target: A,
+				label: "Coup supplémentaire",
+				...O()
+			}), N(n), s <= 0 && S(e, "Second Souffle") && !h && (s = Math.round(e.stats.hp * .18), h = !0, D.push({
+				type: "heal",
+				actor: "player",
+				target: "player",
+				value: s,
+				label: "Second Souffle",
+				...O()
+			})), c <= 0 && S(t, "Second Souffle") && !y && (c = Math.round(t.stats.hp * .18), y = !0, D.push({
+				type: "heal",
+				actor: "enemy",
+				target: "enemy",
+				value: c,
+				label: "Second Souffle",
+				...O()
+			}));
+		}
 	}
-	let O = c <= 0 ? "player" : "enemy";
-	return E.push({
+	let k = c <= 0 ? "player" : "enemy";
+	return D.push({
 		type: "ko",
-		actor: O,
-		target: O === "player" ? "enemy" : "player",
+		actor: k,
+		target: k === "player" ? "enemy" : "player",
 		label: "K.O.",
-		...D()
+		...O()
 	}), {
-		winner: O,
-		events: E,
+		winner: k,
+		events: D,
 		enemy: t,
 		consecutiveMax: d
 	};
 }
-function T(e, t, n = Math.random) {
+function w(e, t, n = Math.random) {
 	let a = e.ownedWarriors[e.activeWarriorId];
 	if (!a || a.level >= i.maxWarriorLevel || !Number.isFinite(t) || t <= 0) return 0;
 	a.xp += Math.trunc(t);
@@ -1637,21 +1766,21 @@ function T(e, t, n = Math.random) {
 }
 //#endregion
 //#region src/victories.ts
-var E = (e) => typeof e == "number" && Number.isSafeInteger(e) && e >= 0 ? e : 0;
-function D(e) {
-	return E(e.adventureWins) + E(e.riftWins) + E(e.duelWins);
+var T = (e) => typeof e == "number" && Number.isSafeInteger(e) && e >= 0 ? e : 0;
+function E(e) {
+	return T(e.adventureWins) + T(e.riftWins) + T(e.duelWins);
 }
-function O(e, t, n) {
-	n === "player" && (e.totalWins = E(e.totalWins) + 1, t === "adventure" ? e.adventureWins = E(e.adventureWins) + 1 : t === "rift" ? e.riftWins = E(e.riftWins) + 1 : e.duelWins = E(e.duelWins) + 1);
+function D(e, t, n) {
+	n === "player" && (e.totalWins = T(e.totalWins) + 1, t === "adventure" ? e.adventureWins = T(e.adventureWins) + 1 : t === "rift" ? e.riftWins = T(e.riftWins) + 1 : e.duelWins = T(e.duelWins) + 1);
 }
 //#endregion
 //#region src/badgeSystem.ts
-var k = {
+var O = {
 	bronze: 50,
 	silver: 100,
 	gold: 200,
 	platinum: 500
-}, A = 1500, j = [
+}, k = 1500, A = [
 	"flint-club",
 	"bone-spear",
 	"obsidian-axe",
@@ -1667,45 +1796,45 @@ var k = {
 	"volcanic-shell",
 	"white-titan-fur",
 	"primordial-titan-skin"
-], M = (e, t) => ({
+], j = (e, t) => ({
 	current: Math.min(Math.max(Number.isFinite(e) ? e : 0, 0), t),
 	target: t
-}), N = (e) => new Set(e.defeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20)), P = (e) => u.filter(({ id: t }) => !!e.ownedWarriors[t]).length, F = (e) => Object.keys(e.ownedWarriors).filter((t) => d[t] && e.ownedWarriors[t]?.warriorId === t), I = (e) => F(e).length, L = (e, t, n = !1) => F(e).some((e) => {
+}), M = (e) => new Set(e.defeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20)), N = (e) => u.filter(({ id: t }) => !!e.ownedWarriors[t]).length, P = (e) => Object.keys(e.ownedWarriors).filter((t) => d[t] && e.ownedWarriors[t]?.warriorId === t), F = (e) => P(e).length, I = (e, t, n = !1) => P(e).some((e) => {
 	let r = d[e].rarity;
 	return n ? a.indexOf(r) >= a.indexOf(t) : r === t;
-}), R = (e) => j.filter((t) => (e.owned[t]?.quantity ?? 0) > 0).length, z = (e, t) => e.badges.some((e) => e.id === t);
-function B(e) {
+}), L = (e) => A.filter((t) => (e.owned[t]?.quantity ?? 0) > 0).length, R = (e, t) => e.badges.some((e) => e.id === t);
+function ne(e) {
 	return !1;
 }
-var V = [
+var z = [
 	{
 		id: "primal-first-level",
 		title: "Premiers pas dans le Primal",
 		description: "Terminez le premier niveau de l’Ère Primordiale.",
 		grade: "bronze",
 		binary: !0,
-		progress: (e) => M(Number(N(e).has(1)), 1)
+		progress: (e) => j(Number(M(e).has(1)), 1)
 	},
 	{
 		id: "primal-three-warriors",
 		title: "Tribu naissante",
 		description: "Obtenez 3 Warriors de l’Ère Primordiale.",
 		grade: "bronze",
-		progress: (e) => M(P(e), 3)
+		progress: (e) => j(N(e), 3)
 	},
 	{
 		id: "primal-three-equipment",
 		title: "Équipement de survie",
 		description: "Obtenez 3 équipements primordiaux différents.",
 		grade: "bronze",
-		progress: (e) => M(R(e), 3)
+		progress: (e) => j(L(e), 3)
 	},
 	{
 		id: "primal-ten-levels",
 		title: "Au cœur de la jungle",
 		description: "Terminez 10 niveaux de l’Ère Primordiale.",
 		grade: "silver",
-		progress: (e) => M(N(e).size, 10)
+		progress: (e) => j(M(e).size, 10)
 	},
 	{
 		id: "primal-first-elite",
@@ -1713,25 +1842,25 @@ var V = [
 		description: "Vainquez votre premier Élite Primal.",
 		grade: "silver",
 		binary: !0,
-		progress: (e) => M(Number([
+		progress: (e) => j(Number([
 			5,
 			10,
 			15
-		].some((t) => N(e).has(t)) || z(e, "first-elite")), 1)
+		].some((t) => M(e).has(t)) || R(e, "first-elite")), 1)
 	},
 	{
 		id: "primal-six-warriors",
 		title: "Meute primordiale",
 		description: "Obtenez 6 Warriors de l’Ère Primordiale.",
 		grade: "silver",
-		progress: (e) => M(P(e), 6)
+		progress: (e) => j(N(e), 6)
 	},
 	{
 		id: "primal-eight-equipment",
 		title: "Arsenal de chasse",
 		description: "Obtenez 8 équipements primordiaux différents.",
 		grade: "silver",
-		progress: (e) => M(R(e), 8)
+		progress: (e) => j(L(e), 8)
 	},
 	{
 		id: "primal-conqueror",
@@ -1739,21 +1868,21 @@ var V = [
 		description: "Vainquez le Boss final de l’Aventure Primal.",
 		grade: "gold",
 		binary: !0,
-		progress: (e) => M(Number(N(e).has(20) || z(e, "boss")), 1)
+		progress: (e) => j(Number(M(e).has(20) || R(e, "boss")), 1)
 	},
 	{
 		id: "primal-all-warriors",
 		title: "Panthéon primordial",
 		description: "Obtenez les 12 Warriors primordiaux.",
 		grade: "gold",
-		progress: (e) => M(P(e), u.length)
+		progress: (e) => j(N(e), u.length)
 	},
 	{
 		id: "primal-all-equipment",
 		title: "Arsenal primordial",
 		description: "Obtenez les 15 équipements primordiaux.",
 		grade: "gold",
-		progress: (e) => M(R(e), j.length)
+		progress: (e) => j(L(e), A.length)
 	},
 	{
 		id: "primal-tyrak",
@@ -1761,7 +1890,7 @@ var V = [
 		description: "Obtenez Tyrak, Roi Primordial.",
 		grade: "platinum",
 		binary: !0,
-		progress: (e) => M(Number(!!e.ownedWarriors.tyrak), 1)
+		progress: (e) => j(Number(!!e.ownedWarriors.tyrak), 1)
 	},
 	{
 		id: "primal-nemesis",
@@ -1769,27 +1898,27 @@ var V = [
 		description: "Terminez l’Ère Primordiale en Némésis.",
 		grade: "platinum",
 		binary: !0,
-		progress: (e) => M(Number(B(e)), 1)
+		progress: (e) => j(Number(ne(e)), 1)
 	}
 ];
-function H(e) {
-	return F(e).filter((t) => e.ownedWarriors[t].level >= 10).length;
+function B(e) {
+	return P(e).filter((t) => e.ownedWarriors[t].level >= 10).length;
 }
-var U = [
+var re = [
 	{
 		id: "exploit-first-impact",
 		title: "Premier Impact",
 		description: "Remportez votre premier combat.",
 		grade: "bronze",
 		binary: !0,
-		progress: (e) => M(D(e), 1)
+		progress: (e) => j(E(e), 1)
 	},
 	{
 		id: "exploit-first-reinforcements",
 		title: "Premiers renforts",
 		description: "Rassemblez 5 Warriors différents.",
 		grade: "bronze",
-		progress: (e) => M(I(e), 5)
+		progress: (e) => j(F(e), 5)
 	},
 	{
 		id: "exploit-rare-spark",
@@ -1797,7 +1926,7 @@ var U = [
 		description: "Obtenez votre premier Warrior Rare ou supérieur.",
 		grade: "bronze",
 		binary: !0,
-		progress: (e) => M(Number(L(e, "Rare", !0)), 1)
+		progress: (e) => j(Number(I(e, "Rare", !0)), 1)
 	},
 	{
 		id: "exploit-first-duel",
@@ -1805,21 +1934,21 @@ var U = [
 		description: "Remportez votre premier Duel.",
 		grade: "bronze",
 		binary: !0,
-		progress: (e) => M(e.duelWins, 1)
+		progress: (e) => j(e.duelWins, 1)
 	},
 	{
 		id: "exploit-seasoned-fighter",
 		title: "Combattant aguerri",
 		description: "Remportez 25 combats.",
 		grade: "silver",
-		progress: (e) => M(D(e), 25)
+		progress: (e) => j(E(e), 25)
 	},
 	{
 		id: "exploit-chronos-collector",
 		title: "Collectionneur de Chronos",
 		description: "Rassemblez 10 Warriors différents.",
 		grade: "silver",
-		progress: (e) => M(I(e), 10)
+		progress: (e) => j(F(e), 10)
 	},
 	{
 		id: "exploit-ascension",
@@ -1827,14 +1956,14 @@ var U = [
 		description: "Amenez un Warrior au niveau 10.",
 		grade: "silver",
 		binary: !0,
-		progress: (e) => M(H(e), 1)
+		progress: (e) => j(B(e), 1)
 	},
 	{
 		id: "exploit-war-machine",
 		title: "Machine de guerre",
 		description: "Remportez 100 combats.",
 		grade: "gold",
-		progress: (e) => M(D(e), 100)
+		progress: (e) => j(E(e), 100)
 	},
 	{
 		id: "exploit-awakened-legend",
@@ -1842,7 +1971,7 @@ var U = [
 		description: "Obtenez votre premier Warrior Légendaire.",
 		grade: "gold",
 		binary: !0,
-		progress: (e) => M(Number(L(e, "Légendaire")), 1)
+		progress: (e) => j(Number(I(e, "Légendaire")), 1)
 	},
 	{
 		id: "exploit-elite-squad",
@@ -1850,14 +1979,14 @@ var U = [
 		description: "Amenez 6 Warriors au niveau 10.",
 		grade: "gold",
 		binary: !0,
-		progress: (e) => M(H(e), 6)
+		progress: (e) => j(B(e), 6)
 	},
 	{
 		id: "exploit-feared-rival",
 		title: "Rival redouté",
 		description: "Remportez 25 Duels.",
 		grade: "gold",
-		progress: (e) => M(e.duelWins, 25)
+		progress: (e) => j(e.duelWins, 25)
 	},
 	{
 		id: "exploit-mythic-fracture",
@@ -1865,21 +1994,21 @@ var U = [
 		description: "Obtenez votre premier Warrior Mythique.",
 		grade: "platinum",
 		binary: !0,
-		progress: (e) => M(Number(L(e, "Mythique")), 1)
+		progress: (e) => j(Number(I(e, "Mythique")), 1)
 	}
-], W = "primal-mastery", G = (e, t) => e.badges.some((e) => e.id === t), K = (e) => V.every(({ id: t }) => G(e, t));
-function re(e, t = (/* @__PURE__ */ new Date()).toISOString()) {
-	let n = [...V, ...U].filter((t) => {
-		if (G(e, t.id)) return !1;
+], V = "primal-mastery", H = (e, t) => e.badges.some((e) => e.id === t), U = (e) => z.every(({ id: t }) => H(e, t));
+function W(e, t = (/* @__PURE__ */ new Date()).toISOString()) {
+	let n = [...z, ...re].filter((t) => {
+		if (H(e, t.id)) return !1;
 		let { current: n, target: r } = t.progress(e);
 		return n >= r;
 	});
-	if (!n.length && (G(e, "primal-mastery") || !K(e))) return {
+	if (!n.length && (H(e, "primal-mastery") || !U(e))) return {
 		save: e,
 		granted: []
 	};
 	let r = structuredClone(e), i = n.map((e) => {
-		let n = k[e.grade];
+		let n = O[e.grade];
 		return r.badges.push({
 			id: e.id,
 			unlockedAt: t
@@ -1889,21 +2018,50 @@ function re(e, t = (/* @__PURE__ */ new Date()).toISOString()) {
 			coins: n
 		};
 	});
-	return K(r) && !G(r, "primal-mastery") && (r.badges.push({
-		id: W,
+	return U(r) && !H(r, "primal-mastery") && (r.badges.push({
+		id: V,
 		unlockedAt: t
-	}), r.coins += A, i.push({
-		id: W,
+	}), r.coins += k, i.push({
+		id: V,
 		title: "Maîtrise Primordiale",
-		coins: A
+		coins: k
 	})), {
 		save: r,
 		granted: i
 	};
 }
 //#endregion
-//#region src/rift.ts
+//#region src/art/assetsV04.ts
 var ie = [
+	"flint-club",
+	"bone-spear",
+	"obsidian-axe",
+	"hunter-bow",
+	"smilodon-fangs",
+	"mammoth-spear",
+	"volcanic-hammer",
+	"tyrant-claw",
+	"titan-heart"
+], ae = [
+	"hunter-hides",
+	"bone-harness",
+	"mammoth-plate",
+	"volcanic-shell",
+	"white-titan-fur",
+	"primordial-titan-skin"
+], oe = [
+	"tribal-hunter",
+	"tribal-warrior",
+	"cave-brute",
+	"shaman",
+	"raptor",
+	"smilodon",
+	"mammoth"
+];
+new Set(ie), new Set(ae), new Set(oe);
+//#endregion
+//#region src/rift.ts
+var se = [
 	100,
 	90,
 	82,
@@ -1912,8 +2070,8 @@ var ie = [
 	62,
 	56,
 	50
-], q = 12e5;
-function ae(e, t, n) {
+], G = 12e5;
+function ce(e, t, n) {
 	let r = Math.min(10, Math.max(0, Math.trunc(e)));
 	if (r === 10) return {
 		charges: r,
@@ -1921,20 +2079,20 @@ function ae(e, t, n) {
 	};
 	if (t === null || !Number.isFinite(t)) return {
 		charges: r,
-		nextAt: n + q
+		nextAt: n + G
 	};
 	if (n < t) return {
 		charges: r,
 		nextAt: t
 	};
-	let i = 1 + Math.floor((n - t) / q), a = Math.min(10, r + i);
+	let i = 1 + Math.floor((n - t) / G), a = Math.min(10, r + i);
 	return {
 		charges: a,
-		nextAt: a === 10 ? null : t + i * q
+		nextAt: a === 10 ? null : t + i * G
 	};
 }
-function oe(e, t = Date.now()) {
-	let n = ae(e.campaignRemaining, e.campaignRechargeAt, t);
+function le(e, t = Date.now()) {
+	let n = ce(e.campaignRemaining, e.campaignRechargeAt, t);
 	return n.charges === e.campaignRemaining && n.nextAt === e.campaignRechargeAt ? e : {
 		...e,
 		campaignRemaining: n.charges,
@@ -1943,7 +2101,7 @@ function oe(e, t = Date.now()) {
 }
 //#endregion
 //#region src/storage.ts
-var se = "chronos-age-warriors:v4", ce = "chronos-age-warriors:v3", le = "chronos-age-warriors:admin:v3", J = "chronos-age-warriors:v2", ue = "chronos-age-warriors:admin:v2", de = (e = /* @__PURE__ */ new Date()) => e.toLocaleDateString("sv-SE");
+var ue = "chronos-age-warriors:v4", de = "chronos-age-warriors:v3", fe = "chronos-age-warriors:admin:v3", K = "chronos-age-warriors:v2", q = "chronos-age-warriors:admin:v2", J = (e = /* @__PURE__ */ new Date()) => e.toLocaleDateString("sv-SE");
 function Y() {
 	return {
 		version: 5,
@@ -1980,17 +2138,18 @@ function Y() {
 		warriorChestCount: 0,
 		speed: 1,
 		badges: [],
-		lastReset: de()
+		pendingWarriorRecycles: [],
+		lastReset: J()
 	};
 }
-function fe(e, t = de()) {
+function pe(e, t = J()) {
 	e.lastReset = t;
-	let n = oe(e);
+	let n = le(e);
 	return e.campaignRemaining = n.campaignRemaining, e.campaignRechargeAt = n.campaignRechargeAt, e;
 }
-function pe(e = localStorage, t = se) {
+function me(e = localStorage, t = ue) {
 	try {
-		let n = t === "chronos-age-warriors:v4" ? [ce, J] : t === "chronos-age-warriors:admin:v4" ? [le, ue] : t === "chronos-age-warriors:v3" ? [J] : t === "chronos-age-warriors:admin:v3" ? [ue] : [], i = e.getItem(t) ?? n.map((t) => e.getItem(t)).find(Boolean);
+		let n = t === "chronos-age-warriors:v4" ? [de, K] : t === "chronos-age-warriors:admin:v4" ? [fe, q] : t === "chronos-age-warriors:v3" ? [K] : t === "chronos-age-warriors:admin:v3" ? [q] : [], i = e.getItem(t) ?? n.map((t) => e.getItem(t)).find(Boolean);
 		if (!i) return Y();
 		let a = JSON.parse(i);
 		if (![
@@ -2009,35 +2168,28 @@ function pe(e = localStorage, t = se) {
 		}
 		let c = !!(d[a.activeWarriorId] && a.ownedWarriors?.[a.activeWarriorId]?.warriorId === a.activeWarriorId), l = a.activeWarriorId === "" && Object.keys(a.ownedWarriors ?? {}).length === 0 && a.welcomeChestOpened === !1;
 		if (!c && !l || !Array.isArray(a.unlockedSkills)) return Y();
-		if (a.version === 2) {
-			for (let e of Object.keys(a.ownedWarriors)) a.ownedWarriors[e] = {
-				warriorId: e,
-				level: 1,
-				xp: 0
-			};
-			a.unlockedSkills = [], delete a.pendingLevelChoice;
-		} else {
-			for (let e of Object.values(a.ownedWarriors)) delete e.bonusStats, e.level = Number.isInteger(e.level) ? Math.min(10, Math.max(1, e.level)) : 1, e.xp = e.level === 10 ? 0 : Number.isInteger(e.xp) && e.xp >= 0 ? Math.min(e.xp, r(e.level) - 1) : 0;
-			delete a.pendingLevelChoice;
-		}
-		a.welcomeChestOpened = !!c;
+		a.version === 2 && (a.unlockedSkills = [], delete a.pendingLevelChoice);
+		for (let e of Object.values(a.ownedWarriors)) delete e.bonusStats, e.level = Number.isInteger(e.level) ? Math.min(10, Math.max(1, e.level)) : 1, e.xp = e.level === 10 ? 0 : Number.isInteger(e.xp) && e.xp >= 0 ? Math.min(e.xp, r(e.level) - 1) : 0;
+		delete a.pendingLevelChoice, a.welcomeChestOpened = !!c;
 		let u = a;
 		delete u.trainingRemaining, delete u.trainingWins, a.version = 5, a.campaignRemaining = Number.isInteger(a.campaignRemaining) ? Math.min(10, Math.max(0, a.campaignRemaining)) : 10, a.campaignRechargeAt = a.campaignRemaining === 10 ? null : Number.isSafeInteger(a.campaignRechargeAt) && (a.campaignRechargeAt ?? 0) > 0 ? a.campaignRechargeAt : Date.now() + 12e5, a.defeatedNodes = Array.isArray(a.defeatedNodes) ? [...new Set(a.defeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20))] : [], a.campaignNode = Number.isInteger(a.campaignNode) ? Math.min(20, Math.max(1, a.campaignNode)) : 1;
 		let f = a.defeatedNodes.includes(20) || a.eraRewardClaimed === !0;
 		a.eraRewardClaimed === !0 && !a.defeatedNodes.includes(20) && a.defeatedNodes.push(20), a.nemesisUnlocked = f || a.nemesisUnlocked === !0, a.nemesisDefeatedNodes = Array.isArray(a.nemesisDefeatedNodes) ? [...new Set(a.nemesisDefeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20))] : [], a.nemesisCampaignNode = Number.isInteger(a.nemesisCampaignNode) ? Math.min(20, Math.max(1, a.nemesisCampaignNode)) : 1, a.nemesisCompleted = a.nemesisCompleted === !0 || a.nemesisDefeatedNodes.includes(20), a.nemesisCompleted && !a.nemesisDefeatedNodes.includes(20) && a.nemesisDefeatedNodes.push(20), a.normalBossFirstClearRewardClaimed = a.normalBossFirstClearRewardClaimed === !0, a.nemesisBossFirstClearRewardClaimed = a.nemesisBossFirstClearRewardClaimed === !0, delete a.bossTrophyPending, delete a.eraRewardClaimed, a.riftChestCount = Number.isSafeInteger(a.riftChestCount) && a.riftChestCount >= 0 ? a.riftChestCount : 0, a.riftLossStreak = Number.isSafeInteger(a.riftLossStreak) && a.riftLossStreak >= 0 ? a.riftLossStreak : 0, a.equipmentChestCount = Number.isSafeInteger(a.equipmentChestCount) && a.equipmentChestCount >= 0 ? a.equipmentChestCount : 0, a.warriorChestCount = Number.isSafeInteger(a.warriorChestCount) && a.warriorChestCount >= 0 ? a.warriorChestCount : 0;
-		let p = a.expedition;
-		a.expedition = p && a.ownedWarriors[p.warriorId] && Number.isSafeInteger(p.startedAt) && p.startedAt > 0 ? p : null;
-		let m = a.expeditionReturn;
-		a.expeditionReturn = m && typeof m.id == "string" && a.ownedWarriors[m.warriorId] && Number.isSafeInteger(m.elapsedMs) && m.elapsedMs >= 0 && m.elapsedMs <= 864e5 && Number.isSafeInteger(m.xp) && m.xp >= 0 && Number.isSafeInteger(m.coins) && m.coins >= 0 && Array.isArray(m.equipmentIds) && m.equipmentIds.every((e) => typeof e == "string") && typeof m.equipmentChest == "boolean" && typeof m.warriorChest == "boolean" && Number.isSafeInteger(m.levelsGained) && m.levelsGained >= 0 ? m : null;
-		let h = a.riftRun;
-		a.riftRun = h && /^\d{4}-\d{2}-\d{2}$/.test(h.dateKey) && Number.isInteger(h.stage) && h.stage >= 0 && h.stage < 5 && Array.isArray(h.lineup) && h.lineup.length === 5 && h.lineup.every((e) => y.some((t) => t === e)) && Number.isSafeInteger(h.seed) && h.seed >= 0 && h.seed <= 4294967295 && ie.some((e) => e === h.difficulty) && (h.warriorId === "" || a.ownedWarriors[h.warriorId]) && Number.isSafeInteger(h.earnedCoins) && h.earnedCoins >= 0 && Number.isSafeInteger(h.earnedXp) && h.earnedXp >= 0 && [
+		let p = /* @__PURE__ */ new Set();
+		a.pendingWarriorRecycles = Array.isArray(a.pendingWarriorRecycles) ? a.pendingWarriorRecycles.filter((e) => !e || typeof e.id != "string" || !e.id || p.has(e.id) || !d[e.warriorId] || !a.ownedWarriors[e.warriorId] ? !1 : (p.add(e.id), !0)) : [];
+		let m = a.expedition;
+		a.expedition = m && a.ownedWarriors[m.warriorId] && Number.isSafeInteger(m.startedAt) && m.startedAt > 0 ? m : null;
+		let h = a.expeditionReturn;
+		a.expeditionReturn = h && typeof h.id == "string" && a.ownedWarriors[h.warriorId] && Number.isSafeInteger(h.elapsedMs) && h.elapsedMs >= 0 && h.elapsedMs <= 864e5 && Number.isSafeInteger(h.xp) && h.xp >= 0 && Number.isSafeInteger(h.coins) && h.coins >= 0 && Array.isArray(h.equipmentIds) && h.equipmentIds.every((e) => typeof e == "string") && typeof h.equipmentChest == "boolean" && typeof h.warriorChest == "boolean" && Number.isSafeInteger(h.levelsGained) && h.levelsGained >= 0 ? h : null;
+		let g = a.riftRun;
+		a.riftRun = g && /^\d{4}-\d{2}-\d{2}$/.test(g.dateKey) && Number.isInteger(g.stage) && g.stage >= 0 && g.stage < 5 && Array.isArray(g.lineup) && g.lineup.length === 5 && g.lineup.every((e) => oe.some((t) => t === e)) && Number.isSafeInteger(g.seed) && g.seed >= 0 && g.seed <= 4294967295 && se.some((e) => e === g.difficulty) && (g.warriorId === "" || a.ownedWarriors[g.warriorId]) && Number.isSafeInteger(g.earnedCoins) && g.earnedCoins >= 0 && Number.isSafeInteger(g.earnedXp) && g.earnedXp >= 0 && [
 			"ready",
 			"fighting",
 			"between",
 			"lost",
 			"quit",
 			"complete"
-		].includes(h.status) ? h : null, a.adventureWins = Number.isSafeInteger(a.adventureWins) && a.adventureWins >= 0 ? a.adventureWins : 0, a.riftWins = Number.isSafeInteger(a.riftWins) && a.riftWins >= 0 ? a.riftWins : 0, a.duelWins = Number.isSafeInteger(a.duelWins) && a.duelWins >= 0 ? a.duelWins : 0, a.owned ??= {};
+		].includes(g.status) ? g : null, a.adventureWins = Number.isSafeInteger(a.adventureWins) && a.adventureWins >= 0 ? a.adventureWins : 0, a.riftWins = Number.isSafeInteger(a.riftWins) && a.riftWins >= 0 ? a.riftWins : 0, a.duelWins = Number.isSafeInteger(a.duelWins) && a.duelWins >= 0 ? a.duelWins : 0, a.owned ??= {};
 		for (let e of Object.values(a.owned)) e.quantity = Number.isSafeInteger(e.quantity) && (e.quantity ?? 0) > 0 ? e.quantity : 1;
 		if (a.loadouts ??= {}, a.loadouts[o] && (a.loadouts[s] ??= a.loadouts[o], delete a.loadouts[o]), c) {
 			a.loadouts[a.activeWarriorId] ??= {
@@ -2047,12 +2199,12 @@ function pe(e = localStorage, t = se) {
 			let e = a.loadouts[a.activeWarriorId];
 			a.equippedWeapon = a.owned[e.weapon] ? e.weapon : "", a.equippedArmor = a.owned[e.armor] ? e.armor : "";
 		}
-		return fe(a);
+		return pe(a);
 	} catch {
 		return Y();
 	}
 }
-function me(e) {
+function he(e) {
 	if (!e || typeof e != "object" || Array.isArray(e)) return null;
 	let t = e;
 	if (![
@@ -2061,19 +2213,19 @@ function me(e) {
 		4,
 		5
 	].includes(t.version) || typeof t.activeWarriorId != "string" || !t.ownedWarriors || typeof t.ownedWarriors != "object" || Array.isArray(t.ownedWarriors) || !Array.isArray(t.unlockedSkills) || !Number.isSafeInteger(t.coins) || t.coins < 0 || !t.activeWarriorId && (Object.keys(t.ownedWarriors).length > 0 || t.welcomeChestOpened !== !1)) return null;
-	let n = JSON.stringify(e), r = pe({ getItem: () => n }, "account-save");
+	let n = JSON.stringify(e), r = me({ getItem: () => n }, "account-save");
 	return t.activeWarriorId && !r.activeWarriorId ? null : r;
 }
 //#endregion
 //#region src/duelRules.ts
-var he = 10, ge = 12e5, _e = {
+var ge = 10, _e = 12e5, ve = {
 	win: {
-		xp: 100,
-		coins: 50
+		xp: 20,
+		coins: 20
 	},
 	loss: {
-		xp: 25,
-		coins: 10
+		xp: 4,
+		coins: 0
 	}
 }, X = {
 	Commun: 0,
@@ -2083,22 +2235,22 @@ var he = 10, ge = 12e5, _e = {
 	Légendaire: 4,
 	Mythique: 5
 };
-function ve(e, t, n) {
+function ye(e, t, n) {
 	return n ? 20 + 5 * Math.max(0, X[t] - X[e]) : 0;
 }
 function Z(e) {
 	let t = e.activeWarriorId, n = e.ownedWarriors?.[t];
 	return !!(d[t] && n?.warriorId === t && Number.isInteger(n.level) && n.level >= 1 && n.level <= 10);
 }
-function ye(e) {
-	if (!be(e)) return null;
-	let t = me(e);
+function be(e) {
+	if (!xe(e)) return null;
+	let t = he(e);
 	return t && Z(t) ? t : null;
 }
 function Q(e) {
 	return typeof e == "object" && !!e && !Array.isArray(e);
 }
-function be(e) {
+function xe(e) {
 	if (!Q(e) || typeof e.activeWarriorId != "string" || !d[e.activeWarriorId] || !Q(e.ownedWarriors) || !Q(e.owned) || typeof e.equippedWeapon != "string" || typeof e.equippedArmor != "string") return !1;
 	for (let [t, n] of Object.entries(e.ownedWarriors)) if (!d[t] || !Q(n) || n.warriorId !== t || !Number.isInteger(n.level) || n.level < 1 || n.level > 10 || !Number.isSafeInteger(n.xp) || n.xp < 0 || (n.level === 10 ? n.xp !== 0 : n.xp >= r(n.level))) return !1;
 	if (!Object.hasOwn(e.ownedWarriors, e.activeWarriorId)) return !1;
@@ -2119,7 +2271,7 @@ function $(e) {
 	let t = p(e);
 	return {
 		name: t.name,
-		stats: S(e),
+		stats: x(e),
 		skills: [],
 		warriorId: t.id,
 		level: t.level,
@@ -2127,22 +2279,22 @@ function $(e) {
 		armor: e.equippedArmor
 	};
 }
-function xe(e, t, n) {
-	let r = $(e), i = $(t), a = w(r, i, n), o = a.winner === "player", s = _e[o ? "win" : "loss"], c = d[r.warriorId].rarity, l = d[i.warriorId].rarity;
+function Se(e, t, n) {
+	let r = $(e), i = $(t), a = C(r, i, n), o = a.winner === "player", s = ve[o ? "win" : "loss"], c = d[r.warriorId].rarity, l = d[i.warriorId].rarity;
 	return {
 		attacker: r,
 		defender: i,
 		result: a,
 		xp: s.xp,
 		coins: s.coins,
-		points: ve(c, l, o),
+		points: ye(c, l, o),
 		attackerRarity: c,
 		defenderRarity: l
 	};
 }
-function Se(e, t) {
+function Ce(e, t) {
 	let n = structuredClone(e);
-	return n.coins += t.coins, O(n, "duel", t.result.winner), T(n, t.xp), re(n);
+	return n.coins += t.coins, D(n, "duel", t.result.winner), w(n, t.xp), W(n);
 }
 //#endregion
-export { he as DUEL_MAX_CHARGES, ge as DUEL_RECHARGE_MS, _e as DUEL_REWARDS, X as RARITY_TIERS, Se as applyDuelReward, $ as duelFighter, ve as duelPoints, ye as normalizedDuelSave, xe as resolveDuel, be as strictDuelPayload, Z as validDuelWarrior, d as warriorDefinitions };
+export { ge as DUEL_MAX_CHARGES, _e as DUEL_RECHARGE_MS, ve as DUEL_REWARDS, X as RARITY_TIERS, Ce as applyDuelReward, $ as duelFighter, ye as duelPoints, be as normalizedDuelSave, Se as resolveDuel, xe as strictDuelPayload, Z as validDuelWarrior, d as warriorDefinitions };

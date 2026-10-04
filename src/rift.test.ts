@@ -64,18 +64,18 @@ describe('Faille Primordiale — run quotidien', () => {
     let save = fight()
     const first = createRiftEncounter(save, day)!
     const afterFirst = resolveRiftStage(save, first, 'player')
-    expect(afterFirst.coins - save.coins).toBe(75)
-    expect(afterFirst.riftRun).toMatchObject({ stage: 1, earnedCoins: 75, earnedXp: 200, status: 'between' })
+    expect(afterFirst.coins - save.coins).toBe(40)
+    expect(afterFirst.riftRun).toMatchObject({ stage: 1, earnedCoins: 40, earnedXp: 40, status: 'between' })
     expect(resolveRiftStage(afterFirst, first, 'player')).toBe(afterFirst)
     save = fight(afterFirst)
     const second = createRiftEncounter(save, day)!
     save = resolveRiftStage(save, second, 'player')
-    expect(save.riftRun).toMatchObject({ earnedCoins: 175, earnedXp: 450, stage: 2 })
+    expect(save.riftRun).toMatchObject({ earnedCoins: 80, earnedXp: 80, stage: 2 })
     const coins = save.coins
     save = fight(save)
     const third = createRiftEncounter(save, day)!
     const lost = resolveRiftStage(save, third, 'enemy')
-    expect(lost.riftRun).toMatchObject({ status: 'lost', earnedCoins: 175, earnedXp: 450 })
+    expect(lost.riftRun).toMatchObject({ status: 'lost', earnedCoins: 80, earnedXp: 80 })
     expect(lost.coins).toBe(coins)
     expect(lost.riftLossStreak).toBe(1)
     expect(beginRiftStage(lost, day)).toBe(lost)
@@ -83,7 +83,7 @@ describe('Faille Primordiale — run quotidien', () => {
     expect(prepareRift(lost, day, 77)).toBe(lost)
   })
 
-  it('donne 750 pièces, 1 850 XP et un coffre uniquement au 5/5, puis remet le pity à 100 %', () => {
+  it('donne 200 pièces, 200 XP et un coffre uniquement au 5/5, puis remet le pity à 100 %', () => {
     let save = ready()
     save.riftLossStreak = 7
     save.riftRun!.difficulty = 50
@@ -93,8 +93,8 @@ describe('Faille Primordiale — run quotidien', () => {
       save = win(save)
       expect(save.riftRun?.earnedCoins).toBe(RIFT_REWARDS.slice(0, stage + 1).reduce((sum, reward) => sum + reward.coins, 0))
     }
-    expect(save.riftRun).toMatchObject({ status: 'complete', earnedCoins: 750, earnedXp: 1850 })
-    expect(save.coins - startingCoins).toBe(750)
+    expect(save.riftRun).toMatchObject({ status: 'complete', earnedCoins: 200, earnedXp: 200 })
+    expect(save.coins - startingCoins).toBe(200)
     expect(save.riftChestCount).toBe(1)
     expect(save.riftLossStreak).toBe(0)
     expect(prepareRift(save, tomorrow, 12).riftRun?.difficulty).toBe(100)

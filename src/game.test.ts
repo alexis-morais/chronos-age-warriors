@@ -28,7 +28,7 @@ describe('formules de combat', () => {
 
 describe('progression', () => {
   it('respecte la courbe XP Warrior', () => {
-    expect(Array.from({ length: 9 }, (_, index) => xpForLevel(index + 1))).toEqual([120, 180, 280, 410, 560, 750, 970, 1240, 1580])
+    expect(Array.from({ length: 9 }, (_, index) => xpForLevel(index + 1))).toEqual([120, 180, 300, 450, 650, 850, 1100, 1400, 1800])
     expect(xpForLevel(10)).toBe(0)
   })
   it('franchit automatiquement plusieurs niveaux sans choix ni compétence', () => {
@@ -39,7 +39,7 @@ describe('progression', () => {
     expect(save.ownedWarriors.karg).toMatchObject({ level: 2, xp: 0 })
     expect(addWarriorXp(save, 180)).toBe(1)
     expect(save.ownedWarriors.karg).toMatchObject({ level: 3, xp: 0 })
-    expect(addWarriorXp(save, 5790)).toBe(7)
+    expect(addWarriorXp(save, 6550)).toBe(7)
     expect(save.ownedWarriors.karg).toMatchObject({ level: 10, xp: 0 })
     expect(addWarriorXp(save, 100000)).toBe(0)
     expect(save.ownedWarriors.karg).toMatchObject({ level: 10, xp: 0 })
@@ -50,10 +50,10 @@ describe('progression', () => {
 
 describe('comparaison et choix d’équipement', () => {
   it('calcule les bonus réels et les différences sans note artificielle', () => {
-    expect(equipmentStats('obsidian-axe')).toEqual({ strength: 1, hp: 5 })
+    expect(equipmentStats('obsidian-axe')).toEqual({ strength: 7, hp: 20 })
     expect(compareEquipmentStats('obsidian-axe', 'flint-club')).toEqual([
-      { stat: 'strength', candidate: 1, current: 1, difference: 0 },
-      { stat: 'hp', candidate: 5, current: 0, difference: 5 },
+      { stat: 'strength', candidate: 7, current: 3, difference: 4 },
+      { stat: 'hp', candidate: 20, current: 0, difference: 20 },
     ])
   })
   it('équipe un objet possédé sans muter la sauvegarde source et stocker reste neutre', () => {
@@ -79,7 +79,7 @@ describe('comparaison et choix d’équipement', () => {
     const save = establishedKargSave()
     save.owned['flint-club'].level = 10
     save.owned['flint-club'].xp = 960
-    expect(effectiveStats(save).strength).toBe(12)
+    expect(effectiveStats(save).strength).toBe(14)
   })
   it('remplace une arme équipée sans perdre l’ancienne ni modifier son stack', () => {
     const save = establishedKargSave()
@@ -178,7 +178,7 @@ describe('sauvegarde et reset quotidien', () => {
     const memory = new Map([[LEGACY_SAVE_KEY, JSON.stringify(save)]])
     const loaded = loadSave({ getItem: (key: string) => memory.get(key) ?? null })
     expect(loaded.activeWarriorId).toBe(KARG_ID)
-    expect(loaded.ownedWarriors[KARG_ID]).toEqual({ warriorId: KARG_ID, level: 1, xp: 0 })
+    expect(loaded.ownedWarriors[KARG_ID]).toEqual({ warriorId: KARG_ID, level: 4, xp: 123 })
     expect(loaded.version).toBe(SAVE_VERSION)
     expect(loaded.ownedWarriors[oldId]).toBeUndefined()
     expect(loaded.coins).toBe(843)
@@ -201,7 +201,7 @@ describe('sauvegarde et reset quotidien', () => {
     const loaded = loadSave({ getItem: (key: string) => memory.get(key) ?? null })
     expect(loaded.owned['flint-club']).toMatchObject({ quantity: 1, level: 8, xp: 400 })
     expect(loaded.loadouts.karg).toEqual({ weapon: 'flint-club', armor: 'hunter-hides' })
-    expect(effectiveStats(loaded).strength).toBe(12)
+    expect(effectiveStats(loaded).strength).toBe(14)
   })
   it('conserve les anciennes sauvegardes sans leur donner le coffre offert', () => {
     const legacy = establishedKargSave()
@@ -215,7 +215,7 @@ describe('sauvegarde et reset quotidien', () => {
   it('tire le même pool et toutes les raretés possibles pour les deux coffres Warrior', () => {
     expect(rollWarriorChest(() => 0).id).toBe('karg')
     expect(rollWarriorChest(() => .999999).id).toBe('tyrak')
-    expect(rollWarriorChest(() => .839).rarity).toBe('Rare')
+    expect(rollWarriorChest(() => .95).rarity).toBe('Rare')
     for (const warrior of primalWarriors) {
       const pool = primalWarriors.filter((entry) => entry.rarity === warrior.rarity)
       expect(pool.length).toBeGreaterThan(0)

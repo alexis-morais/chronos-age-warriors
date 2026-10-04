@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { campaignNodeTier, PRIMAL_NODE_TIERS } from './campaignProgression'
-import { generateEnemy, seededRng, simulateBattle, speedWeight } from './game'
-import { PRIMAL_ENEMY_PROFILES, PRIMAL_TIER_BUDGETS, primalEnemyStats, primalNodeKind, primalNodeModifier } from './primalEnemyBalance'
+import { equipmentStats, generateEnemy, seededRng, simulateBattle, speedWeight } from './game'
+import { PRIMAL_ENEMY_PROFILES, PRIMAL_NODE_STATS, primalEnemyStats, primalNodeKind } from './primalEnemyBalance'
 import type { Fighter } from './types'
 import { getWarriorLevelStats } from './warriorProgression'
 import { WarriorPassiveRuntime } from './warriorPassives'
 
 describe('équilibrage PvE Primal fixe', () => {
-  it('préserve exactement les 20 tiers et un budget par tier', () => {
+  it('préserve les tiers, avec 20 rencontres fixes explicites', () => {
     expect(PRIMAL_NODE_TIERS).toEqual([1,1,2,2,3,3,4,4,4,5,5,5,6,6,7,7,7,8,8,9])
-    expect(PRIMAL_TIER_BUDGETS).toHaveLength(9)
+    expect(PRIMAL_NODE_STATS).toHaveLength(20)
     expect(Array.from({ length: 20 }, (_, index) => campaignNodeTier(index + 1))).toEqual([...PRIMAL_NODE_TIERS])
   })
 
@@ -27,16 +27,16 @@ describe('équilibrage PvE Primal fixe', () => {
       'standard','standard','standard','standard','elite','standard','standard','standard','standard','elite',
       'standard','standard','standard','standard','elite','champion','champion','champion','champion','boss',
     ])
-    expect(primalNodeModifier(5).hp).toBeGreaterThan(primalNodeModifier(6).hp)
-    expect(primalNodeModifier(10).strength).toBeGreaterThan(primalNodeModifier(11).strength)
-    expect(primalNodeModifier(15).hp).toBeGreaterThan(primalNodeModifier(14).hp)
-    expect(primalNodeModifier(19).hp).toBeGreaterThan(primalNodeModifier(18).hp)
+    expect(PRIMAL_NODE_STATS[4].hp).toBeGreaterThan(PRIMAL_NODE_STATS[5].hp)
+    expect(PRIMAL_NODE_STATS[9].strength).toBeGreaterThan(PRIMAL_NODE_STATS[10].strength)
+    expect(PRIMAL_NODE_STATS[14].hp).toBeGreaterThan(PRIMAL_NODE_STATS[13].hp)
+    expect(PRIMAL_NODE_STATS[18].hp).toBeGreaterThan(PRIMAL_NODE_STATS[17].hp)
     const boss = generateEnemy(9, 20, () => .5)
     expect(boss.name).toBe('Morgath, Roi Primordial')
     expect(boss.skills).toContain('Second Souffle')
   })
 
-  it('garde des archétypes distincts et une variation RNG contenue', () => {
+  it('garde les profils Faille distincts, sans variation RNG en campagne', () => {
     expect(PRIMAL_ENEMY_PROFILES.raptor.speed).toBeGreaterThan(PRIMAL_ENEMY_PROFILES['tribal-warrior'].speed)
     expect(PRIMAL_ENEMY_PROFILES['cave-brute'].strength).toBeGreaterThan(PRIMAL_ENEMY_PROFILES['tribal-warrior'].strength)
     expect(PRIMAL_ENEMY_PROFILES['cave-brute'].speed).toBeLessThan(PRIMAL_ENEMY_PROFILES['tribal-warrior'].speed)
@@ -45,8 +45,7 @@ describe('équilibrage PvE Primal fixe', () => {
       const low = primalEnemyStats(node, () => 0), high = primalEnemyStats(node, () => .999)
       for (const stat of ['strength','dodge','speed','hp'] as const) {
         expect(low[stat]).toBeGreaterThan(0)
-        expect(high[stat]).toBeGreaterThanOrEqual(low[stat])
-        expect(high[stat]).toBeLessThanOrEqual(Math.round(low[stat] * 1.25) + 1)
+        expect(high[stat]).toBe(low[stat])
       }
     }
   })
@@ -78,7 +77,10 @@ describe('équilibrage PvE Primal fixe', () => {
 
   it('produit des pics mesurables aux Élites et un Boss plus dur que le node 19', () => {
     const sample = (level: number, node: number) => {
-      const player: Fighter = { name: 'Karg', warriorId: 'karg', level, stats: getWarriorLevelStats('karg', level), skills: [] }
+      const gear = level <= 3 ? ['flint-club','hunter-hides'] : level <= 5 ? ['obsidian-axe','bone-harness'] : ['tyrant-claw','white-titan-fur']
+      const stats = { ...getWarriorLevelStats('karg', level) }
+      for (const id of gear) for (const [key, value] of Object.entries(equipmentStats(id))) stats[key as keyof typeof stats] += value
+      const player: Fighter = { name: 'Karg', warriorId: 'karg', level, stats, skills: [], weapon: gear[0], armor: gear[1] }
       return Array.from({ length: 120 }, (_, index) => {
         const enemy = generateEnemy(campaignNodeTier(node), node, seededRng(node * 100003 + index))
         return simulateBattle(player, enemy, node * 100003 + index + 999).winner === 'player'

@@ -1,4 +1,3 @@
-import { campaignBaseXp } from './campaignProgression'
 import { addWarriorXp } from './game'
 import type { BattleResult, SaveData } from './types'
 import { recordBattleOutcome } from './victories'
@@ -27,10 +26,9 @@ export function canEnterAdventureNode(save: SaveData, mode: AdventureMode, node:
   return admin || node === progress.node || progress.defeated.includes(node)
 }
 
-export function campaignBattleReward(node: number, won: boolean, mode: AdventureMode) {
-  const multiplier = mode === 'nemesis' ? 1.8 : 1
-  const xp = Math.round(campaignBaseXp(node) * (won ? node === 20 ? 2.5 : [5, 10, 15].includes(node) ? 1.5 : 1 : .1))
-  return { xp: Math.round(xp * multiplier), coins: Math.round((won ? 50 : 10) * multiplier) }
+export function campaignBattleReward(_node: number, won: boolean, mode: AdventureMode, replay = false) {
+  const amount = mode === 'nemesis' ? won ? replay ? 10 : 50 : 10 : won ? replay ? 5 : 20 : 4
+  return { xp: amount, coins: won ? amount : 0 }
 }
 
 /** One atomic settlement: progress, shared daily counter and first-clear receipts change together. */
@@ -38,7 +36,7 @@ export function settleCampaignBattle(save: SaveData, mode: AdventureMode, node: 
   if (!Number.isInteger(node) || node < 1 || node > 20) throw new RangeError(`Invalid adventure node: ${node}`)
   const next = structuredClone(spendAdventure(save) ?? save)
   const won = winner === 'player'
-  const reward = campaignBattleReward(node, won, mode)
+  const reward = campaignBattleReward(node, won, mode, campaignProgress(save, mode).defeated.includes(node))
   next.coins += reward.coins
   addWarriorXp(next, reward.xp)
   recordBattleOutcome(next, 'adventure', winner)

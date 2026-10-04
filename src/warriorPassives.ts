@@ -10,18 +10,18 @@ const define = (warriorId: string, rows: readonly [WarriorPassiveDefinition['unl
   rows.map(([unlockLevel, name, description]) => ({ id: `${warriorId}-${unlockLevel}`, warriorId, name, unlockLevel, description }))
 
 export const warriorPassives: Record<string, readonly WarriorPassiveDefinition[]> = {
-  karg: define('karg', [[3,'Premier Sang','Sa première attaque réussie inflige 25 % de dégâts supplémentaires.'],[7,'Pression du chasseur','Ses coups consécutifs renforcent progressivement sa prochaine attaque.'],[10,'Coup de Grâce','Inflige 30 % de dégâts supplémentaires aux adversaires affaiblis.']]),
-  naya: define('naya', [[3,'Pas d’Ombre','Elle est particulièrement difficile à toucher lors du premier assaut.'],[7,'Tempo fantôme','Après le premier assaut, esquive renforcée ; chaque esquive accélère sa prochaine action et arme une riposte à +40 %.'],[10,'Embuscade décisive','Après une esquive, sa prochaine attaque réussie inflige 80 % de dégâts supplémentaires au lieu de 40 %.']]),
-  brakk: define('brakk', [[3,'Garde rocheuse','Réduit les dégâts de ses trois premiers impacts subis.'],[7,'Riposte du Bastion','12 % de chance de bloquer entièrement une attaque ; sa prochaine attaque réussie inflige alors +30 % de dégâts.'],[10,'Dernière Résistance','Sous 30 % de PV, il réduit fortement les trois prochains impacts.']]),
-  eyla: define('eyla', [[3,'Mise en joue','Sa première flèche réussie inflige 20 % de dégâts supplémentaires.'],[7,'Cadence précise','Chaque troisième attaque réussie déclenche un tir supplémentaire.'],[10,'Flèche fatale','Punit brutalement la première ouverture d’un adversaire affaibli.']]),
-  asha: define('asha', [[3,'Marque de Braise','Ses attaques accumulent jusqu’à trois charges de Braise.'],[7,'Foyer ardent','À trois Braises, sa prochaine attaque les consume pour provoquer une explosion.'],[10,'Crescendo incandescent','Ses détonations deviennent plus violentes et accélèrent son prochain sort.']]),
-  rhex: define('rhex', [[3,'Signal de meute','Chaque troisième attaque réussie appelle un raptor à l’assaut.'],[7,'Relais de meute','Les assauts de ses raptors accélèrent le rythme de la meute.'],[10,'Assaut coordonné','Ses deux raptors frappent ensemble lors des assauts de meute.']]),
-  ursak: define('ursak', [[3,'Fureur cavernicole','Les coups reçus alimentent la puissance de sa prochaine attaque.'],[7,'Endurance sous pression','Résiste davantage lorsqu’il combat sous la moitié de ses PV.'],[10,'Fureur ancestrale','À l’agonie, il entre dans une fureur qui augmente dégâts et cadence.']]),
-  saar: define('saar', [[3,'Pas félin','Chaque esquive le replace immédiatement dans le rythme du combat.'],[7,'Frénésie féline','Plus il frappe sans être touché, plus sa cadence augmente.'],[10,'Contre-attaque prédatrice','Après une esquive, sa prochaine attaque devient une contre-attaque prédatrice.']]),
-  morga: define('morga', [[3,'Garde d’Ivoire','Sa défense d’ivoire amortit ses quatre premiers impacts.'],[7,'Protection de la tribu','Sous 60 % de PV, elle renforce temporairement sa protection.'],[10,'Endurance de Matriarche','Au bord de la chute, elle récupère une partie de ses PV et durcit sa défense.']]),
-  vorka: define('vorka', [[3,'Entaille d’obsidienne','Ses coups peuvent provoquer un saignement persistant.'],[7,'Pression persistante','Ses attaques sont plus dangereuses contre une cible qui saigne.'],[10,'Coupure décisive','Achève brutalement une cible affaiblie déjà victime de son saignement.']]),
-  urgath: define('urgath', [[3,'Rempart glacial','Son corps titanesque réduit les dégâts de ses cinq premiers impacts.'],[7,'Froid écrasant','Ses coups ralentissent progressivement le rythme de son adversaire.'],[10,'Résilience du Titan','Sous 40 % de PV, sa résistance légendaire réduit fortement les dégâts reçus.']]),
-  tyrak: define('tyrak', [[3,'Présence primordiale','Sa présence impose sa domination dès les premiers échanges.'],[7,'Sursaut cristallin','Blessé, Tyrak réagit par un violent sursaut de puissance.'],[10,'Domination du Roi','Sous 35 % de PV, le Roi Primordial devient plus violent et plus difficile à abattre.']]),
+  karg: define('karg', [[3,"Premier Sang","Votre première attaque réussie inflige +25 % de dégâts."],[7,"Pression du chasseur","Chaque coup consécutif ajoute +6 % de dégâts au suivant (maximum +18 %). Une esquive adverse annule les charges."],[10,"Coup de Grâce","Infligez +30 % de dégâts aux cibles à 30 % de PV ou moins."]]),
+  naya: define('naya', [[3,"Pas d’Ombre","Votre chance d’esquiver le premier assaut est multipliée par 1,25 (plafond 35 %)."],[7,"Tempo fantôme","Après le premier assaut, esquive ×2 (plafond 35 %). Chaque esquive donne +30 % de cadence à la prochaine action et +40 % de dégâts au prochain coup réussi."],[10,"Embuscade décisive","Après une esquive, le prochain coup réussi inflige +60 % de dégâts au lieu de +40 %."]]),
+  brakk: define('brakk', [[3,"Garde rocheuse","Les 3 premiers coups reçus infligent −12 % de dégâts."],[7,"Riposte du Bastion","12 % de chance de bloquer entièrement une attaque. Le prochain coup réussi inflige alors +30 % de dégâts."],[10,"Dernière Résistance","À 30 % de PV ou moins, les 3 prochains coups reçus infligent −35 % de dégâts. Une fois par combat."]]),
+  eyla: define('eyla', [[3,"Mise en joue","Votre première attaque réussie inflige +20 % de dégâts."],[7,"Cadence précise","Chaque 3e attaque réussie ajoute un tir à 45 % des dégâts normaux. Ce tir ne déclenche pas vos passifs d’attaque."],[10,"Flèche fatale","Le premier coup réussi contre une cible à 50 % de PV ou moins inflige +40 % de dégâts."]]),
+  asha: define('asha', [[3,"Marque de Braise","Chaque coup réussi ajoute une Braise (maximum 3). Chaque Braise déjà présente ajoute +3 % de dégâts."],[7,"Foyer ardent","Avec 3 Braises, le prochain coup réussi les consume et inflige +30 % de dégâts."],[10,"Crescendo incandescent","Les détonations infligent +50 % au lieu de +30 % et donnent +20 % de cadence à la prochaine action."]]),
+  rhex: define('rhex', [[3,"Signal de meute","Chaque 3e attaque réussie ajoute une morsure à 35 % des dégâts normaux, sans déclencher vos passifs d’attaque."],[7,"Relais de meute","Chaque assaut de raptor donne +20 % de cadence à votre prochaine action."],[10,"Assaut coordonné","Chaque assaut ajoute 2 morsures à 30 % des dégâts normaux chacune, au lieu d’une à 35 %."]]),
+  ursak: define('ursak', [[3,"Fureur cavernicole","Chaque coup reçu ajoute +8 % de dégâts au prochain coup réussi (maximum 3 charges)."],[7,"Endurance sous pression","À 50 % de PV ou moins, recevez −15 % de dégâts."],[10,"Fureur ancestrale","À 30 % de PV ou moins, gagnez +20 % de dégâts et +15 % de cadence jusqu’à la fin du combat."]]),
+  saar: define('saar', [[3,"Pas félin","Chaque esquive donne +25 % de cadence à votre prochaine action."],[7,"Frénésie féline","Chaque coup réussi donne +5 % de cadence (maximum +15 %). Un coup reçu annule les charges."],[10,"Contre-attaque prédatrice","Après une esquive, le prochain coup réussi inflige +45 % de dégâts."]]),
+  morga: define('morga', [[3,"Garde d’Ivoire","Les 4 premiers coups reçus infligent −12 % de dégâts."],[7,"Protection de la tribu","À 60 % de PV ou moins, les 3 prochains coups reçus infligent −20 % de dégâts. Une fois par combat."],[10,"Endurance de Matriarche","À 25 % de PV ou moins, récupérez 15 % des PV maximum et recevez −15 % de dégâts jusqu’à la fin. Une fois par combat."]]),
+  vorka: define('vorka', [[3,"Entaille d’obsidienne","25 % de chance d’infliger un saignement : 10 % des dégâts du coup pendant 2 actions, sans cumul."],[7,"Pression persistante","Infligez +15 % de dégâts aux cibles qui saignent."],[10,"Coupure décisive","Le premier coup contre une cible qui saigne à 40 % de PV ou moins inflige +45 % de dégâts et consume le saignement."]]),
+  urgath: define('urgath', [[3,"Rempart glacial","Les 5 premiers coups reçus infligent −12 % de dégâts."],[7,"Froid écrasant","Chaque coup réussi réduit la cadence adverse de 5 % (maximum −15 %)."],[10,"Résilience du Titan","À 40 % de PV ou moins, recevez −20 % de dégâts."]]),
+  tyrak: define('tyrak', [[3,"Présence primordiale","Les 3 premiers coups reçus infligent −10 % de dégâts."],[7,"Sursaut cristallin","À 65 % de PV ou moins, gagnez +35 % de cadence à la prochaine action et +30 % de dégâts au prochain coup réussi. Une fois par combat."],[10,"Domination du Roi","À 35 % de PV ou moins, gagnez +25 % de dégâts et recevez −12 % de dégâts jusqu’à la fin du combat."]]),
 }
 
 export const getWarriorPassives = (warriorId: string): readonly WarriorPassiveDefinition[] => warriorPassives[warriorId] ?? []
@@ -80,7 +80,7 @@ export class WarriorPassiveRuntime {
     if (this.warriorId !== 'naya' || !this.has(3)) return base
     if (first) return Math.min(cap, base * 1.25)
     // Tempo fantôme is her sustained dodge tool; the global dodge cap still applies.
-    return this.has(7) ? Math.min(cap, base * 2.6) : base
+    return this.has(7) ? Math.min(cap, base * 2) : base
   }
   onDodge() {
     if (this.warriorId === 'naya' && this.has(7)) { this.credit(.30); this.counterReady = true }
@@ -146,7 +146,7 @@ export class WarriorPassiveRuntime {
         break
       case 'naya':
         if (this.has(7) && this.counterReady) {
-          multiplier *= this.has(10) ? 1.80 : 1.40
+          multiplier *= this.has(10) ? 1.60 : 1.40
           this.counterReady = false
           labels.push(this.has(10) ? 'Embuscade décisive' : 'Tempo fantôme')
         }
@@ -161,6 +161,7 @@ export class WarriorPassiveRuntime {
         break
       case 'asha':
         if (this.has(3)) {
+          if (!(this.has(7) && this.braise === 3)) multiplier *= 1 + .03 * this.braise
           if (this.has(7) && this.braise === 3) {
             multiplier *= this.has(10) ? 1.50 : 1.30
             this.braise = 0

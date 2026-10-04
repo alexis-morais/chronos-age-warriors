@@ -18,6 +18,7 @@ export interface EquipmentDefinition {
   bonus: string
   effect: string
   art: string
+  stats: Partial<Stats>
 }
 
 /** Quantity includes the equipped copy. Legacy progression fields remain for old saves. */
@@ -85,6 +86,7 @@ export interface SaveData {
   expeditionReturn: ExpeditionReturn | null
   equipmentChestCount: number
   warriorChestCount: number
+  pendingWarriorRecycles?: { id: string; warriorId: string }[]
   speed: BattleSpeed
   badges: BadgeState[]
   /** Read only while migrating pre-V1 saves. */ pendingLevelChoice?: boolean

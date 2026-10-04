@@ -44,7 +44,7 @@ describe('registre des 36 passifs uniques', () => {
     expect(getNewlyUnlockedWarriorPassives('karg', before, save.ownedWarriors.karg.level).map(({ name }) => name)).toEqual(['Premier Sang'])
     expect(JSON.stringify(save)).not.toContain('passive1Unlocked')
     const nextBefore = save.ownedWarriors.karg.level
-    addWarriorXp(save, 280)
+    addWarriorXp(save, 300)
     expect(save.ownedWarriors.karg.level).toBe(4)
     expect(getNewlyUnlockedWarriorPassives('karg', nextBefore, save.ownedWarriors.karg.level)).toEqual([])
   })
@@ -75,7 +75,7 @@ describe('effets offensifs et tempo', () => {
 
     const levelSeven = new WarriorPassiveRuntime('naya', 7)
     expect(levelSeven.dodgeChance(.10, .35)).toBeCloseTo(.125)
-    expect(levelSeven.dodgeChance(.10, .35)).toBeCloseTo(.26)
+    expect(levelSeven.dodgeChance(.10, .35)).toBeCloseTo(.20)
     expect(levelSeven.dodgeChance(.30, .35)).toBe(.35)
     levelSeven.onDodge()
     expect(levelSeven.actionRateMultiplier()).toBeCloseTo(1.30)
@@ -90,14 +90,14 @@ describe('effets offensifs et tempo', () => {
     levelTen.onDodge()
     levelTen.onDodge()
     expect(levelTen.actionRateMultiplier()).toBeCloseTo(1.60)
-    expect(hit(levelTen).multiplier).toBeCloseTo(1.80) // Replaces +40 %, never adds to it.
+    expect(hit(levelTen).multiplier).toBeCloseTo(1.60) // +60 % replaces +40 %, never stacks.
     expect(hit(levelTen).multiplier).toBe(1)
     const nextBattle = new WarriorPassiveRuntime('naya', 10)
     expect(nextBattle.counterReady).toBe(false)
     expect(nextBattle.actionRateMultiplier()).toBe(1)
     expect(hit(nextBattle).multiplier).toBe(1)
     expect(getWarriorPassives('naya')[1].description).toContain('40 %')
-    expect(getWarriorPassives('naya')[2].description).toContain('80 %')
+    expect(getWarriorPassives('naya')[2].description).toContain('60 %')
   })
 
   it('Eyla : premier hit, troisième tir non récursif et flèche fatale unique', () => {

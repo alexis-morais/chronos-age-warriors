@@ -20,7 +20,7 @@ describe('Karg dans le Hub et la Collection', () => {
     expect(hero.querySelector('img')?.getAttribute('src')).toBe(KARG.art)
     expect(hero.querySelector('.hero-name')?.textContent).toContain('Karg')
     expect(hero.querySelector('.hero-name')?.textContent).toContain('Ravageur')
-    expect([...hero.querySelectorAll('.warrior-stat')].map((stat) => stat.textContent)).toEqual(['PV110', 'Force11', 'Esquive8', 'Vitesse10'])
+    expect([...hero.querySelectorAll('.warrior-stat')].map((stat) => stat.textContent)).toEqual(['PV140', 'Force14', 'Esquive8', 'Vitesse10']) // Massue +3 et peaux +30, comme en combat.
     expect(hero.querySelector('.warrior-card .warrior-level-badge')?.textContent).toBe('1')
   })
 

@@ -15,7 +15,7 @@ function GachaCard({ warrior, winner }: { warrior: WarriorDefinition; winner: bo
 }
 
 /** Shared reveal for a paid single draw and the free welcome chest. */
-export function WarriorGacha({ warrior, duplicate, welcome = false, source = 'warrior', onContinue }: { warrior: WarriorDefinition; duplicate: boolean; welcome?: boolean; source?: 'warrior' | 'rift'; onContinue: () => void }) {
+export function WarriorGacha({ warrior, duplicate, welcome = false, source = 'warrior', onContinue, onRecycle, recycleSummary }: { warrior: WarriorDefinition; duplicate: boolean; welcome?: boolean; source?: 'warrior' | 'rift'; onContinue: () => void; onRecycle?: () => void; recycleSummary?: string }) {
   const [reel] = useState(() => createWarriorReel(warrior, Math.random))
   const [spinning, setSpinning] = useState(true)
   const revealed = useRef(false)
@@ -51,8 +51,8 @@ export function WarriorGacha({ warrior, duplicate, welcome = false, source = 'wa
         <div className="gacha-roulette-track">{reel.map((entry, index) => <GachaCard key={`${entry.id}-${index}`} warrior={entry} winner={!spinning && index === WARRIOR_WINNER_INDEX}/>)}</div>
       </button>
       {spinning ? <p className="gacha-skip-hint">Toucher ou cliquer pour passer</p> : <>
-        <div className="gacha-winner-copy" role="status"><strong>{warrior.name}</strong><span className={rarityClass(warrior.rarity)}>{warrior.rarity}</span><small>{duplicate ? 'Doublon' : 'Nouveau'}</small></div>
-        <div className="chest-result-actions"><button className="primary" type="button" onClick={onContinue} autoFocus>{welcome ? 'ENTRER DANS LE HUB' : 'CONTINUER'}</button></div>
+        <div className="gacha-winner-copy" role="status"><strong>{warrior.name}</strong><span className={rarityClass(warrior.rarity)}>{warrior.rarity}</span><small>{duplicate ? recycleSummary ? 'RECYCLÉ' : 'DÉJÀ POSSÉDÉ' : 'Nouveau'}</small>{recycleSummary && <p>{recycleSummary}</p>}</div>
+        <div className="chest-result-actions"><button className="primary" type="button" onClick={duplicate && onRecycle && !recycleSummary ? onRecycle : onContinue} autoFocus>{duplicate && onRecycle && !recycleSummary ? 'RECYCLER' : welcome ? 'ENTRER DANS LE HUB' : 'CONTINUER'}</button></div>
       </>}
     </section>
   </div>

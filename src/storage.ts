@@ -29,6 +29,7 @@ export function freshSave(): SaveData {
     totalWins: 0, adventureWins: 0, riftWins: 0, duelWins: 0, chests: 0,
     riftChestCount: 0, riftLossStreak: 0, riftRun: null, expedition: null, expeditionReturn: null,
     equipmentChestCount: 0, warriorChestCount: 0, speed: 1, badges: [],
+    pendingWarriorRecycles: [],
     lastReset: localDate(),
   }
 }
@@ -63,17 +64,15 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     const isUnopenedNewSave = parsed.activeWarriorId === '' && Object.keys(parsed.ownedWarriors ?? {}).length === 0 && parsed.welcomeChestOpened === false
     if ((!hasWarrior && !isUnopenedNewSave) || !Array.isArray(parsed.unlockedSkills)) return freshSave()
     if (parsed.version === 2) {
-      for (const id of Object.keys(parsed.ownedWarriors)) parsed.ownedWarriors[id] = { warriorId: id, level: 1, xp: 0 }
       parsed.unlockedSkills = []
       delete parsed.pendingLevelChoice
-    } else {
-      for (const warrior of Object.values(parsed.ownedWarriors)) {
-        delete warrior.bonusStats
-        warrior.level = Number.isInteger(warrior.level) ? Math.min(MAX_WARRIOR_LEVEL, Math.max(1, warrior.level)) : 1
-        warrior.xp = warrior.level === MAX_WARRIOR_LEVEL ? 0 : Number.isInteger(warrior.xp) && warrior.xp >= 0 ? Math.min(warrior.xp, xpForLevel(warrior.level) - 1) : 0
-      }
-      delete parsed.pendingLevelChoice
     }
+    for (const warrior of Object.values(parsed.ownedWarriors)) {
+      delete warrior.bonusStats
+      warrior.level = Number.isInteger(warrior.level) ? Math.min(MAX_WARRIOR_LEVEL, Math.max(1, warrior.level)) : 1
+      warrior.xp = warrior.level === MAX_WARRIOR_LEVEL ? 0 : Number.isInteger(warrior.xp) && warrior.xp >= 0 ? Math.min(warrior.xp, xpForLevel(warrior.level) - 1) : 0
+    }
+    delete parsed.pendingLevelChoice
     parsed.welcomeChestOpened = hasWarrior ? true : false
     // Old Entraînement counters are not converted into another mode.
     const legacyTraining = parsed as SaveData & { trainingRemaining?: number; trainingWins?: number }
@@ -101,6 +100,13 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     parsed.riftLossStreak = Number.isSafeInteger(parsed.riftLossStreak) && parsed.riftLossStreak >= 0 ? parsed.riftLossStreak : 0
     parsed.equipmentChestCount = Number.isSafeInteger(parsed.equipmentChestCount) && parsed.equipmentChestCount >= 0 ? parsed.equipmentChestCount : 0
     parsed.warriorChestCount = Number.isSafeInteger(parsed.warriorChestCount) && parsed.warriorChestCount >= 0 ? parsed.warriorChestCount : 0
+    const recycleIds = new Set<string>()
+    parsed.pendingWarriorRecycles = Array.isArray(parsed.pendingWarriorRecycles) ? parsed.pendingWarriorRecycles.filter((receipt) => {
+      if (!receipt || typeof receipt.id !== 'string' || !receipt.id || recycleIds.has(receipt.id)
+        || !warriorDefinitions[receipt.warriorId] || !parsed.ownedWarriors[receipt.warriorId]) return false
+      recycleIds.add(receipt.id)
+      return true
+    }) : []
     const expedition = parsed.expedition
     parsed.expedition = expedition && Boolean(parsed.ownedWarriors[expedition.warriorId])
       && Number.isSafeInteger(expedition.startedAt) && expedition.startedAt > 0

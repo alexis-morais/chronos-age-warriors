@@ -91,7 +91,7 @@ function WelcomeChest({ onClaim, onDone }: { onClaim: (warriorId: string) => voi
 
 function Hub({ save, setView }: { save: SaveData; setView: (view: View) => void }) {
   const warrior = activeWarrior(save)
-  const stats = warrior.stats
+  const stats = effectiveStats(save)
   const weapon = equipment.find((item) => item.id === save.equippedWeapon), armor = equipment.find((item) => item.id === save.equippedArmor)
   const passives = getWarriorPassives(warrior.id)
   const unlockedCount = passives.filter((passive) => warrior.level >= passive.unlockLevel).length
@@ -273,6 +273,7 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
         riftChest: won && active.node === 5 })
       setSave(next)
       setSettled(true)
+      if (!won) onExit()
       return
     }
     const mode = active.mode === 'nemesis' ? 'nemesis' : 'normal'

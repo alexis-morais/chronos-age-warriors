@@ -87,36 +87,36 @@ describe('Expédition — tables et récompenses', () => {
     expect(rollExpeditionRewards(0, () => 0)).toMatchObject({ xp: 0, coins: 0 })
   })
 
-  it('donne un roll par quatre heures complètes, 60 % de trouvaille', () => {
-    for (const [elapsed, expected] of [[3 * hour + 59 * 60_000, 0], [4 * hour, 1], [7 * hour + 59 * 60_000, 1], [8 * hour, 2], [12 * hour, 3], [24 * hour, 6]]) {
+  it('donne un roll par six heures complètes, 35 % de trouvaille', () => {
+    for (const [elapsed, expected] of [[5 * hour + 59 * 60_000, 0], [6 * hour, 1], [11 * hour + 59 * 60_000, 1], [12 * hour, 2], [18 * hour, 3], [24 * hour, 4]]) {
       expect(Math.floor(elapsed / EXPEDITION_ROLL_MS)).toBe(expected)
-      expect(rollExpeditionRewards(elapsed, () => 0.6).equipmentIds).toHaveLength(0)
-      expect(rollExpeditionRewards(elapsed, () => 0.59).equipmentIds).toHaveLength(expected)
+      expect(rollExpeditionRewards(elapsed, () => 0.35).equipmentIds).toHaveLength(0)
+      expect(rollExpeditionRewards(elapsed, () => 0.34).equipmentIds).toHaveLength(expected)
     }
   })
 
-  it('utilise exclusivement les 15 objets et les six raretés existants, avec progression qualitative', () => {
+  it('utilise exclusivement les 20 objets et les six raretés existants, avec progression qualitative', () => {
     const short = expeditionRarityWeights(4 * hour)
     const long = expeditionRarityWeights(24 * hour)
     expect(short.find(([rarity]) => rarity === 'Mythique')).toBeUndefined()
-    expect(long.find(([rarity]) => rarity === 'Mythique')?.[1]).toBe(1)
+    expect(long.find(([rarity]) => rarity === 'Mythique')?.[1]).toBe(.01)
     expect(long.find(([rarity]) => rarity === 'Commun')?.[1]).toBeLessThan(short.find(([rarity]) => rarity === 'Commun')![1])
-    expect(rollExpeditionRewards(24 * hour, () => 0).equipmentIds).toHaveLength(6)
+    expect(rollExpeditionRewards(24 * hour, () => 0).equipmentIds).toHaveLength(4)
   })
 
   it('scale les deux chances de coffre indépendamment et accepte les quatre issues', () => {
-    expect(expeditionChestChances(6 * hour)).toEqual({ equipment: 0.05, warrior: 0.0125 })
-    expect(expeditionChestChances(12 * hour)).toEqual({ equipment: 0.1, warrior: 0.025 })
-    expect(expeditionChestChances(48 * hour)).toEqual({ equipment: 0.2, warrior: 0.05 })
+    expect(expeditionChestChances(6 * hour)).toEqual({ equipment: 0.025, warrior: 0.005 })
+    expect(expeditionChestChances(12 * hour)).toEqual({ equipment: 0.05, warrior: 0.01 })
+    expect(expeditionChestChances(48 * hour)).toEqual({ equipment: 0.1, warrior: 0.02 })
     const outcome = (equipmentRoll: number, warriorRoll: number) => {
-      const values = [0.5, 0.5, ...Array(6).fill(0.99), equipmentRoll, warriorRoll]
+      const values = [0.5, 0.5, ...Array(4).fill(0.99), equipmentRoll, warriorRoll]
       let index = 0
       return rollExpeditionRewards(24 * hour, () => values[index++])
     }
     expect(outcome(0.9, 0.9)).toMatchObject({ equipmentChest: false, warriorChest: false })
-    expect(outcome(0.1, 0.9)).toMatchObject({ equipmentChest: true, warriorChest: false })
+    expect(outcome(0.09, 0.9)).toMatchObject({ equipmentChest: true, warriorChest: false })
     expect(outcome(0.9, 0.01)).toMatchObject({ equipmentChest: false, warriorChest: true })
-    expect(outcome(0.1, 0.01)).toMatchObject({ equipmentChest: true, warriorChest: true })
+    expect(outcome(0.09, 0.01)).toMatchObject({ equipmentChest: true, warriorChest: true })
   })
 
   it('règle une seule fois, crédite le Warrior envoyé, les doublons, les coffres hors Faille et garde un reçu', () => {
@@ -127,7 +127,7 @@ describe('Expédition — tables et récompenses', () => {
     expect(next.expedition).toBeNull()
     expect(next.expeditionReturn).toMatchObject({ elapsedMs: 24 * hour, xp: 540, coins: 315, equipmentChest: true, warriorChest: true })
     expect(next.ownedWarriors.karg.level).toBeGreaterThan(save.ownedWarriors.karg.level)
-    expect(next.owned['flint-club'].quantity).toBe(8)
+    expect(next.owned['flint-club'].quantity).toBe(6)
     expect(next.equipmentChestCount).toBe(1)
     expect(next.warriorChestCount).toBe(1)
     expect(next.riftChestCount).toBe(save.riftChestCount)

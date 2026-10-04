@@ -1,8 +1,8 @@
-import { GAME, RARITY_CHANCES, rarityOrder } from './config'
+import { EQUIPMENT_CHANCES, GAME, RARITY_CHANCES, rarityOrder, rarityWeights } from './config'
 import { equipment } from './data'
 import type { BattleResult, Fighter, OwnedEquipment, Rarity, SaveData, Stats } from './types'
-import { activeWarrior, primalWarriors, warriorDefinitions } from './warriors'
-import { xpForLevel } from './warriorProgression'
+import { ownedWarrior, primalWarriors, warriorDefinitions } from './warriors'
+import { getWarriorLevelStats, xpForLevel } from './warriorProgression'
 import { WarriorPassiveRuntime } from './warriorPassives'
 import { primalEnemyStats } from './primalEnemyBalance'
 export { xpForLevel } from './warriorProgression'
@@ -25,22 +25,7 @@ export const dodgeChance = (dodge: number) => Math.min(GAME.dodgeCap, GAME.dodge
 export const speedWeight = (speed: number) => (speed + GAME.speedOffset) ** GAME.speedExponent
 
 export function equipmentStats(id: string): Partial<Stats> {
-  const stats: Partial<Stats> = {}
-  const add = (key: keyof Stats, value: number) => { stats[key] = (stats[key] ?? 0) + value }
-  if (id === 'flint-club') add('strength', 1)
-  if (id === 'bone-spear') add('speed', 1)
-  if (['obsidian-axe', 'bone-harness'].includes(id)) { add('strength', 1); add('hp', 5) }
-  if (id === 'hunter-bow') { add('speed', 1); add('hp', 5) }
-  if (id === 'smilodon-fangs') { add('strength', 1); add('speed', 1) }
-  if (['mammoth-spear', 'mammoth-plate'].includes(id)) { add('strength', 1); add('hp', 10) }
-  if (id === 'volcanic-hammer') { add('strength', 2); add('hp', 5) }
-  if (id === 'volcanic-shell') { add('strength', 1); add('hp', 15) }
-  if (id === 'tyrant-claw') { add('strength', 2); add('speed', 1) }
-  if (id === 'titan-heart') { add('strength', 2); add('speed', 1); add('hp', 5) }
-  if (id === 'hunter-hides') add('hp', 10)
-  if (id === 'white-titan-fur') { add('strength', 1); add('hp', 20) }
-  if (id === 'primordial-titan-skin') { add('dodge', 1); add('hp', 25) }
-  return stats
+  return { ...equipment.find((item) => item.id === id)?.stats }
 }
 
 export function compareEquipmentStats(candidateId: string, currentId: string) {
@@ -107,17 +92,24 @@ export function claimWelcomeWarrior(save: SaveData, warriorId: string): SaveData
   return next
 }
 
-export function effectiveStats(save: SaveData): Stats {
-  const result = { ...activeWarrior(save).stats }
-  const apply = (id: string) => {
-    const owned = save.owned[id]
-    if (!owned) return
+/** Static bonuses only, once. Shared by UI, combat preparation and simulations. */
+export function getEffectiveWarriorStats(warriorId: string, level: number, weapon = '', armor = ''): Stats {
+  const result = getWarriorLevelStats(warriorId, level)
+  for (const id of [weapon, armor]) {
     const bonuses = equipmentStats(id)
     for (const [key, value] of Object.entries(bonuses) as [keyof Stats, number][]) result[key] += value
   }
-  apply(save.equippedWeapon)
-  apply(save.equippedArmor)
   return result
+}
+
+/** Active mirrors preserve legacy saves and local QA overrides; other Warriors use their own preset. */
+export function effectiveStats(save: SaveData, warriorId = save.activeWarriorId): Stats {
+  const warrior = ownedWarrior(save, warriorId)
+  const loadout = warriorId === save.activeWarriorId
+    ? { weapon: save.equippedWeapon, armor: save.equippedArmor }
+    : save.loadouts[warriorId] ?? { weapon: '', armor: '' }
+  return getEffectiveWarriorStats(warriorId, warrior.level,
+    save.owned[loadout.weapon] ? loadout.weapon : '', save.owned[loadout.armor] ? loadout.armor : '')
 }
 
 function owns(fighter: Fighter, skill: string) { return fighter.skills.includes(skill) }
@@ -172,10 +164,24 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
     const target = actor === 'player' ? 'enemy' : 'player'
     const attacker = actor === 'player' ? player : enemy
     const defender = actor === 'player' ? enemy : player
+    const receiveDamage = (value: number) => {
+      if (target === 'player') playerHp -= value; else enemyHp -= value
+      events.push({ type: 'damage', actor, target, value, ...hp() })
+      const remaining = target === 'player' ? playerHp : enemyHp
+      const reaction = targetPassives.onDamageTaken(remaining, defender.stats.hp)
+      if (reaction.heal > 0) {
+        const beforeHeal = Math.max(0, remaining)
+        const healed = Math.min(defender.stats.hp, beforeHeal + reaction.heal)
+        if (target === 'player') playerHp = healed; else enemyHp = healed
+        events.push({ type: 'heal', actor: target, target, value: healed - beforeHeal, label: 'Endurance de Matriarche', ...hp() })
+      }
+      for (const label of reaction.labels) events.push({ type: 'skill', actor: target, target, label, ...hp() })
+      targetPassives.updateThresholds(target === 'player' ? playerHp : enemyHp, defender.stats.hp)
+    }
     const attackCount = actor === 'player' ? ++playerAttacks : ++enemyAttacks
     events.push({ type: 'attack', actor, target, ...hp() })
 
-    const hitChance = owns(attacker, 'Précision') ? 0.05 : 0
+    const hitChance = (owns(attacker, 'Précision') ? 0.05 : 0) + (attacker.weapon === 'hunter-bow' ? .03 : 0)
     const baseDodge = Math.max(0, dodgeChance(defender.stats.dodge) - hitChance)
     const finalDodge = targetPassives.dodgeChance(baseDodge, GAME.dodgeCap)
     if (rng() < finalDodge) {
@@ -196,11 +202,12 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
     if (owns(attacker, 'Opportuniste') && (target === 'player' ? playerHp / player.stats.hp : enemyHp / enemy.stats.hp) < 0.3) damage *= 1.25
     if (attacker.weapon === 'flint-club' && rng() < 0.05) damage *= 1.2
     if (attacker.weapon === 'bone-spear' && attackCount === 1) damage *= 1.1
+    if (attacker.weapon === 'storm-javelin' && attackCount === 1) damage *= 1.2
     if (attacker.weapon === 'tyrant-claw' && rng() < 0.12) damage *= 1.5
     if (attacker.weapon === 'titan-heart' && rng() < 0.07) damage *= 1.8
     const normalAttackDamage = damage
     const crit = rng() < GAME.criticalChance + (owns(attacker, 'Élan') ? 0.03 : 0)
-    if (crit) { damage *= GAME.criticalMultiplier; events.push({ type: 'critical', actor, target, label: 'Critique', ...hp() }) }
+    if (crit) { damage *= defender.armor === 'mammoth-plate' ? 1 + (GAME.criticalMultiplier - 1) * .8 : GAME.criticalMultiplier; events.push({ type: 'critical', actor, target, label: 'Critique', ...hp() }) }
     const targetHpBefore = target === 'player' ? playerHp : enemyHp
     const targetBleeding = target === 'player' ? enemyVorkaBleedTicks > 0 || playerBleed > 0 : vorkaBleedTicks > 0 || enemyBleed > 0
     const passiveHit = attacker.warriorId ? actorPassives.onSuccessfulAttack(targetHpBefore, defender.stats.hp, targetBleeding, rng) : null
@@ -209,30 +216,24 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
       for (const label of passiveHit.labels) events.push({ type: 'skill', actor, target, label, ...hp() })
       if (passiveHit.consumeBleed) { if (target === 'player') { enemyVorkaBleedTicks = 0; playerBleed = 0 } else { vorkaBleedTicks = 0; enemyBleed = 0 } }
     }
+    const pierce = attacker.weapon === 'mammoth-spear' && rng() < .10
+    if (pierce && crit && defender.armor === 'mammoth-plate') damage *= GAME.criticalMultiplier / (1 + (GAME.criticalMultiplier - 1) * .8)
     const offensiveDamage = damage
+    if (!pierce) {
     if (owns(defender, 'Peau Dure')) damage *= 0.9
     if (owns(defender, 'Parade') && rng() < 0.1) { damage *= 0.55; events.push({ type: 'skill', actor: target, target: actor, label: 'Parade', ...hp() }) }
-    if (defender.armor === 'hunter-hides' && attackCount === 1) damage *= 0.95
+    if (['hunter-hides', 'reed-mantle'].includes(defender.armor ?? '') && targetPassives.receivedHits === 0) damage *= 0.95
+    if (defender.armor === 'raptor-scales' && targetPassives.receivedHits === 0) damage *= .90
+    if (defender.armor === 'smilodon-cloak' && targetPassives.receivedHits === 0) damage *= .85
     if (defender.armor === 'bone-harness' && rng() < 0.05) damage *= 0.75
     if (defender.armor === 'white-titan-fur' && (target === 'player' ? playerHp / player.stats.hp : enemyHp / enemy.stats.hp) > 0.5) damage *= 0.92
-    if (defender.armor === 'primordial-titan-skin' && attackCount <= 3) damage *= 0.8
+    if (defender.armor === 'primordial-titan-skin' && targetPassives.receivedHits < 3) damage *= 0.8
+    if (defender.armor === 'ancestor-guard' && targetPassives.receivedHits < 3) damage *= .85
     damage *= targetPassives.incomingMultiplier(targetHpBefore, defender.stats.hp)
+    }
     const bonusStrikeBasis = normalAttackDamage * damage / offensiveDamage
     damage = Math.max(1, Math.round(damage))
-    if (target === 'player') playerHp -= damage; else enemyHp -= damage
-    events.push({ type: 'damage', actor, target, value: damage, ...hp() })
-    {
-      const targetHpAfter = target === 'player' ? playerHp : enemyHp
-      const reaction = targetPassives.onDamageTaken(targetHpAfter, defender.stats.hp)
-      if (reaction.heal > 0) {
-        const beforeHeal = Math.max(0, targetHpAfter)
-        const healed = Math.min(defender.stats.hp, beforeHeal + reaction.heal)
-        if (target === 'player') playerHp = healed; else enemyHp = healed
-        events.push({ type: 'heal', actor: target, target, value: healed - beforeHeal, label: 'Endurance de Matriarche', ...hp() })
-      }
-      for (const label of reaction.labels) events.push({ type: 'skill', actor: target, target, label, ...hp() })
-      targetPassives.updateThresholds(target === 'player' ? playerHp : enemyHp, defender.stats.hp)
-    }
+    receiveDamage(damage)
     if (passiveHit?.applyBleed && (target === 'player' ? playerHp > 0 : enemyHp > 0)) {
       if (target === 'player') { enemyVorkaBleedTicks = 2; enemyVorkaBleedDamage = Math.max(1, Math.round(damage * .10)) }
       else { vorkaBleedTicks = 2; vorkaBleedDamage = Math.max(1, Math.round(damage * .10)) }
@@ -242,8 +243,7 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
         if (target === 'player' ? playerHp <= 0 : enemyHp <= 0) break
         const extraDamage = Math.max(1, Math.round(bonusStrikeBasis * portion))
         events.push({ type: 'attack', actor, target, label: 'Coup supplémentaire', ...hp() })
-        if (target === 'player') playerHp -= extraDamage; else enemyHp -= extraDamage
-        events.push({ type: 'damage', actor, target, value: extraDamage, ...hp() })
+        receiveDamage(extraDamage)
       }
     }
     if (owns(attacker, 'Vampirisme')) {
@@ -251,14 +251,25 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
       if (actor === 'player') playerHp = Math.min(player.stats.hp, playerHp + heal); else enemyHp = Math.min(enemy.stats.hp, enemyHp + heal)
       events.push({ type: 'heal', actor, target: actor, value: heal, label: 'Vampirisme', ...hp() })
     }
-    const bleedChance = owns(attacker, 'Saignement') ? 0.12 : attacker.weapon === 'obsidian-axe' ? 0.06 : 0
-    if (rng() < bleedChance) { if (target === 'player') playerBleed = 2; else enemyBleed = 2; events.push({ type: 'skill', actor, target, label: 'Saignement', ...hp() }) }
+    const bleedChance = owns(attacker, 'Saignement') ? 0.12 : attacker.weapon === 'obsidian-axe' ? 0.06 : attacker.weapon === 'volcanic-hammer' ? .10 : 0
+    if (rng() < bleedChance) { if (target === 'player') playerBleed = 2; else enemyBleed = 2; events.push({ type: 'skill', actor, target, label: attacker.weapon === 'volcanic-hammer' ? 'Brûlure' : 'Saignement', ...hp() }) }
+    if (defender.armor === 'volcanic-shell' && rng() < .10) {
+      if (actor === 'player') playerBleed = 2; else enemyBleed = 2
+      events.push({ type: 'skill', actor: target, target: actor, label: 'Brûlure', ...hp() })
+    }
     if (playerBleed > 0) { playerHp -= 3; playerBleed -= 1; events.push({ type: 'bleed', actor: 'enemy', target: 'player', value: 3, ...hp() }) }
     if (enemyBleed > 0) { enemyHp -= 3; enemyBleed -= 1; events.push({ type: 'bleed', actor: 'player', target: 'enemy', value: 3, ...hp() }) }
     if (playerHp <= 0 && owns(player, 'Second Souffle') && !playerSecondWind) { playerHp = Math.round(player.stats.hp * 0.18); playerSecondWind = true; events.push({ type: 'heal', actor: 'player', target: 'player', value: playerHp, label: 'Second Souffle', ...hp() }) }
     if (enemyHp <= 0 && owns(enemy, 'Second Souffle') && !enemySecondWind) { enemyHp = Math.round(enemy.stats.hp * 0.18); enemySecondWind = true; events.push({ type: 'heal', actor: 'enemy', target: 'enemy', value: enemyHp, label: 'Second Souffle', ...hp() }) }
     const extra = owns(attacker, 'Double Frappe') ? 0.1 : attacker.weapon === 'smilodon-fangs' ? 0.08 : 0
-    if (rng() < extra && playerHp > 0 && enemyHp > 0) previous = null
+    if (rng() < extra && playerHp > 0 && enemyHp > 0) {
+      const extraDamage = Math.max(1, Math.round(bonusStrikeBasis * .5))
+      events.push({ type: 'attack', actor, target, label: 'Coup supplémentaire', ...hp() })
+      receiveDamage(extraDamage)
+      // A lethal equipment bonus must not bypass the defender's one-use revive.
+      if (playerHp <= 0 && owns(player, 'Second Souffle') && !playerSecondWind) { playerHp = Math.round(player.stats.hp * .18); playerSecondWind = true; events.push({ type: 'heal', actor: 'player', target: 'player', value: playerHp, label: 'Second Souffle', ...hp() }) }
+      if (enemyHp <= 0 && owns(enemy, 'Second Souffle') && !enemySecondWind) { enemyHp = Math.round(enemy.stats.hp * .18); enemySecondWind = true; events.push({ type: 'heal', actor: 'enemy', target: 'enemy', value: enemyHp, label: 'Second Souffle', ...hp() }) }
+    }
   }
   const winner = enemyHp <= 0 ? 'player' : 'enemy'
   events.push({ type: 'ko', actor: winner, target: winner === 'player' ? 'enemy' : 'player', label: 'K.O.', ...hp() })
@@ -276,16 +287,18 @@ export function generateEnemy(_level: number, node: number, rng: Rng = Math.rand
   }
 }
 
-export function rollRarity(rng: Rng): Rarity {
-  const roll = rng() * 100
+export function rollRarity(rng: Rng, chances = RARITY_CHANCES): Rarity {
+  const roll = Math.min(9999, Math.floor(rng() * 10000))
+  const weights = rarityWeights(chances)
   let total = 0
-  for (const rarity of rarityOrder) { total += RARITY_CHANCES[rarity]; if (roll < total) return rarity }
+  for (const [index, rarity] of rarityOrder.entries()) { total += weights[index]; if (roll < total) return rarity }
   return 'Mythique'
 }
 
 export function rollChest(rng: Rng, owned: Record<string, OwnedEquipment>) {
-  const rarity = rollRarity(rng)
-  const pool = equipment.filter((item) => item.rarity === rarity)
+  const type = rng() < .5 ? 'weapon' : 'armor'
+  const rarity = rollRarity(rng, EQUIPMENT_CHANCES)
+  const pool = equipment.filter((item) => item.type === type && item.rarity === rarity)
   const item = pool[Math.floor(rng() * pool.length)]
   const duplicate = Boolean(owned[item.id])
   return { kind: 'equipment' as const, item, duplicate }

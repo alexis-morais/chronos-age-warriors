@@ -22,7 +22,7 @@ describe('indicateurs d’équipement du Hub', () => {
     expect(slots.querySelectorAll('img')[1].getAttribute('src')).toBe('/assets/icons/collection/armor.png')
     expect(slots.textContent).toContain('Massue de silex')
     expect(slots.textContent).toContain('Peaux du chasseur')
-    expect(slots.textContent).toContain('+1 Force')
+    expect(slots.textContent).toContain('+3 Force')
     expect(slots.querySelectorAll('button')).toHaveLength(0)
     expect(slots.querySelector('[title]')).toBeNull()
     expect(container.querySelector('.gear-gallery,.mobile-gear,.equipment-card')).toBeNull()

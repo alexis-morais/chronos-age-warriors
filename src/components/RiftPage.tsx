@@ -65,15 +65,15 @@ export function RiftPage({ save, setSave, onExpeditionCommit = setSave, setView,
     <header className="activities-heading"><h1>Faille</h1></header>
     <div className="activities-tabs" role="tablist" aria-label="Modes de la Faille"><button role="tab" aria-selected={tab === 'rift'} className={tab === 'rift' ? 'active' : ''} onClick={() => setTab('rift')}>Faille</button><button role="tab" aria-selected={tab === 'expedition'} className={tab === 'expedition' ? 'active' : ''} onClick={() => setTab('expedition')}>Expédition</button></div>
     {tab === 'expedition' ? <ExpeditionPage save={save} onCommit={onExpeditionCommit} now={now.getTime()} admin={admin}/>
-      : !entered && (!run || run.status === 'ready') ? <section className="rift-entry">
+      : run?.status === 'lost' || !entered && (!run || run.status === 'ready') ? <section className="rift-entry">
         <div className="rift-portal" aria-hidden="true"><div className="rift-portal-core"/><div className="rift-portal-shard shard-one"/><div className="rift-portal-shard shard-two"/><div className="rift-portal-shard shard-three"/></div>
         <span className="eyebrow">5 COMBATS</span>
-        <button className="primary rift-primary" disabled={!warrior || unavailable} onClick={enter}>ENTRER DANS LA FAILLE</button>
+        {run?.status === 'lost' ? <><p>La tentative du jour est terminée. Vos gains restent acquis.</p><NextRift countdown={countdown}/></> : <button className="primary rift-primary" disabled={!warrior || unavailable} onClick={enter}>ENTRER DANS LA FAILLE</button>}
         {!warrior && <small>Obtenez d’abord votre premier Warrior.</small>}
         {unavailable && <small>Ce Warrior est en expédition.</small>}
       </section>
       : <section className="rift-interior">
-        <div className="rift-interior-heading"><button className="rift-back" onClick={() => { setConfirmQuit(false); if (run?.status === 'ready') setEntered(false); else setView('hub') }} aria-label={run?.status === 'ready' ? 'Revenir à l’entrée de la Faille' : 'Retour au Hub'}><ChevronLeft/> Retour</button><h2>{run?.status === 'complete' ? 'VICTOIRE' : run?.status === 'lost' ? 'DÉFAITE' : run?.status === 'quit' ? 'FAILLE QUITTÉE' : 'Faille'}</h2></div>
+        <div className="rift-interior-heading"><button className="rift-back" onClick={() => { setConfirmQuit(false); if (run?.status === 'ready') setEntered(false); else setView('hub') }} aria-label={run?.status === 'ready' ? 'Revenir à l’entrée de la Faille' : 'Retour au Hub'}><ChevronLeft/> Retour</button><h2>{run?.status === 'complete' ? 'VICTOIRE' : run?.status === 'quit' ? 'FAILLE QUITTÉE' : 'Faille'}</h2></div>
         {run && <>
           <div className="rift-stage-track" aria-label="Progression dans la Faille">{RIFT_STAGE_LABELS.map((label, index) => {
             const won = index < run.stage || run.status === 'complete'

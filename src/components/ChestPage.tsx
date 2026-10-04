@@ -1,14 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
+import { Info, X } from 'lucide-react'
 import { canOpenChest } from '../admin'
-import { RARITY_CHANCES } from '../config'
 import { assetsV06 } from '../art/assetsV06'
 import { chestPrice, openStoredChest, purchaseChest, type ChestDraw, type ChestKind, type ChestPurchase, type ChestSelection } from '../chestSystem'
 import { shortEquipmentSummary } from '../equipmentSummary'
-import { openRiftChest, RIFT_CHEST_ODDS } from '../riftChest'
+import { openRiftChest } from '../riftChest'
 import type { Rarity, SaveData, WarriorDefinition } from '../types'
 import { WarriorGacha } from './WarriorGacha'
+import { ChestOddsModal } from './ChestOddsModal'
+import { recycleWarrior, WARRIOR_RECYCLE_REWARDS } from '../warriorRecycle'
+import { warriorDefinitions } from '../warriors'
 
 const rarityClass = (rarity: Rarity) => `rarity-${rarity.toLowerCase().replace(' ', '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`
 const equipmentIcon = (type: 'weapon' | 'armor') => `/assets/icons/collection/${type}.png`
@@ -23,7 +25,7 @@ function ChestOffer({ kind, busy, save, admin, onOpen, onStoredOpen }: { kind: C
   return <section className={`chest-offer chest-offer-${kind}`} aria-label={warrior ? 'Coffre Warrior' : 'Coffre Équipement'}>
     <ChestVisual variant={kind}/>
     <div className="chest-offer-copy"><span className="eyebrow">{warrior ? 'CHRONOS · WARRIORS' : 'CHRONOS · ARSENAL'}</span><h2>{warrior ? 'Coffre Warrior' : 'Coffre Équipement'}</h2><p>{warrior ? 'Obtenez un Warrior aléatoire.' : 'Obtenez une arme ou une armure.'}</p></div>
-    <div className="chest-offer-actions">{choices.map((selection) => <button key={selection.quantity} type="button" onClick={() => onOpen(selection)} disabled={busy || !canOpenChest(save, admin, selection)} aria-label={`Ouvrir ${warrior ? 'Coffre Warrior' : 'Coffre Équipement'} ×${selection.quantity}, ${chestPrice(selection)} pièces`}><strong>Ouvrir ×{selection.quantity}</strong><span>{chestPrice(selection)} pièces</span></button>)}{save[warrior ? 'warriorChestCount' : 'equipmentChestCount'] > 0 && <button type="button" disabled={busy} onClick={() => onStoredOpen(kind)} aria-label={`Ouvrir un Coffre ${warrior ? 'Warrior' : 'Équipement'} stocké`}><strong>OUVRIR UN COFFRE STOCKÉ</strong><span>Disponible : {save[warrior ? 'warriorChestCount' : 'equipmentChestCount']}</span></button>}</div>
+    <div className="chest-offer-actions">{choices.map((selection) => <button key={selection.quantity} type="button" onClick={() => onOpen(selection)} disabled={busy || !canOpenChest(save, admin, selection)} aria-label={`Ouvrir ${warrior ? 'Coffre Warrior' : 'Coffre Équipement'}${selection.quantity === 10 ? ' ×10' : ''}, ${chestPrice(selection)} pièces`}><strong>{selection.quantity === 10 ? 'OUVRIR ×10' : 'OUVRIR'}</strong><span>{chestPrice(selection)} pièces</span></button>)}{save[warrior ? 'warriorChestCount' : 'equipmentChestCount'] > 0 && <button type="button" disabled={busy} onClick={() => onStoredOpen(kind)} aria-label={`Ouvrir un Coffre ${warrior ? 'Warrior' : 'Équipement'} stocké`}><strong>OUVRIR UN COFFRE STOCKÉ</strong><span>Disponible : {save[warrior ? 'warriorChestCount' : 'equipmentChestCount']}</span></button>}</div>
     {!admin && save.coins < chestPrice(choices[0]) && save[warrior ? 'warriorChestCount' : 'equipmentChestCount'] === 0 && <small className="chest-offer-hint">Solde insuffisant</small>}
   </section>
 }
@@ -48,9 +50,15 @@ function EquipmentOpening({ purchase, onClose }: { purchase: ChestPurchase; onCl
 }
 
 export function ChestPage({ save, setSave, admin }: { save: SaveData; setSave: (save: SaveData) => void; admin: boolean }) {
-  const [result, setResult] = useState<ChestPurchase | { kind: 'rift'; warrior: WarriorDefinition; duplicate: boolean } | null>(null)
-  const busy = useRef(false)
-  const close = () => { setResult(null); busy.current = false }
+  const [result, setResult] = useState<ChestPurchase | { kind: 'rift'; warrior: WarriorDefinition; duplicate: boolean; recycleId?: string } | null>(() => {
+    const receipt = save.pendingWarriorRecycles?.[0]
+    return receipt && warriorDefinitions[receipt.warriorId] ? { save, cost: 0, draws: [{ kind: 'warrior', warrior: warriorDefinitions[receipt.warriorId], duplicate: true, recycleId: receipt.id }] } : null
+  })
+  const [oddsOpen, setOddsOpen] = useState(false)
+  const [recycleSummary, setRecycleSummary] = useState('')
+  const busy = useRef(Boolean(result))
+  const recycledReceipt = useRef<string | null>(null)
+  const close = () => { setResult(null); setRecycleSummary(''); busy.current = false; recycledReceipt.current = null }
   const open = (selection: ChestSelection) => {
     if (busy.current) return
     const purchase = purchaseChest(save, selection, Math.random, admin)
@@ -73,10 +81,23 @@ export function ChestPage({ save, setSave, admin }: { save: SaveData; setSave: (
     if (!opening) return
     busy.current = true
     setSave(opening.save)
-    setResult({ kind: 'rift', warrior: opening.warrior, duplicate: opening.duplicate })
+    setResult({ kind: 'rift', warrior: opening.warrior, duplicate: opening.duplicate, recycleId: opening.recycleId })
   }
   const warriorDraw = result && 'draws' in result ? result.draws[0] : null
-  return <div className="chest-page-v095 content-page page-enter"><header className="chest-page-heading"><span className="eyebrow">AUTEL DES POSSIBLES</span><h1>Coffres</h1><p>Trois chemins pour enrichir votre légende.</p></header><div className="chest-offers"><ChestOffer kind="warrior" busy={Boolean(result)} save={save} admin={admin} onOpen={open} onStoredOpen={openStored}/><ChestOffer kind="equipment" busy={Boolean(result)} save={save} admin={admin} onOpen={open} onStoredOpen={openStored}/><section className="chest-offer chest-offer-rift" aria-label="Coffre de Faille"><div className="rift-chest-art" aria-hidden="true"><span className="rift-chest-aura"/><img src={assetsV06.chest.closed} alt=""/><span className="rift-chest-fracture"/></div><div className="chest-offer-copy"><span className="eyebrow">RELIQUE · FAILLE PRIMORDIALE</span><h2>Coffre de Faille</h2><p>Un Warrior issu de la fracture des Âges.</p><strong className="rift-chest-count">Coffres : {save.riftChestCount}</strong></div><div className="chest-offer-actions"><button type="button" onClick={openRift} disabled={Boolean(result) || save.riftChestCount === 0} aria-label="Ouvrir un Coffre de Faille"><strong>OUVRIR</strong><span>{save.riftChestCount > 0 ? 'Coffre stocké' : 'Aucun coffre'}</span></button></div><p className="rift-chest-odds">Commun {RIFT_CHEST_ODDS.Commun} % · Peu commun {RIFT_CHEST_ODDS['Peu commun']} % · Rare {RIFT_CHEST_ODDS.Rare} % · Épique {RIFT_CHEST_ODDS['Épique']} % · Légendaire {RIFT_CHEST_ODDS['Légendaire']} % · Mythique {RIFT_CHEST_ODDS.Mythique} %</p></section></div><p className="chest-odds">Raretés Warrior & Équipement · Commun {RARITY_CHANCES.Commun.toLocaleString('fr-FR')} % · Peu commun {RARITY_CHANCES['Peu commun']} % · Rare {RARITY_CHANCES.Rare} % · Épique {RARITY_CHANCES['Épique']} % · Légendaire {RARITY_CHANCES['Légendaire'].toLocaleString('fr-FR')} % · Mythique {RARITY_CHANCES.Mythique.toLocaleString('fr-FR')} %</p>
-    {result && createPortal('kind' in result ? <WarriorGacha warrior={result.warrior} duplicate={result.duplicate} source="rift" onContinue={close}/> : warriorDraw?.kind === 'warrior' ? <WarriorGacha warrior={warriorDraw.warrior} duplicate={warriorDraw.duplicate} onContinue={close}/> : <EquipmentOpening purchase={result} onClose={close}/>, document.body)}
+  const recycleId = result && 'kind' in result ? result.recycleId : warriorDraw?.kind === 'warrior' ? warriorDraw.recycleId : undefined
+  const recycle = () => {
+    if (!recycleId || recycledReceipt.current === recycleId) return
+    const next = recycleWarrior(save, recycleId)
+    if (next === save) return
+    recycledReceipt.current = recycleId
+    const id = result && 'kind' in result ? result.warrior.id : warriorDraw?.kind === 'warrior' ? warriorDraw.warrior.id : ''
+    const reward = WARRIOR_RECYCLE_REWARDS[warriorDefinitions[id].rarity]
+    const owned = next.ownedWarriors[id]
+    setSave(next)
+    setRecycleSummary(`+${reward.coins} pièces · +${reward.xp} XP · Niveau ${owned.level}${owned.level === 10 ? ' (maximum)' : ` · ${owned.xp} XP`}`)
+  }
+  return <div className="chest-page-v095 content-page page-enter"><header className="chest-page-heading"><span className="eyebrow">AUTEL DES POSSIBLES</span><h1>Coffres</h1><button className="icon-button" type="button" aria-label="Probabilités des coffres" onClick={() => setOddsOpen(true)}><Info/></button><p>Trois chemins pour enrichir votre légende.</p></header><div className="chest-offers"><ChestOffer kind="warrior" busy={Boolean(result)} save={save} admin={admin} onOpen={open} onStoredOpen={openStored}/><ChestOffer kind="equipment" busy={Boolean(result)} save={save} admin={admin} onOpen={open} onStoredOpen={openStored}/><section className="chest-offer chest-offer-rift" aria-label="Coffre de Faille"><div className="rift-chest-art" aria-hidden="true"><span className="rift-chest-aura"/><img src={assetsV06.chest.closed} alt=""/><span className="rift-chest-fracture"/></div><div className="chest-offer-copy"><span className="eyebrow">RELIQUE · FAILLE PRIMORDIALE</span><h2>Coffre de Faille</h2><p>Un Warrior issu de la fracture des Âges.</p><strong className="rift-chest-count">Coffres : {save.riftChestCount}</strong></div><div className="chest-offer-actions"><button type="button" onClick={openRift} disabled={Boolean(result) || save.riftChestCount === 0} aria-label="Ouvrir un Coffre de Faille"><strong>OUVRIR</strong><span>{save.riftChestCount > 0 ? 'Coffre stocké' : 'Aucun coffre'}</span></button></div></section></div>
+    {oddsOpen && createPortal(<ChestOddsModal onClose={() => setOddsOpen(false)}/>, document.body)}
+    {result && createPortal('kind' in result ? <WarriorGacha warrior={result.warrior} duplicate={result.duplicate} source="rift" onContinue={close} onRecycle={recycleId ? recycle : undefined} recycleSummary={recycleSummary}/> : warriorDraw?.kind === 'warrior' ? <WarriorGacha warrior={warriorDraw.warrior} duplicate={warriorDraw.duplicate} onContinue={close} onRecycle={recycleId ? recycle : undefined} recycleSummary={recycleSummary}/> : <EquipmentOpening purchase={result} onClose={close}/>, document.body)}
   </div>
 }

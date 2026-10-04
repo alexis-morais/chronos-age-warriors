@@ -11,8 +11,7 @@ export { warriorDefinitions } from './warriors'
 export const DUEL_MAX_CHARGES = 10
 export const DUEL_RECHARGE_MS = 20 * 60 * 1000
 
-// TODO V0.14: rebalance Duel XP and economy alongside the global rewards pass.
-export const DUEL_REWARDS = { win: { xp: 100, coins: 50 }, loss: { xp: 25, coins: 10 } } as const
+export const DUEL_REWARDS = { win: { xp: 20, coins: 20 }, loss: { xp: 4, coins: 0 } } as const
 
 export const RARITY_TIERS: Record<Rarity, number> = {
   Commun: 0, 'Peu commun': 1, Rare: 2, 'Épique': 3, Légendaire: 4, Mythique: 5,

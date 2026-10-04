@@ -40,12 +40,12 @@ describe('règles de Duel', () => {
     defender.coins = 777
     const originalDefender = structuredClone(defender)
     expect(validDuelWarrior(attacker)).toBe(true)
-    expect(duelFighter(attacker).stats.strength).toBe(12)
+    expect(duelFighter(attacker).stats.strength).toBe(14)
     const resolution = resolveDuel(attacker, defender, 42)
     const rewarded = applyDuelReward(attacker, resolution)
     const next = rewarded.save
     expect(next.version).toBe(attacker.version)
-    expect(next.coins - attacker.coins - rewarded.granted.reduce((total, badge) => total + badge.coins, 0)).toBe(resolution.result.winner === 'player' ? 50 : 10)
+    expect(next.coins - attacker.coins - rewarded.granted.reduce((total, badge) => total + badge.coins, 0)).toBe(resolution.result.winner === 'player' ? 20 : 0)
     expect(resolution.points).toBe(resolution.result.winner === 'player' ? 20 : 0)
     expect(next.ownedWarriors.karg.xp).toBe(resolution.result.winner === 'player' ? DUEL_REWARDS.win.xp : DUEL_REWARDS.loss.xp)
     expect(defender).toEqual(originalDefender)

@@ -1327,3 +1327,10 @@ button.warrior-collection-entry:hover .warrior-card-frame,button.warrior-collect
 .account-header small{color:#c4b491}
 .account-header button{border:0;background:transparent;color:inherit;text-decoration:underline;cursor:pointer;font:inherit}
 @media(max-width:600px){.topbar.has-account{height:90px;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:50px 36px;gap:0}.topbar.has-account .topbar-title{display:none}.topbar.has-account .account-header{grid-column:1/-1;justify-content:flex-end;padding:0 0 6px;font-size:.7rem}.app-shell.has-account .main-content{padding-top:90px}.account-card{max-height:calc(100dvh - 32px);overflow:auto}}
+.chest-odds-panel { max-height: calc(100dvh - 32px - env(safe-area-inset-bottom)); overflow-y: auto; }
+.chest-odds-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 20px 0; }
+.chest-odds-grid h3 { font-size: 16px; }
+.chest-odds-grid p { font-size: 12px; }
+.chest-odds-grid dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; font-size: 13px; }
+.chest-odds-grid dd { margin: 0; white-space: nowrap; }
+@media (max-width: 600px) { .chest-odds-grid { grid-template-columns: 1fr; gap: 12px; } }

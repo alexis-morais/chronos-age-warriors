@@ -4,20 +4,21 @@ import type { Fighter, Stats } from './types'
 
 export const RIFT_STAGE_LABELS = ['Combat 1', 'Combat 2', 'Combat 3', 'Combat 4', 'Boss'] as const
 export const RIFT_REWARDS = [
-  { coins: 75, xp: 200 },
-  { coins: 100, xp: 250 },
-  { coins: 125, xp: 325 },
-  { coins: 175, xp: 425 },
-  { coins: 275, xp: 650 },
+  { coins: 40, xp: 40 },
+  { coins: 40, xp: 40 },
+  { coins: 40, xp: 40 },
+  { coins: 40, xp: 40 },
+  { coins: 40, xp: 40 },
 ] as const
 
 /** Independent of campaign tiers and of the Warrior entering the Rift. */
 export const RIFT_STAGE_BUDGETS: readonly Stats[] = [
-  { strength: 15, dodge: 11, speed: 13, hp: 235 },
-  { strength: 16, dodge: 12, speed: 14, hp: 260 },
-  { strength: 17, dodge: 13, speed: 15, hp: 285 },
-  { strength: 18, dodge: 13, speed: 14, hp: 310 },
-  { strength: 22, dodge: 15, speed: 15, hp: 370 },
+  { strength: 33, dodge: 15, speed: 24, hp: 430 },
+  { strength: 42, dodge: 17, speed: 26, hp: 530 },
+  { strength: 52, dodge: 20, speed: 28, hp: 660 },
+  // Bridge the ordinary encounters to a threatening endgame boss (full difficulty).
+  { strength: 95, dodge: 21, speed: 32, hp: 1150 },
+  { strength: 165, dodge: 24, speed: 40, hp: 1600 },
 ]
 
 const ENEMY_NAMES: Record<EnemyId, string> = {

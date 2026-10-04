@@ -13,6 +13,21 @@ export interface SaveConflict { device: CacheRecord; cloud: CloudRow | null }
 export const accountCacheKey = (userId: string) => `chronos.save.${userId}`
 export const OFFLINE_IDENTITY_KEY = 'chronos.offline-identity'
 
+/** Monotonic receipts, not spendable balances: a bootstrap default cannot erase a career. */
+export function losesProgress(candidate: SaveData, authoritative: SaveData): boolean {
+  return Object.entries(authoritative.ownedWarriors).some(([id, warrior]) => !candidate.ownedWarriors[id]
+    || candidate.ownedWarriors[id].level < warrior.level
+    || candidate.ownedWarriors[id].level === warrior.level && candidate.ownedWarriors[id].xp < warrior.xp)
+    || Object.keys(authoritative.owned).some((id) => !candidate.owned[id])
+    || authoritative.defeatedNodes.some((node) => !candidate.defeatedNodes.includes(node))
+    || authoritative.nemesisDefeatedNodes.some((node) => !candidate.nemesisDefeatedNodes.includes(node))
+    || authoritative.badges.some((badge) => badge.unlockedAt && !candidate.badges.some((entry) => entry.id === badge.id && entry.unlockedAt))
+    || (['adventureWins', 'riftWins', 'duelWins', 'chests', 'campaignNode', 'nemesisCampaignNode'] as const)
+      .some((key) => candidate[key] < authoritative[key])
+    || (['welcomeChestOpened', 'nemesisUnlocked', 'nemesisCompleted', 'normalBossFirstClearRewardClaimed', 'nemesisBossFirstClearRewardClaimed'] as const)
+      .some((key) => authoritative[key] && !candidate[key])
+}
+
 export function readAccountCache(userId: string, storage: Pick<Storage, 'getItem'>): CacheRecord | null {
   try {
     const raw = storage.getItem(accountCacheKey(userId))
@@ -111,7 +126,7 @@ export class CloudSaveManager {
     }
     if (cache?.dirty) {
       this.record = cache
-      if (cache.revision !== (cloud?.revision ?? 0)) this.setConflict(cloud)
+      if (cache.revision !== (cloud?.revision ?? 0) || cloud && losesProgress(cache.save, cloud.save)) this.setConflict(cloud)
       else { this.onStatus('pending'); void this.flush() }
       return cache.save
     }
@@ -138,6 +153,14 @@ export class CloudSaveManager {
 
   change(save: SaveData) {
     if (this.disposed || !this.record) return
+    const previous = this.record
+    if (losesProgress(save, previous.save)) {
+      // Reject a runtime reset before touching the cache. The previous snapshot may
+      // still be dirty: never relabel it as a clean server version and lose its work.
+      this.onSave(previous.save)
+      this.onStatus('error')
+      return
+    }
     this.record = { ...this.record, save, dirty: true, updatedAt: new Date().toISOString() }
     writeCache(this.userId, this.storage, this.record)
     if (!this.conflict) this.onStatus(this.online() ? 'pending' : 'offline')
@@ -182,7 +205,7 @@ export class CloudSaveManager {
       const cloud = await this.gateway.read()
       if (this.disposed || !this.record) return
       if (this.record.dirty) {
-        if (this.record.revision !== (cloud?.revision ?? 0)) this.setConflict(cloud)
+        if (this.record.revision !== (cloud?.revision ?? 0) || cloud && losesProgress(this.record.save, cloud.save)) this.setConflict(cloud)
         else void this.flush()
       } else if (cloud && cloud.revision !== this.record.revision) {
         this.record = { ...cloud, dirty: false }

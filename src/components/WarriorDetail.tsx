@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { GAME } from '../config'
 import { equipment } from '../data'
-import { activateWarrior, xpForLevel } from '../game'
+import { activateWarrior, effectiveStats, xpForLevel } from '../game'
 import type { SaveData } from '../types'
 import { ownedWarrior } from '../warriors'
 import { WarriorCard, WarriorStats } from './WarriorCard'
@@ -31,7 +31,7 @@ export function WarriorDetail({ save, warriorId, onClose, onActivate }: { save: 
       <WarriorCard warrior={warrior} level={warrior.level} className="warrior-detail-art"/>
       <div className="warrior-detail-heading"><span className="eyebrow">{warrior.era}</span><h2>{warrior.name}</h2><p>{warrior.title}</p><div className="warrior-tags"><span>{warrior.warriorClass}</span><span className={`warrior-rarity rarity-${warrior.rarity.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replaceAll(' ', '-')}`}>{warrior.rarity}</span><span>Niveau {warrior.level}</span></div></div>
       <div className="warrior-detail-xp"><div><strong>EXPÉRIENCE</strong><span>{nextXp === null ? 'Niveau maximum' : `${warrior.xp} / ${nextXp} XP`}</span></div><div className="progress" role="progressbar" aria-label="Progression XP Warrior" aria-valuenow={warrior.xp} aria-valuemin={0} aria-valuemax={nextXp ?? warrior.xp}><i style={{ width: `${progress}%` }}/></div></div>
-      <WarriorStats stats={warrior.stats}/>
+      <WarriorStats stats={effectiveStats(save, warriorId)}/>
       {warrior.passive && <div className="warrior-detail-passive"><span className="eyebrow">PASSIF DE CLASSE</span><strong>{warrior.passive.name}</strong><p>{warrior.passive.description}</p></div>}
       <div className="warrior-detail-equipment"><span className="eyebrow">ÉQUIPEMENT</span><div className="warrior-equipment-slot"><span>Arme</span><strong>{weapon?.name ?? 'Emplacement vide'}</strong></div><div className="warrior-equipment-slot"><span>Armure</span><strong>{armor?.name ?? 'Emplacement vide'}</strong></div></div>
       {active ? <p className="warrior-active-status">Warrior actif</p> : <button className="primary wide" onClick={onActivate}>Définir comme Warrior actif</button>}

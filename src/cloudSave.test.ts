@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { accountCacheKey, CloudSaveManager, readAccountCache, type CloudGateway, type CloudRow, type SaveConflict, type SyncStatus } from './cloudSave'
 import { freshSave, parseAccountSave } from './storage'
+import { establishedKargSave } from './testFixtures'
 
 function harness(userId = 'user-a') {
   let cloud: CloudRow | null = null
@@ -25,6 +26,71 @@ function harness(userId = 'user-a') {
 beforeEach(() => { localStorage.clear(); vi.useRealTimers() })
 
 describe('sauvegarde cloud par compte', () => {
+  const advanced = () => ({ ...establishedKargSave(), campaignNode: 15, defeatedNodes: [1,5,10],
+    ownedWarriors: { karg: { warriorId: 'karg', level: 3, xp: 42 }, asha: { warriorId: 'asha', level: 6, xp: 500 } } })
+
+  it.each(['cache vide', 'nouvelle origine / port'])('%s : charge le cloud avancé avant toute écriture', async () => {
+    const setup = harness(); setup.cloud = { save: advanced(), revision: 8, updatedAt: 'cloud' }
+    const manager = setup.manager()
+    expect(await manager.initialize(false)).toEqual(setup.cloud.save)
+    expect(setup.gateway.write).not.toHaveBeenCalled()
+    expect(readAccountCache('user-a', localStorage)).toMatchObject({ revision: 8, dirty: false, save: { campaignNode: 15 } })
+    manager.dispose()
+  })
+
+  it.each([freshSave(), establishedKargSave()])('cache neuf/default dirty de même révision : aucun écrasement silencieux', async (save) => {
+    const setup = harness(); setup.cloud = { save: advanced(), revision: 8, updatedAt: 'cloud' }
+    localStorage.setItem(accountCacheKey('user-a'), JSON.stringify({ save, revision: 8, updatedAt: 'device', dirty: true }))
+    const manager = setup.manager(); await manager.initialize(false)
+    expect(setup.conflicts).toHaveLength(1)
+    expect(setup.gateway.write).not.toHaveBeenCalled()
+    manager.chooseCloud()
+    expect(manager.current).toEqual(setup.cloud.save)
+    expect(setup.cloud.save.ownedWarriors.asha.level).toBe(6)
+    manager.dispose()
+  })
+
+  it('un reset injecté après bootstrap est rejeté avant de toucher le cache', async () => {
+    const setup = harness(); setup.cloud = { save: advanced(), revision: 8, updatedAt: 'cloud' }
+    const manager = setup.manager(); await manager.initialize(false)
+    manager.change(establishedKargSave()); await manager.flush()
+    expect(setup.conflicts).toHaveLength(0)
+    expect(setup.statuses.at(-1)).toBe('error')
+    expect(setup.replaced).toHaveBeenCalledWith(advanced())
+    expect(setup.gateway.write).not.toHaveBeenCalled()
+    expect(setup.cloud.save.ownedWarriors.asha.level).toBe(6)
+    manager.dispose()
+  })
+
+  it('un reset rejeté conserve les progrès locaux dirty puis les synchronise', async () => {
+    const setup = harness(); setup.cloud = { save: advanced(), revision: 8, updatedAt: 'cloud' }
+    const manager = setup.manager(); await manager.initialize(false)
+    setup.online = false
+    const pending = advanced(); pending.ownedWarriors.asha.xp = 520
+    manager.change(pending)
+    manager.change(establishedKargSave())
+    expect(readAccountCache('user-a', localStorage)).toMatchObject({ dirty: true, save: pending })
+    expect(manager.current).toEqual(pending)
+    setup.online = true; await manager.reconnect(); await manager.flush()
+    expect(setup.cloud.save.ownedWarriors.asha.xp).toBe(520)
+    manager.dispose()
+  })
+
+  it('cache ancien dirty + cloud récent : conflit CAS, jamais envoi automatique', async () => {
+    const setup = harness(); setup.cloud = { save: advanced(), revision: 9, updatedAt: 'cloud' }
+    localStorage.setItem(accountCacheKey('user-a'), JSON.stringify({ save: advanced(), revision: 8, updatedAt: 'old', dirty: true }))
+    const manager = setup.manager(); await manager.initialize(false)
+    expect(setup.conflicts).toHaveLength(1); expect(setup.gateway.write).not.toHaveBeenCalled()
+    manager.dispose()
+  })
+
+  it('un bootstrap concurrent ne remplace pas le cloud apparu entre read et write(0)', async () => {
+    const setup = harness()
+    setup.gateway.write = vi.fn(async () => { setup.cloud = { save: advanced(), revision: 8, updatedAt: 'race' }; return { status: 'conflict' as const, row: setup.cloud } })
+    const manager = setup.manager(); expect(await manager.initialize(false)).toEqual(advanced())
+    expect(readAccountCache('user-a', localStorage)?.revision).toBe(8)
+    manager.dispose()
+  })
   it('crée la save initiale par CAS puis isole les caches utilisateur', async () => {
     const one = harness('user-a'); const manager = one.manager()
     await manager.initialize(false)

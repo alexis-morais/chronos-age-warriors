@@ -1,7 +1,8 @@
-import { rarityOrder } from './config'
 import { grantWarrior, type Rng } from './game'
 import type { Rarity, SaveData, WarriorDefinition } from './types'
 import { primalWarriors } from './warriors'
+import { rollRarity } from './game'
+import { queueWarriorRecycle } from './warriorRecycle'
 
 export const RIFT_CHEST_ODDS: Record<Rarity, number> = {
   Commun: 5,
@@ -13,19 +14,17 @@ export const RIFT_CHEST_ODDS: Record<Rarity, number> = {
 }
 
 export function rollRiftChestWarrior(rng: Rng): WarriorDefinition {
-  const roll = rng() * 100
-  let total = 0
-  const rarity = rarityOrder.find((entry) => { total += RIFT_CHEST_ODDS[entry]; return roll < total }) ?? 'Mythique'
+  const rarity = rollRarity(rng, RIFT_CHEST_ODDS)
   const pool = primalWarriors.filter((warrior) => warrior.rarity === rarity)
   return pool[Math.min(pool.length - 1, Math.floor(rng() * pool.length))]
 }
 
-export function openRiftChest(save: SaveData, rng: Rng = Math.random): { save: SaveData; warrior: WarriorDefinition; duplicate: boolean } | null {
+export function openRiftChest(save: SaveData, rng: Rng = Math.random): { save: SaveData; warrior: WarriorDefinition; duplicate: boolean; recycleId?: string } | null {
   if (save.riftChestCount <= 0) return null
   const warrior = rollRiftChestWarrior(rng)
   const duplicate = Boolean(save.ownedWarriors[warrior.id])
   const next = grantWarrior(save, warrior.id)
   next.riftChestCount -= 1
   next.chests += 1
-  return { save: next, warrior, duplicate }
+  return { save: next, warrior, duplicate, ...(duplicate ? { recycleId: queueWarriorRecycle(next, warrior.id) } : {}) }
 }

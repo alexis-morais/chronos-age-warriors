@@ -88,7 +88,7 @@ describe('coffre Warrior de bienvenue', () => {
     render(<App/>)
     expect(screen.queryByRole('dialog', { name: 'Coffre Warrior de bienvenue' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Coffre' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir Coffre Warrior ×1, 100 pièces' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Ouvrir Coffre Warrior, 100 pièces' }))
     act(() => vi.advanceTimersByTime(3200))
     expect(screen.getByRole('dialog', { name: 'Tirage du Coffre Warrior' }).textContent).toContain('TYRAK')
     const saved = loadSave()

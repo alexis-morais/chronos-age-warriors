@@ -3,12 +3,13 @@ import { equipment } from './data'
 import { addEquipmentCopy, grantWarrior, rollChest, rollWarriorChest, type Rng } from './game'
 import type { EquipmentDefinition, SaveData, WarriorDefinition } from './types'
 import { primalWarriors } from './warriors'
+import { queueWarriorRecycle } from './warriorRecycle'
 
 export type ChestKind = 'warrior' | 'equipment'
 export type ChestSelection = { kind: 'warrior'; quantity: 1 } | { kind: 'equipment'; quantity: 1 | 10 }
 
 /** Equipment ×10 deliberately has no discount; Warrior has no batch purchase. */
-export const CHEST_UNIT_PRICES: Record<ChestKind, number> = { warrior: 100, equipment: 20 }
+export const CHEST_UNIT_PRICES: Record<ChestKind, number> = { warrior: 100, equipment: 25 }
 const validSelection = (selection: ChestSelection) => selection.kind === 'warrior' ? selection.quantity === 1 : selection.kind === 'equipment' && (selection.quantity === 1 || selection.quantity === 10)
 export const chestPrice = (selection: ChestSelection) => {
   if (!validSelection(selection)) throw new Error('Invalid chest selection')
@@ -16,7 +17,7 @@ export const chestPrice = (selection: ChestSelection) => {
 }
 
 export type ChestDraw =
-  | { kind: 'warrior'; warrior: WarriorDefinition; duplicate: boolean }
+  | { kind: 'warrior'; warrior: WarriorDefinition; duplicate: boolean; recycleId?: string }
   | { kind: 'equipment'; item: EquipmentDefinition; duplicate: boolean; quantityAfter: number }
 
 export interface ChestPurchase { save: SaveData; draws: ChestDraw[]; cost: number }
@@ -32,6 +33,7 @@ export function openStoredChest(save: SaveData, kind: ChestKind, rng: Rng = Math
     if (!warrior) return null
     draw = { kind, warrior, duplicate: Boolean(next.ownedWarriors[warrior.id]) }
     next = grantWarrior(next, warrior.id)
+    if (draw.duplicate) draw.recycleId = queueWarriorRecycle(next, warrior.id)
   } else {
     const reward = rollChest(rng, next.owned)
     if (!reward.item) return null
@@ -63,7 +65,7 @@ export function purchaseChest(save: SaveData, selection: ChestSelection, rng: Rn
       if (!warrior) return null
       const duplicate = Boolean(next.ownedWarriors[warrior.id])
       next = grantWarrior(next, warrior.id)
-      draws.push({ kind, warrior, duplicate })
+      draws.push({ kind, warrior, duplicate, ...(duplicate ? { recycleId: queueWarriorRecycle(next, warrior.id) } : {}) })
     } else {
       const reward = rollChest(rng, next.owned)
       if (!reward.item) return null
