@@ -72,6 +72,7 @@ export interface SaveData {
   normalBossFirstClearRewardClaimed: boolean
   nemesisBossFirstClearRewardClaimed: boolean
   campaignRemaining: number
+  campaignRechargeAt: number | null
   totalWins: number
   adventureWins: number
   riftWins: number

@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 import { rmSync } from 'node:fs'
 
 const nonRuntimePublicAssets = [
@@ -33,7 +34,26 @@ const pruneNonRuntimeAssets = {
 }
 
 export default defineConfig({
-  plugins: [react(), pruneNonRuntimeAssets],
+  plugins: [react(), pruneNonRuntimeAssets, VitePWA({
+    registerType: 'autoUpdate',
+    injectRegister: 'script',
+    includeAssets: ['favicon.png'],
+    manifest: {
+      name: 'Chronos Age Warriors', short_name: 'Chronos', description: 'Arène de l’Ère Primordiale',
+      start_url: '.', scope: '.', display: 'standalone', background_color: '#171d20', theme_color: '#171d20',
+      icons: [{ src: '/favicon.png', sizes: 'any', type: 'image/png', purpose: 'any' }],
+    },
+    workbox: {
+      globPatterns: ['**/*.{js,css,html,svg,woff2}', 'assets/icons/**/*.png', 'assets-v06/branding/logo.png',
+        'assets/sprites/warriors/primal/*/idle.png', 'assets/sprites/ennemies/primal/*/idle-isolated.png', 'assets/sprites/ennemies/primal/*/idle-runtime.png'],
+      maximumFileSizeToCacheInBytes: 3_500_000,
+      navigateFallback: '/index.html',
+      runtimeCaching: [{
+        urlPattern: ({ url }) => url.origin === self.location.origin && /\.(?:png|webp|jpg|jpeg)$/i.test(url.pathname),
+        handler: 'CacheFirst', options: { cacheName: 'chronos-visited-images', expiration: { maxEntries: 240, maxAgeSeconds: 60 * 60 * 24 * 30 } },
+      }],
+    },
+  })],
   test: {
     environment: 'jsdom',
     globals: true,

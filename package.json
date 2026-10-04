@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && pnpm run build:duel-edge",
+    "build:duel-edge": "vite build --config vite.duel.config.ts",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "@vitejs/plugin-react": "latest",
     "lucide-react": "latest",
     "react": "latest",
@@ -29,6 +31,7 @@
     "jsdom": "latest",
     "typescript": "^6.0.2",
     "typescript-eslint": "latest",
+    "vite-plugin-pwa": "^1.3.0",
     "vitest": "latest"
   }
 }

@@ -39,6 +39,10 @@ import { nemesisEnemy } from './nemesisBalance'
 import { createRiftEncounter, quitRift, resolveRiftStage, todayRiftRun, type RiftEncounter } from './rift'
 import { RIFT_REWARDS, RIFT_STAGE_LABELS } from './riftBalance'
 import { isWarriorOnExpedition } from './expedition'
+import { AccountGate, type AccountPlay } from './components/AccountGate'
+import { DuelPage } from './components/DuelPage'
+import { resolveDuel, type DuelReplay } from './duelRules'
+import { rechargeAdventure } from './combatReserves'
 
 const nav: { id: View; label: string; icon: string }[] = [
   { id: 'hub', label: 'Hub', icon: 'hub' }, { id: 'collection', label: 'Collection', icon: 'collection' },
@@ -66,8 +70,8 @@ function HubEquipmentSlot({ type, item }: { type: EquipmentDefinition['type']; i
   </article>
 }
 
-function Header({ save, view, setView, admin }: { save: SaveData; view: View; setView: (view: View) => void; admin: boolean }) {
-  return <header className={`topbar ${admin ? 'is-admin' : ''}`}><button className="mini-brand" onClick={() => setView('hub')}><img src={assetsV06.brand.logo} alt="Chronos Age Warriors"/><span>ÈRE PRIMORDIALE</span>{admin && <span className="admin-indicator">ADMIN LOCAL</span>}</button><div className="topbar-title">{view === 'adventure' && <button className="icon-button" aria-label="Retour au Hub" onClick={() => setView('hub')}><ChevronLeft/></button>}<strong>{view === 'chest' ? 'Coffres' : view === 'adventure' ? 'Aventure' : view === 'activities' ? 'Faille' : view.charAt(0).toUpperCase() + view.slice(1)}</strong></div><div className="currency"><GameIcon group="stats" name="coins"/><strong>{save.coins}</strong></div></header>
+function Header({ save, view, setView, admin, account }: { save: SaveData; view: View; setView: (view: View) => void; admin: boolean; account?: AccountPlay }) {
+  return <header className={`topbar ${admin ? 'is-admin' : ''} ${account ? 'has-account' : ''}`}><button className="mini-brand" onClick={() => setView('hub')}><img src={assetsV06.brand.logo} alt="Chronos Age Warriors"/><span>ÈRE PRIMORDIALE</span>{admin && <span className="admin-indicator">ADMIN LOCAL</span>}</button><div className="topbar-title">{view === 'adventure' && <button className="icon-button" aria-label="Retour au Hub" onClick={() => setView('hub')}><ChevronLeft/></button>}<strong>{view === 'chest' ? 'Coffres' : view === 'adventure' ? 'Aventure' : view === 'activities' ? 'Faille' : view.charAt(0).toUpperCase() + view.slice(1)}</strong></div><div className="currency"><GameIcon group="stats" name="coins"/><strong>{save.coins}</strong></div>{account && <div className="account-header"><span>{account.username}</span><small>{account.status === 'synced' ? 'Synchronisé' : account.status === 'offline' ? 'Hors ligne' : account.status === 'conflict' ? 'Conflit' : account.status === 'error' ? 'À synchroniser' : 'Synchronisation…'}</small><button onClick={() => void account.logout()}>Se déconnecter</button></div>}</header>
 }
 
 function EmptyHub() {
@@ -159,8 +163,8 @@ function Adventure({ save, mode, setMode, startBattle, admin }: { save: SaveData
   </div>
 }
 
-interface ActiveBattle { result: BattleResult; mode: 'campaign' | 'nemesis' | 'rift'; node: number; enemyLevel: number; player: Fighter; enemyId?: EnemyId; riftToken?: Pick<RiftEncounter, 'dateKey' | 'stage' | 'seed'> }
-interface BattleSummary { xp: number; coins: number; levelUp: number; badges: string[]; campaignProgress?: string; riftChest?: boolean; bonusCoins?: number; bonusChests?: number; bonusChestKind?: 'warrior' | 'rift' | null; nemesisUnlockedNow?: boolean; unlockedPassives: readonly WarriorPassiveDefinition[] }
+interface ActiveBattle { result: BattleResult; mode: 'campaign' | 'nemesis' | 'rift' | 'duel'; node: number; enemyLevel: number; player: Fighter; enemyId?: EnemyId; duelReplay?: DuelReplay; riftToken?: Pick<RiftEncounter, 'dateKey' | 'stage' | 'seed'> }
+interface BattleSummary { xp: number; coins: number; points?: number; levelUp: number; badges: string[]; campaignProgress?: string; riftChest?: boolean; bonusCoins?: number; bonusChests?: number; bonusChestKind?: 'warrior' | 'rift' | null; nemesisUnlockedNow?: boolean; unlockedPassives: readonly WarriorPassiveDefinition[] }
 
 export function PassiveUnlockModal({ passives, onContinue }: { passives: readonly WarriorPassiveDefinition[]; onContinue: () => void }) {
   return <div className="passive-unlock-overlay" role="dialog" aria-modal="true" aria-label="Passif débloqué"><section className="passive-unlock-sheet"><Sparkles aria-hidden="true"/><span className="eyebrow">{passives.length > 1 ? 'PASSIFS DÉBLOQUÉS' : 'PASSIF DÉBLOQUÉ'}</span><h2>{passives.length > 1 ? `${passives.length} nouveaux passifs` : passives[0].name}</h2><div className="passive-unlock-list">{passives.map((passive) => <article key={passive.id}><small>NIVEAU {passive.unlockLevel}</small>{passives.length > 1 && <strong>{passive.name}</strong>}<p>{passive.description}</p></article>)}</div><button className="primary wide" onClick={onContinue} autoFocus>CONTINUER</button></section></div>
@@ -175,6 +179,7 @@ export function BattleResultOverlay({ winner, enemyName, summary, warriorLevel, 
       <div className="result-rewards">
         <span><GameIcon group="stats" name="xp"/><b>+{summary.xp} XP</b></span>
         <span><GameIcon group="stats" name="coins"/><b>+{summary.coins} pièces</b></span>
+        {summary.points !== undefined && summary.points > 0 && <span className="duel-result-points"><b>+{summary.points} points</b></span>}
       </div>
       {summary.levelUp > 0 && <div className="result-callout"><Sparkles/> Niveau {warriorLevel - summary.levelUp} → Niveau {warriorLevel}</div>}
       {summary.badges.map((badge) => <div className="result-callout" key={badge}><GameIcon group="stats" name="badge"/> Badge débloqué : {badge}</div>)}
@@ -239,9 +244,20 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
     ? requestedEnemy as EnemyId
     : resolveEnemyId(active.node || active.enemyLevel, active.node === 20))
   const enemyKit = enemySpriteKit(enemyId)
+  const duelWarriorId = active.duelReplay?.defender.warriorId
+  const duelKit = duelWarriorId ? warriorSpriteKit(duelWarriorId) : null
   const settle = () => {
     if (settled || settleOnce.current) return
     settleOnce.current = true
+    if (active.mode === 'duel' && active.duelReplay) {
+      const previousLevel = active.player.level ?? 1
+      const nextLevel = active.duelReplay.levelAfter
+      setSummary({ xp: active.duelReplay.xp, coins: active.duelReplay.coins, points: active.duelReplay.points,
+        levelUp: nextLevel - previousLevel, unlockedPassives: getNewlyUnlockedWarriorPassives(warriorId, previousLevel, nextLevel),
+        badges: active.duelReplay.badges.map(({ title, coins }) => `${title} · +${coins} pièces`) })
+      setSettled(true)
+      return
+    }
     if (active.mode === 'rift' && active.riftToken) {
       const won = active.result.winner === 'player'
       const next = resolveRiftStage(save, active.riftToken, active.result.winner)
@@ -268,12 +284,12 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
   }
   useEffect(() => {
     let live = true
-    Promise.all([preloadBattleAssetsV06('male', battleWeapon, enemyId, !hasSpriteKit, !enemyKit), preloadWarriorSpriteKit(warriorId), preloadEnemySpriteKit(enemyId)]).then(async ([, , modernReady]) => {
-      if (!modernReady) await preloadBattleAssetsV06('male', battleWeapon, enemyId, false, true)
-      if (live) { setEnemyKitReady(modernReady); setReady(true) }
+    Promise.all([preloadBattleAssetsV06('male', battleWeapon, enemyId, !hasSpriteKit, !enemyKit && !duelKit), preloadWarriorSpriteKit(warriorId), duelWarriorId ? preloadWarriorSpriteKit(duelWarriorId) : preloadEnemySpriteKit(enemyId)]).then(async ([, , modernReady]) => {
+      if (!modernReady && !duelWarriorId) await preloadBattleAssetsV06('male', battleWeapon, enemyId, false, true)
+      if (live) { setEnemyKitReady(Boolean(duelWarriorId || modernReady)); setReady(true) }
     })
     return () => { live = false }
-  }, [battleWeapon, enemyId, warriorId, hasSpriteKit, enemyKit])
+  }, [battleWeapon, enemyId, warriorId, hasSpriteKit, enemyKit, duelWarriorId, duelKit])
   useEffect(() => {
     if (!timedFxVisible || !spriteKit?.attackPresentation) return
     const timer = window.setTimeout(() => setTimedFxVisible(false), spriteKit.attackPresentation.fxDurationMs / save.speed)
@@ -306,6 +322,12 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
           if (spriteKit?.attackKind === 'companion') later(() => setCompanionPhase('attack'), spriteTimeline!.fxCueMs ?? spriteTimeline!.eventDurationMs - 280)
           else if (spriteTimeline!.fxCueMs !== null && (spriteKit?.attackKind === 'ranged' || attackHasImpact(active.result.events, index))) later(() => { setTimedFxSequence((current) => current + 1); setTimedFxVisible(true) }, spriteTimeline!.fxCueMs)
         } else later(() => setPlayerState('attack'), anticipation)
+      } else if (enemyKitReady && duelKit) {
+        setEnemyState(duelKit.attackKind === 'melee' ? 'run' : 'anticipation')
+        if (duelKit.attackKind === 'melee') setEnemyMotion('approach')
+        const timeline = warriorAttackTimeline(duelKit)
+        later(() => setEnemyState('attack'), timeline.poseAtMs)
+        if (timeline.fxCueMs !== null) later(() => { setEnemyFxSequence((current) => current + 1); setEnemyFxVisible(true) }, timeline.fxCueMs)
       } else if (enemyKitReady && enemyKit) {
         if (enemyKit.attackKind === 'melee') { setEnemyState('run'); setEnemyMotion('approach'); later(() => setEnemyState('anticipation'), enemyKit.anticipationAtMs) }
         else { setEnemyState('anticipation'); setEnemyMotion('idle') }
@@ -314,7 +336,7 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
       } else {
         setEnemyState('anticipation'); later(() => setEnemyState('attack'), anticipation)
       }
-      duration = event.actor === 'enemy' && enemyKitReady && enemyKit ? enemyKit.attackMs : contact
+      duration = event.actor === 'enemy' && enemyKitReady && duelKit ? warriorAttackTimeline(duelKit).eventDurationMs : event.actor === 'enemy' && enemyKitReady && enemyKit ? enemyKit.attackMs : contact
     }
     else if (event.type === 'critical') { duration = 100 }
     else if (event.type === 'dodge') {
@@ -338,7 +360,7 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
     else if (event.type === 'ko') { setEnemyFxVisible(false); setEnemyMotion('idle'); if (event.target === 'player') setPlayerState(playerReactionForEvent(event) ?? 'ko'); else setEnemyState('ko'); if (event.actor === 'player') setPlayerState('victory'); else setEnemyState('idle'); duration = event.target === 'player' && hasSpriteKit ? Math.max(780, spriteKit?.durationMs.ko ?? 780) : event.target === 'enemy' && enemyKitReady ? 780 : 620 }
     later(() => { if (index >= active.result.events.length - 1) setDone(true); else setIndex((current) => current + 1) }, duration)
     return () => timers.forEach(clearTimeout)
-  }, [index, done, ready, skipped, save.speed, battleWeapon, event, active.result.events, isCritical, hasSpriteKit, spriteKit, qaHold, enemyKitReady, enemyKit, quitConfirm])
+  }, [index, done, ready, skipped, save.speed, battleWeapon, event, active.result.events, isCritical, hasSpriteKit, spriteKit, qaHold, enemyKitReady, enemyKit, duelKit, quitConfirm])
   const skip = () => {
     const final = finalBattleFrame(active.result)
     setSkipped(true)
@@ -356,13 +378,14 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
   const showWarriorFx = (timedFxVisible && attackKind === 'melee') || (event?.type === 'damage' && event.actor === 'player' && hasSpriteKit && (!spriteKit?.attackPresentation || attackKind !== 'melee'))
   const spriteTimeline = spriteKit ? warriorAttackTimeline(spriteKit) : null
   const enemyVisualSize = enemyKit && battleBounds ? enemyPaintedBattleSize(enemyKit, battleBounds.measurements.enemyHeight, battleBounds.mobile) : null
+  const duelEnemyWidth = duelKit && battleBounds ? battleBounds.measurements.enemyWidth * (battleBounds.mobile ? duelKit.mobileScale : duelKit.scale) * warriorCombatFactor(duelWarriorId!, battleBounds.mobile) : null
   const playerVisualWidth = spriteKit && battleBounds ? battleBounds.measurements.playerWidth * (battleBounds.mobile ? spriteKit.mobileScale : spriteKit.scale) * warriorCombatFactor(warriorId, battleBounds.mobile) : 0
   const battleGeometry = spriteKit && battleBounds ? warriorBattleGeometry(spriteKit, battleBounds.measurements, battleBounds.mobile, {
     playerFactor: warriorCombatFactor(warriorId, battleBounds.mobile),
-    enemyVisualWidth: enemyVisualSize?.width,
+    enemyVisualWidth: duelEnemyWidth ?? enemyVisualSize?.width,
     enemyVisualHeight: enemyVisualSize?.height,
   }) : null
-  const enemyApproachDistance = enemyKit && battleBounds ? enemyContactDistance(enemyKit, battleBounds.measurements.playerCenterX, battleBounds.measurements.enemyCenterX, playerVisualWidth, enemyVisualSize?.width ?? battleBounds.measurements.enemyWidth, battleBounds.mobile) : 0
+  const enemyApproachDistance = duelKit && battleBounds ? Math.max(0, battleBounds.measurements.enemyCenterX - battleBounds.measurements.playerCenterX - (playerVisualWidth + (duelEnemyWidth ?? 0)) * .5) : enemyKit && battleBounds ? enemyContactDistance(enemyKit, battleBounds.measurements.playerCenterX, battleBounds.measurements.enemyCenterX, playerVisualWidth, enemyVisualSize?.width ?? battleBounds.measurements.enemyWidth, battleBounds.mobile) : 0
   const enemyProjectile = enemyKit && battleBounds && spriteKit ? enemyProjectileGeometry(enemyKit, battleBounds.measurements, battleBounds.mobile, warriorId, battleBounds.mobile ? spriteKit.mobileScale : spriteKit.scale) : null
   const fighterStyle = spriteKit ? {
     '--fighter-aspect': `${spriteKit.frameWidth} / ${spriteKit.frameHeight}`,
@@ -372,8 +395,8 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
     ...(battleGeometry?.approachDistance !== null && battleGeometry?.approachDistance !== undefined ? { '--sprite-approach-distance': `${battleGeometry.approachDistance}px` } : {}),
     ...(battleGeometry?.contactDistance !== null && battleGeometry?.contactDistance !== undefined ? { '--sprite-contact-distance': `${battleGeometry.contactDistance}px` } : {}),
   } as React.CSSProperties : undefined
-  return <div className={`battle-page ${isCritical ? 'screen-shake' : ''} ${ready ? 'assets-ready' : 'assets-loading'} ${skipped ? 'skip-to-final' : ''} ${qaFx ? 'qa-hold-fx' : ''}`} style={{ '--battle-speed': save.speed } as React.CSSProperties}><div className="battle-top"><div><span className="eyebrow">{active.mode === 'rift' ? `FAILLE · ${RIFT_STAGE_LABELS[active.node - 1].toUpperCase()}` : active.mode === 'nemesis' ? `NÉMÉSIS · NIVEAU ${active.node}` : `NIVEAU ${active.node}`}</span><strong>Arène Primordiale</strong></div><div className="speed-control" role="group" aria-label="Vitesse du combat">{([1,2,3] as const).map((speed) => <button aria-pressed={save.speed === speed} className={save.speed === speed ? 'active' : ''} onClick={() => setSpeed(speed)} key={speed}>×{speed}</button>)}</div><button className="skip" onClick={skip}>Passer</button>{active.mode === 'rift' && <button className="rift-battle-quit" disabled={skipped || done} onClick={() => setQuitConfirm(true)}>Quitter la Faille</button>}</div>{admin && <span className="admin-indicator admin-battle-indicator">ADMIN LOCAL</span>}
-    <div ref={arenaRef} style={{ '--companion-distance': battleGeometry ? `${battleGeometry.companionDistance}px` : undefined, '--player-combat-text-lift': `${(battleBounds?.mobile ? spriteKit?.combatTextLift?.mobile ?? 110 : spriteKit?.combatTextLift?.desktop ?? 163) * warriorCombatFactor(warriorId, battleBounds?.mobile ?? false)}px`, '--enemy-combat-text-lift': `${enemyVisualSize ? enemyVisualSize.height + (battleBounds?.mobile ? 14 : 28) : battleBounds?.mobile ? 110 : 163}px` } as React.CSSProperties} className={`arena event-${event?.type ?? 'idle'} actor-${event?.actor ?? 'player'} ${hasSpriteKit ? 'has-warrior-sprite-kit' : ''}`}><img className="arena-layer arena-background" src={assetsV06.arena.background} alt=""/><img className="arena-layer arena-ground-v06" src={assetsV06.arena.ground} alt=""/><div className="battle-hud"><BattleFighterHud side="player" name={active.player.name} level={active.player.level ?? 1} hp={playerHp} maxHp={active.player.stats.hp} portrait={warriorDefinitions[warriorId]?.art ?? ''} portraitId={warriorId}/><BattleFighterHud side="enemy" name={active.result.enemy.name} level={active.enemyLevel} hp={enemyHp} maxHp={active.result.enemy.stats.hp} portrait={enemySprite(enemyId, 'idle')} portraitId={enemyId}/></div><div ref={playerRef} style={fighterStyle} className={`fighter player phase-${playerVisualState} ${hasSpriteKit ? 'has-sprite-kit' : ''} attack-${attackKind} motion-${weaponMotion(battleWeapon)}`}><img className="contact-shadow" src={assetsV06.arena.contactShadow} alt=""/><WarriorSprite warriorId={warriorId} weapon={battleWeapon} state={playerVisualState} combat/></div>
+  return <div className={`battle-page ${isCritical ? 'screen-shake' : ''} ${ready ? 'assets-ready' : 'assets-loading'} ${skipped ? 'skip-to-final' : ''} ${qaFx ? 'qa-hold-fx' : ''}`} style={{ '--battle-speed': save.speed } as React.CSSProperties}><div className="battle-top"><div><span className="eyebrow">{active.mode === 'duel' ? 'DUEL' : active.mode === 'rift' ? `FAILLE · ${RIFT_STAGE_LABELS[active.node - 1].toUpperCase()}` : active.mode === 'nemesis' ? `NÉMÉSIS · NIVEAU ${active.node}` : `NIVEAU ${active.node}`}</span><strong>Arène Primordiale</strong></div><div className="speed-control" role="group" aria-label="Vitesse du combat">{([1,2,3] as const).map((speed) => <button aria-pressed={save.speed === speed} className={save.speed === speed ? 'active' : ''} onClick={() => setSpeed(speed)} key={speed}>×{speed}</button>)}</div><button className="skip" onClick={skip}>Passer</button>{active.mode === 'rift' && <button className="rift-battle-quit" disabled={skipped || done} onClick={() => setQuitConfirm(true)}>Quitter la Faille</button>}</div>{admin && <span className="admin-indicator admin-battle-indicator">ADMIN LOCAL</span>}
+    <div ref={arenaRef} style={{ '--companion-distance': battleGeometry ? `${battleGeometry.companionDistance}px` : undefined, '--player-combat-text-lift': `${(battleBounds?.mobile ? spriteKit?.combatTextLift?.mobile ?? 110 : spriteKit?.combatTextLift?.desktop ?? 163) * warriorCombatFactor(warriorId, battleBounds?.mobile ?? false)}px`, '--enemy-combat-text-lift': `${duelKit ? battleBounds?.mobile ? 110 : 163 : enemyVisualSize ? enemyVisualSize.height + (battleBounds?.mobile ? 14 : 28) : battleBounds?.mobile ? 110 : 163}px` } as React.CSSProperties} className={`arena event-${event?.type ?? 'idle'} actor-${event?.actor ?? 'player'} ${hasSpriteKit ? 'has-warrior-sprite-kit' : ''} ${duelKit ? 'duel-arena' : ''}`}><img className="arena-layer arena-background" src={assetsV06.arena.background} alt=""/><img className="arena-layer arena-ground-v06" src={assetsV06.arena.ground} alt=""/><div className="battle-hud"><BattleFighterHud side="player" name={active.player.name} level={active.player.level ?? 1} hp={playerHp} maxHp={active.player.stats.hp} portrait={warriorDefinitions[warriorId]?.art ?? ''} portraitId={warriorId}/><BattleFighterHud side="enemy" name={active.result.enemy.name} level={active.enemyLevel} hp={enemyHp} maxHp={active.result.enemy.stats.hp} portrait={duelWarriorId ? warriorDefinitions[duelWarriorId]?.art ?? '' : enemySprite(enemyId, 'idle')} portraitId={duelWarriorId ?? enemyId}/></div><div ref={playerRef} style={fighterStyle} className={`fighter player phase-${playerVisualState} ${hasSpriteKit ? 'has-sprite-kit' : ''} attack-${attackKind} motion-${weaponMotion(battleWeapon)}`}><img className="contact-shadow" src={assetsV06.arena.contactShadow} alt=""/><WarriorSprite warriorId={warriorId} weapon={battleWeapon} state={playerVisualState} combat/></div>
       {companionPhase !== 'idle' && <WarriorCompanion warriorId={warriorId} phase={companionPhase}/>}
       {showProjectile && <div className="warrior-projectile" style={{ '--projectile-aspect': `${spriteKit?.fxGeometry?.frameWidth ?? 543} / ${spriteKit?.fxGeometry?.frameHeight ?? 724}`, ...(battleGeometry?.projectile ? { '--projectile-start-x': `${battleGeometry.projectile.left}px`, '--projectile-bottom': `${battleGeometry.projectile.bottom}px`, '--projectile-width': `${battleGeometry.projectile.width}px`, '--projectile-travel-x': `${battleGeometry.projectile.travelX}px`, '--projectile-travel-y': `${-battleGeometry.projectile.travelY}px` } : {}) } as React.CSSProperties} key={`projectile-${timedFxSequence}`}><WarriorAttackFx warriorId={warriorId} source={spriteKit?.projectile}/></div>}
       {ranged && ['anticipation','attack'].includes(playerState) && <div className="projectile from-player to-enemy"><img src={assetsV06.effects.projectileArrow} alt=""/></div>}
@@ -384,9 +407,10 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
         {event?.type === 'dodge' && <img className="production-dodge" src={assetsV06.effects.dodgeTrail} alt=""/>}
       </div>
       {floatingText && <FloatingCombatText key={`combat-text-${index}`} text={floatingText}/>}
-      {enemyKitReady && enemyKit && enemyFxVisible && (enemyKit.attackKind === 'ranged' ? enemyProjectile && <div key={`enemy-projectile-${enemyFxSequence}`} className="enemy-projectile-flight" style={{ '--enemy-projectile-left': `${enemyProjectile.left}px`, '--enemy-projectile-bottom': `${enemyProjectile.bottom}px`, '--enemy-projectile-dx': `${enemyProjectile.travelX}px`, '--enemy-projectile-dy': `${enemyProjectile.travelY}px`, '--enemy-projectile-width': `${enemyProjectile.width}px`, '--enemy-projectile-ms': `${enemyKit.attackMs - enemyKit.fxAtMs}ms`, '--enemy-fx-ratio': `${enemyKit.geometry['attack-fx'][0]} / ${enemyKit.geometry['attack-fx'][1]}` } as React.CSSProperties}><EnemyAttackFx enemyId={enemyId} projectile/></div> : <div key={`enemy-fx-${enemyFxSequence}`} className={`enemy-attack-fx-zone fx-${enemyId}`} style={{ '--enemy-fx-ratio': `${enemyKit.geometry['attack-fx'][0]} / ${enemyKit.geometry['attack-fx'][1]}` } as React.CSSProperties}><EnemyAttackFx enemyId={enemyId}/></div>)}
-      <div ref={enemyRef} style={enemyKitReady && enemyKit ? { '--enemy-approach-distance': `${enemyApproachDistance}px`, '--enemy-attack-ms': `${enemyKit.attackMs}ms`, '--enemy-return-ms': `${enemyKit.returnMs}ms` } as React.CSSProperties : undefined} className={`fighter enemy phase-${enemyState} ${enemyId === 'mammoth' ? 'boss-fighter' : ''} ${enemyKitReady ? `enemy-modern motion-${enemyMotion}` : ''}`}><img className="contact-shadow" src={enemyId === 'mammoth' ? assetsV06.arena.bossShadow : assetsV06.arena.contactShadow} alt=""/>{enemyKitReady ? <EnemySprite enemyId={enemyId} pose={enemyState} koFinal={skipped && enemyState === 'ko'} combat/> : <ProductionEnemy enemyId={enemyId} state={enemyState === 'hit' ? 'hurt' : enemyState === 'run' ? 'idle' : enemyState === 'block' ? 'dodge' : enemyState} boss={enemyId === 'mammoth'}/>}</div><img className="arena-layer arena-foreground" src={assetsV06.arena.foreground} alt=""/></div>
-    {done && settled && summary && (passiveOpen ? <PassiveUnlockModal passives={summary.unlockedPassives} onContinue={onExit}/> : <BattleResultOverlay winner={active.result.winner} enemyName={active.result.enemy.name} summary={summary} warriorLevel={save.ownedWarriors[warriorId]?.level ?? active.player.level ?? 1} onContinue={() => summary.unlockedPassives.length ? setPassiveOpen(true) : onExit()}/>)}
+      {enemyKitReady && duelKit && enemyFxVisible && duelWarriorId && <div key={`duel-fx-${enemyFxSequence}`} style={{ '--duel-projectile-distance': `${battleBounds ? battleBounds.measurements.enemyCenterX - battleBounds.measurements.playerCenterX : 0}px` } as React.CSSProperties} className={`enemy-attack-fx-zone duel-warrior-fx ${duelKit.attackKind === 'ranged' ? 'is-ranged' : ''}`}><WarriorAttackFx warriorId={duelWarriorId} source={duelKit.attackKind === 'ranged' ? duelKit.projectile : undefined}/></div>}
+      {enemyKitReady && enemyKit && !duelKit && enemyFxVisible && (enemyKit.attackKind === 'ranged' ? enemyProjectile && <div key={`enemy-projectile-${enemyFxSequence}`} className="enemy-projectile-flight" style={{ '--enemy-projectile-left': `${enemyProjectile.left}px`, '--enemy-projectile-bottom': `${enemyProjectile.bottom}px`, '--enemy-projectile-dx': `${enemyProjectile.travelX}px`, '--enemy-projectile-dy': `${enemyProjectile.travelY}px`, '--enemy-projectile-width': `${enemyProjectile.width}px`, '--enemy-projectile-ms': `${enemyKit.attackMs - enemyKit.fxAtMs}ms`, '--enemy-fx-ratio': `${enemyKit.geometry['attack-fx'][0]} / ${enemyKit.geometry['attack-fx'][1]}` } as React.CSSProperties}><EnemyAttackFx enemyId={enemyId} projectile/></div> : <div key={`enemy-fx-${enemyFxSequence}`} className={`enemy-attack-fx-zone fx-${enemyId}`} style={{ '--enemy-fx-ratio': `${enemyKit.geometry['attack-fx'][0]} / ${enemyKit.geometry['attack-fx'][1]}` } as React.CSSProperties}><EnemyAttackFx enemyId={enemyId}/></div>)}
+      <div ref={enemyRef} style={enemyKitReady && (enemyKit || duelKit) ? { '--enemy-approach-distance': `${enemyApproachDistance}px`, '--enemy-attack-ms': `${duelKit ? warriorAttackTimeline(duelKit).eventDurationMs : enemyKit!.attackMs}ms`, '--enemy-return-ms': `${duelKit ? duelKit.returnMs ?? 240 : enemyKit!.returnMs}ms`, ...(duelKit ? { '--fighter-aspect': `${duelKit.frameWidth} / ${duelKit.frameHeight}` } : {}) } as React.CSSProperties : undefined} className={`fighter enemy phase-${enemyState} ${!duelKit && enemyId === 'mammoth' ? 'boss-fighter' : ''} ${duelKit ? 'duel-warrior' : ''} ${enemyKitReady ? `enemy-modern motion-${enemyMotion}` : ''}`}><img className="contact-shadow" src={!duelKit && enemyId === 'mammoth' ? assetsV06.arena.bossShadow : assetsV06.arena.contactShadow} alt=""/>{duelWarriorId ? <WarriorSprite warriorId={duelWarriorId} state={enemyState === 'hit' ? 'hurt' : enemyState === 'run' ? 'approach' : enemyState} facing="left" combat/> : enemyKitReady ? <EnemySprite enemyId={enemyId} pose={enemyState} koFinal={skipped && enemyState === 'ko'} combat/> : <ProductionEnemy enemyId={enemyId} state={enemyState === 'hit' ? 'hurt' : enemyState === 'run' ? 'idle' : enemyState === 'block' ? 'dodge' : enemyState} boss={enemyId === 'mammoth'}/>}</div><img className="arena-layer arena-foreground" src={assetsV06.arena.foreground} alt=""/></div>
+    {done && settled && summary && (passiveOpen ? <PassiveUnlockModal passives={summary.unlockedPassives} onContinue={onExit}/> : <BattleResultOverlay winner={active.result.winner} enemyName={active.mode === 'duel' ? active.duelReplay?.opponent.username ?? active.result.enemy.name : active.result.enemy.name} summary={summary} warriorLevel={active.duelReplay?.levelAfter ?? save.ownedWarriors[warriorId]?.level ?? active.player.level ?? 1} onContinue={() => summary.unlockedPassives.length ? setPassiveOpen(true) : onExit()}/>)}
     {quitConfirm && <div className="rift-confirm-overlay" role="dialog" aria-modal="true" aria-label="Confirmer l’abandon de la Faille"><div className="rift-confirm"><h3>Quitter la Faille ?</h3><p>La tentative du jour prendra fin. Vos récompenses restent acquises.</p><div><button onClick={() => setQuitConfirm(false)}>RESTER</button><button className="rift-danger" onClick={onQuit}>QUITTER LA FAILLE</button></div></div></div>}
   </div>
 }
@@ -436,7 +460,17 @@ function riftActiveBattle(encounter: RiftEncounter): ActiveBattle {
     riftToken: { dateKey: encounter.dateKey, stage: encounter.stage, seed: encounter.seed } }
 }
 
-function GameApp() {
+function qaDuelBattle(save: SaveData): ActiveBattle {
+  const attackerSave = { ...save, activeWarriorId: 'karg', ownedWarriors: { ...save.ownedWarriors, karg: { warriorId: 'karg', level: 10, xp: 0 } } }
+  const defenderSave = { ...save, activeWarriorId: 'naya', ownedWarriors: { ...save.ownedWarriors, naya: { warriorId: 'naya', level: 10, xp: 0 } } }
+  const resolved = resolveDuel(attackerSave, defenderSave, 42)
+  const replay: DuelReplay = { result: resolved.result, attacker: resolved.attacker, defender: resolved.defender,
+    opponent: { username: 'APERÇU LOCAL', warriorId: 'naya', level: 10, rarity: 'Commun', points: 0 },
+    xp: resolved.xp, coins: resolved.coins, points: resolved.points, levelAfter: 10, badges: [] }
+  return { mode: 'duel', node: 0, enemyLevel: 10, player: resolved.attacker, result: resolved.result, duelReplay: replay }
+}
+
+function GameApp({ account }: { account?: AccountPlay }) {
   const adminMode = isLocalAdmin(window.location)
   const query = new URLSearchParams(window.location.search)
   const desktopCombatPreview = import.meta.env.DEV && adminMode && query.has('desktopCombatPreview')
@@ -447,7 +481,8 @@ function GameApp() {
   const riftPreview = import.meta.env.DEV && adminMode && query.has('riftPreview')
   const riftChestPreview = import.meta.env.DEV && adminMode && query.has('riftChestPreview')
   const expeditionPreview = import.meta.env.DEV && adminMode && query.has('expeditionPreview')
-  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || adventurePreview || nemesisPreview || normalBossPreview || nemesisBossPreview || riftPreview || riftChestPreview || expeditionPreview || (adminMode && (query.has('enemySpritePreview') || query.has('qaLevelChoice'))))
+  const duelReplayPreview = import.meta.env.DEV && adminMode && query.has('duelReplayPreview')
+  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || adventurePreview || nemesisPreview || normalBossPreview || nemesisBossPreview || riftPreview || riftChestPreview || expeditionPreview || duelReplayPreview || (adminMode && (query.has('enemySpritePreview') || query.has('qaLevelChoice'))))
   const requestedQaSeed = Number(query.get('qaSeed'))
   const qaSeed = adminMode && qaMode && query.has('qaSeed') && Number.isSafeInteger(requestedQaSeed) && requestedQaSeed >= 0 ? requestedQaSeed : undefined
   const requestedQaNode = Number(query.get('qaNode'))
@@ -456,7 +491,7 @@ function GameApp() {
     const targetKey = adminMode ? ADMIN_SAVE_KEY : SAVE_KEY
     const legacyKeys = adminMode ? [PREVIOUS_ADMIN_SAVE_KEY, LEGACY_ADMIN_SAVE_KEY] : [PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY]
     const migrated = !localStorage.getItem(targetKey) && legacyKeys.some((key) => Boolean(localStorage.getItem(key)))
-    const initialSave = adminMode ? withAdminAccess(loadSave(localStorage, ADMIN_SAVE_KEY)) : loadSave()
+    const initialSave = adminMode ? withAdminAccess(loadSave(localStorage, ADMIN_SAVE_KEY)) : account?.initialSave ?? loadSave()
     const initialBadges = grantEarnedBadges(initialSave)
     return { loaded: adminMode ? withAdminAccess(initialBadges.save) : initialBadges.save, granted: initialBadges.granted.length > 0, migrated }
   })
@@ -476,16 +511,27 @@ function GameApp() {
       riftChestCount: riftChestPreview ? Math.max(1, loaded.riftChestCount) : loaded.riftChestCount,
       ...(adventurePreview ? { campaignNode: qaNode, defeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}),
       ...(nemesisPreview || nemesisBossPreview ? { nemesisUnlocked: true, nemesisCampaignNode: qaNode, nemesisDefeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}) }
-  }), [view, setView] = useState<View>(() => desktopCombatPreview || normalBossPreview || nemesisBossPreview ? 'battle' : adventurePreview || nemesisPreview ? 'adventure' : riftPreview || expeditionPreview ? 'activities' : riftChestPreview ? 'chest' : createRiftEncounter(save) ? 'battle' : 'hub'), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => desktopCombatPreview || normalBossPreview || nemesisBossPreview ? createActiveBattle(save, qaNode, nemesisBossPreview ? 'nemesis' : 'normal', qaSeed) : adventurePreview || nemesisPreview || riftPreview || expeditionPreview || riftChestPreview ? null : createRiftEncounter(save) ? riftActiveBattle(createRiftEncounter(save)!) : null)
+  }), [view, setView] = useState<View>(() => duelReplayPreview || desktopCombatPreview || normalBossPreview || nemesisBossPreview ? 'battle' : adventurePreview || nemesisPreview ? 'adventure' : riftPreview || expeditionPreview ? 'activities' : riftChestPreview ? 'chest' : import.meta.env.DEV && query.has('duelPreview') ? 'duel' : createRiftEncounter(save) ? 'battle' : 'hub'), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => duelReplayPreview ? qaDuelBattle(save) : desktopCombatPreview || normalBossPreview || nemesisBossPreview ? createActiveBattle(save, qaNode, nemesisBossPreview ? 'nemesis' : 'normal', qaSeed) : adventurePreview || nemesisPreview || riftPreview || expeditionPreview || riftChestPreview || import.meta.env.DEV && query.has('duelPreview') ? null : createRiftEncounter(save) ? riftActiveBattle(createRiftEncounter(save)!) : null)
   const [adventureMode, setAdventureMode] = useState<AdventureMode>(() => nemesisPreview || nemesisBossPreview ? 'nemesis' : 'normal')
   const [welcomeFlow, setWelcomeFlow] = useState(() => !adminMode && !qaMode && !save.welcomeChestOpened)
   const [badgeNotice, setBadgeNotice] = useState<{ label: string; coins: number } | null>(null)
   const badgeNoticeTimer = useRef<number | null>(null)
   const initial = useRef(true)
+  useEffect(() => {
+    if (!account) return
+    const receive = (event: Event) => {
+      const detail = (event as CustomEvent<{ userId: string; save: SaveData }>).detail
+      if (detail.userId === account.userId) setSaveState(detail.save)
+    }
+    window.addEventListener('chronos-cloud-save', receive)
+    return () => window.removeEventListener('chronos-cloud-save', receive)
+  }, [account?.userId])
   const setSave = (next: SaveData) => {
     const prepared = adminMode ? withAdminAccess(next) : next
     const { save: awarded, granted } = grantEarnedBadges(prepared)
-    setSaveState(adminMode ? withAdminAccess(awarded) : awarded)
+    const finalSave = adminMode ? withAdminAccess(awarded) : awarded
+    if (account && !qaMode) account.manager.change(finalSave)
+    setSaveState(finalSave)
     if (granted.length) {
       if (badgeNoticeTimer.current !== null) window.clearTimeout(badgeNoticeTimer.current)
       setBadgeNotice({ label: granted.length === 1 ? granted[0].title : `${granted.length} badges débloqués`, coins: granted.reduce((total, badge) => total + badge.coins, 0) })
@@ -494,16 +540,23 @@ function GameApp() {
   }
   const commitExpedition = (next: SaveData) => {
     if (next === save) return
-    if (!qaMode) persistSave(next, localStorage, adminMode ? ADMIN_SAVE_KEY : SAVE_KEY)
+    if (!qaMode && !account) persistSave(next, localStorage, adminMode ? ADMIN_SAVE_KEY : SAVE_KEY)
     setSave(next)
   }
   const commitCampaign = (next: SaveData) => {
     // Persist the complete reward receipt before the result can be refreshed or replayed.
-    if (!qaMode) persistSave(next, localStorage, adminMode ? ADMIN_SAVE_KEY : SAVE_KEY)
+    if (!qaMode && !account) persistSave(next, localStorage, adminMode ? ADMIN_SAVE_KEY : SAVE_KEY)
     setSave(next)
   }
   useEffect(() => () => { if (badgeNoticeTimer.current !== null) window.clearTimeout(badgeNoticeTimer.current) }, [])
-  useEffect(() => { const first = initial.current; initial.current = false; if (!qaMode && (!first || initialLoad.granted || initialLoad.migrated)) persistSave(save, localStorage, adminMode ? ADMIN_SAVE_KEY : undefined) }, [save, qaMode, adminMode, initialLoad.granted, initialLoad.migrated])
+  useEffect(() => { const first = initial.current; initial.current = false; if (!qaMode) { if (account) { if (first && initialLoad.granted) account.manager.change(save) } else if (!first || initialLoad.granted || initialLoad.migrated) persistSave(save, localStorage, adminMode ? ADMIN_SAVE_KEY : undefined) } }, [save, qaMode, adminMode, initialLoad.granted, initialLoad.migrated, account?.manager])
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const charged = rechargeAdventure(save)
+      if (charged !== save) setSave(charged)
+    }, 15_000)
+    return () => window.clearInterval(timer)
+  }, [save])
   useEffect(() => { window.scrollTo({ top: 0 }) }, [view])
   const startBattle = (node: number) => {
     if (!canEnterCampaignNode(save, node, adminMode, adventureMode)) return
@@ -514,25 +567,32 @@ function GameApp() {
     if (!encounter) return
     setActiveBattle(riftActiveBattle(encounter)); setView('battle')
   }
+  const startDuelReplay = (replay: DuelReplay) => {
+    setActiveBattle({ mode: 'duel', node: 0, enemyLevel: replay.defender.level ?? 1,
+      player: replay.attacker, result: replay.result, duelReplay: replay })
+    setView('battle')
+  }
   const content = useMemo(() => {
     if (view === 'hub') return save.activeWarriorId ? <Hub save={save} setView={setView}/> : <EmptyHub/>
     if (view === 'collection') return <Collection save={save} setSave={setSave} setWarriorDetail={setWarriorDetailId}/>
     if (view === 'chest') return <Chests save={save} setSave={setSave} admin={adminMode}/>
     if (view === 'activities') return <RiftPage save={save} setSave={setSave} onExpeditionCommit={commitExpedition} setView={setView} onStart={startRiftBattle} admin={adminMode} previewExpedition={expeditionPreview}/>
     if (view === 'adventure') return <Adventure save={save} mode={adventureMode} setMode={setAdventureMode} startBattle={startBattle} admin={adminMode}/>
-    if (view === 'duel') return <div className="soon page-enter"><div className="duel-emblem"><GameIcon group="navigation" name="duel"/></div><span className="eyebrow">PORTAIL VERROUILLÉ</span><h1>Duel asynchrone</h1><p>Prochainement</p><span>Prépare ton build. Les autres Warriors arrivent d’une autre ligne du temps.</span></div>
+    if (view === 'duel') return <DuelPage account={account} onStart={startDuelReplay} preview={import.meta.env.DEV && adminMode && query.has('duelPreview')}/>
     return null
-  }, [view, save, adventureMode])
+  }, [view, save, adventureMode, account])
   if (import.meta.env.DEV && adminMode && query.has('enemySpritePreview')) return <EnemySpritePreview/>
   if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('spriteLab')) return <SpriteLab/>
   const badgeToast = badgeNotice && createPortal(<div className="badge-unlock-toast" role="status" aria-live="polite"><Award aria-hidden="true"/><span>{badgeNotice.label}</span><b>+{badgeNotice.coins} pièces</b></div>, document.body)
-  if (view === 'battle' && activeBattle) return <><Battle save={save} setSave={setSave} onCampaignCommit={commitCampaign} active={activeBattle} admin={adminMode} onExit={() => { setView(activeBattle.mode === 'rift' ? 'activities' : 'adventure'); setActiveBattle(null) }} onQuit={activeBattle.mode === 'rift' ? () => { setSave(quitRift(save)); setActiveBattle(null); setView('activities') } : undefined}/>{badgeToast}</>
-  return <><div className="app-shell" inert={welcomeFlow} aria-hidden={welcomeFlow}><Header save={save} view={view} setView={setView} admin={adminMode}/><main className="main-content">{content}</main><nav className="bottom-nav" aria-label="Navigation principale">{nav.map(({ id, label, icon }) => <button aria-label={label} className={view === id ? 'active' : ''} onClick={() => setView(id)} key={id}><GameIcon group="navigation" name={icon}/><span>{label}</span></button>)}</nav>
+  if (view === 'battle' && activeBattle) return <><Battle save={save} setSave={setSave} onCampaignCommit={commitCampaign} active={activeBattle} admin={adminMode} onExit={() => { setView(activeBattle.mode === 'rift' ? 'activities' : activeBattle.mode === 'duel' ? 'duel' : 'adventure'); setActiveBattle(null) }} onQuit={activeBattle.mode === 'rift' ? () => { setSave(quitRift(save)); setActiveBattle(null); setView('activities') } : undefined}/>{badgeToast}</>
+  return <><div className={`app-shell ${account ? 'has-account' : ''}`} inert={welcomeFlow} aria-hidden={welcomeFlow}><Header save={save} view={view} setView={setView} admin={adminMode} account={account}/><main className="main-content">{content}</main><nav className="bottom-nav" aria-label="Navigation principale">{nav.map(({ id, label, icon }) => <button aria-label={label} className={view === id ? 'active' : ''} onClick={() => setView(id)} key={id}><GameIcon group="navigation" name={icon}/><span>{label}</span></button>)}</nav>
     {warriorDetailId && view === 'collection' && <WarriorDetail save={save} warriorId={warriorDetailId} onClose={() => setWarriorDetailId(null)} onActivate={() => { if (!['fighting', 'between'].includes(todayRiftRun(save)?.status ?? '')) setSave(activateWarrior(save, warriorDetailId)); setWarriorDetailId(null) }}/>}</div>{welcomeFlow && <WelcomeChest onClaim={(id) => setSave(claimWelcomeWarrior(save, id))} onDone={() => setWelcomeFlow(false)}/>}{badgeToast}</>
 }
 
 export default function App() {
   if (import.meta.env.DEV && isLocalAdmin(window.location) && new URLSearchParams(window.location.search).has('hudPortraitPreview')) return <HudPortraitPreview/>
   if (import.meta.env.DEV && isLocalAdmin(window.location) && new URLSearchParams(window.location.search).has('spritePreview')) return <SpritePreview/>
-  return <GameApp/>
+  if (isLocalAdmin(window.location)) return <GameApp/>
+  if (import.meta.env.MODE === 'test') return <GameApp/>
+  return <AccountGate Game={GameApp}/>
 }

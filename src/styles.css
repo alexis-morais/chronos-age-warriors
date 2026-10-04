@@ -1160,6 +1160,52 @@ button.warrior-collection-entry:hover .warrior-card-frame,button.warrior-collect
 .sprite-enemy-preview-base { position:absolute;left:50%;bottom:22%;width:auto;height:170px;max-width:90%;object-fit:contain;translate:-50% 0; }
 .sprite-enemy-preview-stage .gameplay-enemy-sprite.pose-ko .gameplay-enemy-frame,.sprite-enemy-preview-stage .enemy-attack-fx { animation-iteration-count:infinite; }
 @media (prefers-reduced-motion:reduce) { .fighter.enemy.enemy-modern,.gameplay-enemy-frame,.enemy-attack-fx,.enemy-projectile-flight { animation-duration:.01ms!important; } .gameplay-enemy-sprite.pose-ko .gameplay-enemy-frame { background-position:100% 0; } }
+
+/* V0.13.2 Duel: the defender uses the same Warrior kit and ground anchor. */
+.arena.duel-arena .fighter.enemy.duel-warrior { width:clamp(120px,20vh,150px);height:auto;aspect-ratio:var(--fighter-aspect,543 / 724); }
+.arena.duel-arena .fighter.enemy.duel-warrior .contact-shadow { width:85%;bottom:0; }
+.duel-warrior-fx { left:var(--player-x,31.5%); }
+.duel-warrior-fx .warrior-attack-fx { width:100%;height:100%;top:0;left:0;transform:none; }
+.duel-warrior-fx.is-ranged { left:var(--enemy-x,68.5%);animation:duel-projectile-flight calc(.26s / var(--battle-speed)) ease-in forwards; }
+@keyframes duel-projectile-flight { to { transform:translate3d(calc(-1 * var(--duel-projectile-distance)),0,0); } }
+.duel-result-points { grid-column:1 / -1;color:#e6c67f; }
+
+.duel-page { width:min(980px,100%);margin-inline:auto;padding-bottom:calc(90px + env(safe-area-inset-bottom)); }
+.duel-tabs { margin-bottom:1.25rem; }
+.duel-tabs button { min-height:48px; }
+.duel-fight,.duel-ranking { display:grid;gap:1rem; }
+.duel-reserve,.duel-own-rank { display:flex;align-items:center;flex-wrap:wrap;gap:.7rem 1.25rem;padding:1rem 1.15rem;border:1px solid #7d715747;border-radius:16px;background:#17201e; }
+.duel-reserve strong,.duel-own-rank strong { font:1.7rem/1 'Marcellus',serif;color:#f4dcaa; }
+.duel-reserve small { margin-left:auto;color:#bec8c1; }
+.duel-opponent { display:grid;grid-template-columns:110px minmax(0,1fr) auto;gap:.55rem 1rem;align-items:center;padding:1rem;border:1px solid #8b785957;border-radius:18px;background:#202a27; }
+.duel-opponent>.eyebrow { grid-column:1 / -1; }
+.duel-opponent>img { width:110px;height:125px;object-fit:cover;object-position:center top;border-radius:12px;background:#111917; }
+.duel-opponent h2 { margin:0 0 .3rem;font:1.35rem 'Marcellus',serif; }
+.duel-opponent p { margin:.15rem 0;color:#d3d9ce; }
+.duel-opponent small { color:#b8c5bd; }
+.duel-opponent button { min-width:150px;min-height:50px; }
+.duel-notice,.duel-error { padding:1.1rem;border-radius:13px;background:#1d2825;color:#d7ded4; }
+.duel-error { border:1px solid #b96761;color:#ffe0d8; }
+.duel-ranking h2 { margin:.25rem 0 0;font:1.25rem 'Marcellus',serif; }
+.duel-leaderboard { display:grid;gap:.35rem; }
+.duel-rank-row { display:grid;grid-template-columns:45px minmax(0,1fr) auto;align-items:center;text-align:left;gap:.75rem;width:100%;min-height:60px;padding:.55rem .85rem;border:1px solid #6c776b40;border-radius:11px;background:#1b2623;color:#e5e9df;cursor:pointer; }
+.duel-rank-row:hover,.duel-rank-row:focus-visible { border-color:#dbba7a; }
+.duel-rank-row>span { display:grid;min-width:0;gap:.18rem; }
+.duel-rank-row small { color:#acb8b1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.duel-rank-row>b:last-child { color:#e4cb90; }
+.duel-profile-overlay { position:fixed;z-index:100;inset:0;display:grid;place-items:center;padding:1rem;background:#090d0bc9; }
+.duel-profile { position:relative;width:min(500px,100%);max-height:calc(100dvh - 2rem);overflow:auto;padding:1.4rem;border:1px solid #a38a5b6b;border-radius:18px;background:#1c2623;color:#ecede4; }
+.duel-profile h2 { margin:.4rem 0;font:1.55rem 'Marcellus',serif; }.duel-profile h3 { font:1.05rem 'Marcellus',serif; }
+.duel-profile-close { position:absolute;right:.8rem;top:.7rem;width:40px;height:40px;border:0;background:transparent;color:inherit;font-size:1.6rem;cursor:pointer; }
+.duel-history-row { display:flex;justify-content:space-between;gap:.75rem;padding:.65rem 0;border-top:1px solid #ffffff18;font-size:.82rem; }
+.duel-history-row b { white-space:nowrap;color:#e1c88b; }
+@media (max-width:700px) {
+  .arena.duel-arena .fighter.enemy.duel-warrior { width:clamp(105px,31vw,126px); }
+  .duel-opponent { grid-template-columns:84px minmax(0,1fr); }
+  .duel-opponent>img { width:84px;height:100px; }
+  .duel-opponent button { grid-column:1 / -1;width:100%; }
+  .duel-reserve small { margin-left:0;flex-basis:100%; }
+}
 @media (max-width:700px) {
   .topbar.is-admin .mini-brand { min-width:0;gap:.25rem;padding:0; }
   .topbar.is-admin .mini-brand img { width:78px; }
@@ -1256,3 +1302,28 @@ button.warrior-collection-entry:hover .warrior-card-frame,button.warrior-collect
 @media (max-width:500px) { .activities-heading { margin-bottom:.8rem; }.rift-entry { padding:1rem .8rem 1.2rem; }.rift-portal { width:145px;height:145px;min-width:0;min-height:0;margin-bottom:.3rem; } }
 @media (max-width:370px) { .activities-tabs { width:100%; }.activities-tabs button { min-width:0;flex:1; }.rift-interior { padding:.75rem; }.rift-warrior img { width:60px;height:60px; }.rift-stage strong { font-size:.58rem; }.rift-portal { width:142px;height:142px;margin-bottom:.25rem; } }
 @media (prefers-reduced-motion:reduce) { .rift-portal:before,.rift-portal-core,.rift-chest-aura { animation:none; }.rift-portal-core { opacity:.45; } }
+/* Account access deliberately stays independent of the game HUD. */
+.account-screen{min-height:100dvh;display:grid;place-items:center;padding:24px 16px;background:#171d20;color:#f5f1e7}
+.account-card{width:min(100%,420px);padding:clamp(22px,5vw,36px);border:1px solid #53524c;border-radius:18px;background:#252b2c;box-shadow:0 18px 50px #0005}
+.account-card h1,.account-card h2{margin:0 0 18px;font-size:1.55rem}
+.account-card p{line-height:1.5}
+.account-logo{display:block;max-width:220px;max-height:84px;object-fit:contain;margin:0 auto 26px}
+.account-card form{display:grid;gap:14px}
+.account-card label{display:grid;gap:6px;font-size:.9rem}
+.account-card input{width:100%;min-height:44px;padding:10px 12px;border:1px solid #76746a;border-radius:9px;background:#151a1b;color:#fff;font:inherit}
+.account-card input:focus-visible,.account-card button:focus-visible,.account-header button:focus-visible{outline:2px solid #e2bb75;outline-offset:3px}
+.account-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:22px}
+.account-tabs button,.account-text-button{border:0;background:transparent;color:#e7d5b3;cursor:pointer}
+.account-tabs button{min-height:42px;border-bottom:2px solid transparent}
+.account-tabs button[aria-pressed=true]{border-color:#d8ab5a;color:#fff}
+.account-text-button{margin-top:18px;padding:8px 0}
+.account-error{color:#ffb4a8;margin:0;font-size:.9rem}
+.account-conflict-backdrop{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:16px;background:#080c0dd9}
+.account-conflict-choices{display:grid;gap:10px;margin-top:20px}
+.account-conflict-choices button{min-height:46px;border:1px solid #b49963;border-radius:9px;background:#373c39;color:#fff;cursor:pointer}
+.account-header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:0 8px;color:#f5f1e7;font-size:.75rem}
+.topbar.has-account{grid-template-columns:minmax(0,1fr) auto auto auto;gap:clamp(8px,1.5vw,20px)}
+.topbar.has-account .currency{justify-self:auto}
+.account-header small{color:#c4b491}
+.account-header button{border:0;background:transparent;color:inherit;text-decoration:underline;cursor:pointer;font:inherit}
+@media(max-width:600px){.topbar.has-account{height:90px;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:50px 36px;gap:0}.topbar.has-account .topbar-title{display:none}.topbar.has-account .account-header{grid-column:1/-1;justify-content:flex-end;padding:0 0 6px;font-size:.7rem}.app-shell.has-account .main-content{padding-top:90px}.account-card{max-height:calc(100dvh - 32px);overflow:auto}}

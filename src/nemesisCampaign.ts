@@ -2,6 +2,7 @@ import { campaignBaseXp } from './campaignProgression'
 import { addWarriorXp } from './game'
 import type { BattleResult, SaveData } from './types'
 import { recordBattleOutcome } from './victories'
+import { spendAdventure } from './combatReserves'
 
 export type AdventureMode = 'normal' | 'nemesis'
 export interface CampaignSettlement {
@@ -35,13 +36,12 @@ export function campaignBattleReward(node: number, won: boolean, mode: Adventure
 /** One atomic settlement: progress, shared daily counter and first-clear receipts change together. */
 export function settleCampaignBattle(save: SaveData, mode: AdventureMode, node: number, winner: BattleResult['winner']): CampaignSettlement {
   if (!Number.isInteger(node) || node < 1 || node > 20) throw new RangeError(`Invalid adventure node: ${node}`)
-  const next = structuredClone(save)
+  const next = structuredClone(spendAdventure(save) ?? save)
   const won = winner === 'player'
   const reward = campaignBattleReward(node, won, mode)
   next.coins += reward.coins
   addWarriorXp(next, reward.xp)
   recordBattleOutcome(next, 'adventure', winner)
-  next.campaignRemaining = Math.max(0, next.campaignRemaining - 1)
   let bonusCoins = 0, bonusChests = 0, bonusChestKind: CampaignSettlement['bonusChestKind'] = null
   if (won) {
     const defeated = mode === 'nemesis' ? next.nemesisDefeatedNodes : next.defeatedNodes

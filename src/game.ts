@@ -124,7 +124,8 @@ function owns(fighter: Fighter, skill: string) { return fighter.skills.includes(
 
 export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): BattleResult {
   const rng = seededRng(seed)
-  const passives = new WarriorPassiveRuntime(player.warriorId, player.level)
+  const playerPassives = new WarriorPassiveRuntime(player.warriorId, player.level)
+  const enemyPassives = new WarriorPassiveRuntime(enemy.warriorId, enemy.level)
   let playerHp = player.stats.hp
   let enemyHp = enemy.stats.hp
   let previous: 'player' | 'enemy' | null = null
@@ -139,6 +140,8 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
   let enemyBleed = 0
   let vorkaBleedTicks = 0
   let vorkaBleedDamage = 0
+  let enemyVorkaBleedTicks = 0
+  let enemyVorkaBleedDamage = 0
   const events: BattleResult['events'] = []
   const hp = () => ({ playerHp: Math.max(0, Math.round(playerHp)), enemyHp: Math.max(0, Math.round(enemyHp)) })
 
@@ -150,14 +153,22 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
       events.push({ type: 'bleed', actor: 'player', target: 'enemy', value: vorkaBleedDamage, label: 'Saignement', ...hp() })
       if (enemyHp <= 0) break
     }
-    const pWeight = speedWeight(player.stats.speed) * (owns(player, 'Accélération') ? 1.12 : 1) * passives.actionRateMultiplier()
-    const eWeight = speedWeight(enemy.stats.speed) * (owns(enemy, 'Accélération') ? 1.12 : 1) * passives.opponentRateMultiplier()
+    if (enemyVorkaBleedTicks > 0) {
+      playerHp -= enemyVorkaBleedDamage
+      enemyVorkaBleedTicks--
+      events.push({ type: 'bleed', actor: 'enemy', target: 'player', value: enemyVorkaBleedDamage, label: 'Saignement', ...hp() })
+      if (playerHp <= 0) break
+    }
+    const pWeight = speedWeight(player.stats.speed) * (owns(player, 'Accélération') ? 1.12 : 1) * playerPassives.actionRateMultiplier() * enemyPassives.opponentRateMultiplier()
+    const eWeight = speedWeight(enemy.stats.speed) * (owns(enemy, 'Accélération') ? 1.12 : 1) * enemyPassives.actionRateMultiplier() * playerPassives.opponentRateMultiplier()
     let actor: 'player' | 'enemy' = rng() < pWeight / (pWeight + eWeight) ? 'player' : 'enemy'
     if (actor === previous && consecutive >= GAME.maxConsecutiveActions) actor = actor === 'player' ? 'enemy' : 'player'
     consecutive = actor === previous ? consecutive + 1 : 1
     consecutiveMax = Math.max(consecutiveMax, consecutive)
     previous = actor
-    if (actor === 'player') passives.onAction()
+    const actorPassives = actor === 'player' ? playerPassives : enemyPassives
+    const targetPassives = actor === 'player' ? enemyPassives : playerPassives
+    actorPassives.onAction()
     const target = actor === 'player' ? 'enemy' : 'player'
     const attacker = actor === 'player' ? player : enemy
     const defender = actor === 'player' ? enemy : player
@@ -166,16 +177,16 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
 
     const hitChance = owns(attacker, 'Précision') ? 0.05 : 0
     const baseDodge = Math.max(0, dodgeChance(defender.stats.dodge) - hitChance)
-    const finalDodge = target === 'player' ? passives.dodgeChance(baseDodge, GAME.dodgeCap) : baseDodge
+    const finalDodge = targetPassives.dodgeChance(baseDodge, GAME.dodgeCap)
     if (rng() < finalDodge) {
       events.push({ type: 'dodge', actor: target, target: actor, label: 'Esquive', ...hp() })
-      if (target === 'player') passives.onDodge()
-      else passives.onMiss()
+      targetPassives.onDodge()
+      actorPassives.onMiss()
       continue
     }
-    if (target === 'player' && passives.blockChance() > 0 && rng() < passives.blockChance()) {
-      passives.onBlock()
-      events.push({ type: 'skill', actor: 'player', target: 'enemy', label: 'Parade', ...hp() })
+    if (targetPassives.blockChance() > 0 && rng() < targetPassives.blockChance()) {
+      targetPassives.onBlock()
+      events.push({ type: 'skill', actor: target, target: actor, label: 'Parade', ...hp() })
       continue
     }
     let damage = damageForStrength(attacker.stats.strength) * (0.9 + rng() * 0.2)
@@ -190,11 +201,13 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
     const normalAttackDamage = damage
     const crit = rng() < GAME.criticalChance + (owns(attacker, 'Élan') ? 0.03 : 0)
     if (crit) { damage *= GAME.criticalMultiplier; events.push({ type: 'critical', actor, target, label: 'Critique', ...hp() }) }
-    const passiveHit = actor === 'player' ? passives.onSuccessfulAttack(enemyHp, enemy.stats.hp, vorkaBleedTicks > 0 || enemyBleed > 0, rng) : null
+    const targetHpBefore = target === 'player' ? playerHp : enemyHp
+    const targetBleeding = target === 'player' ? enemyVorkaBleedTicks > 0 || playerBleed > 0 : vorkaBleedTicks > 0 || enemyBleed > 0
+    const passiveHit = attacker.warriorId ? actorPassives.onSuccessfulAttack(targetHpBefore, defender.stats.hp, targetBleeding, rng) : null
     if (passiveHit) {
       damage *= passiveHit.multiplier
       for (const label of passiveHit.labels) events.push({ type: 'skill', actor, target, label, ...hp() })
-      if (passiveHit.consumeBleed) { vorkaBleedTicks = 0; enemyBleed = 0 }
+      if (passiveHit.consumeBleed) { if (target === 'player') { enemyVorkaBleedTicks = 0; playerBleed = 0 } else { vorkaBleedTicks = 0; enemyBleed = 0 } }
     }
     const offensiveDamage = damage
     if (owns(defender, 'Peau Dure')) damage *= 0.9
@@ -203,29 +216,34 @@ export function simulateBattle(player: Fighter, enemy: Fighter, seed: number): B
     if (defender.armor === 'bone-harness' && rng() < 0.05) damage *= 0.75
     if (defender.armor === 'white-titan-fur' && (target === 'player' ? playerHp / player.stats.hp : enemyHp / enemy.stats.hp) > 0.5) damage *= 0.92
     if (defender.armor === 'primordial-titan-skin' && attackCount <= 3) damage *= 0.8
-    if (target === 'player') damage *= passives.incomingMultiplier(playerHp, player.stats.hp)
+    damage *= targetPassives.incomingMultiplier(targetHpBefore, defender.stats.hp)
     const bonusStrikeBasis = normalAttackDamage * damage / offensiveDamage
     damage = Math.max(1, Math.round(damage))
     if (target === 'player') playerHp -= damage; else enemyHp -= damage
     events.push({ type: 'damage', actor, target, value: damage, ...hp() })
-    if (target === 'player') {
-      const reaction = passives.onDamageTaken(playerHp, player.stats.hp)
+    {
+      const targetHpAfter = target === 'player' ? playerHp : enemyHp
+      const reaction = targetPassives.onDamageTaken(targetHpAfter, defender.stats.hp)
       if (reaction.heal > 0) {
-        const beforeHeal = Math.max(0, playerHp)
-        playerHp = Math.min(player.stats.hp, beforeHeal + reaction.heal)
-        events.push({ type: 'heal', actor: 'player', target: 'player', value: playerHp - beforeHeal, label: 'Endurance de Matriarche', ...hp() })
+        const beforeHeal = Math.max(0, targetHpAfter)
+        const healed = Math.min(defender.stats.hp, beforeHeal + reaction.heal)
+        if (target === 'player') playerHp = healed; else enemyHp = healed
+        events.push({ type: 'heal', actor: target, target, value: healed - beforeHeal, label: 'Endurance de Matriarche', ...hp() })
       }
-      for (const label of reaction.labels) events.push({ type: 'skill', actor: 'player', target: 'player', label, ...hp() })
-      passives.updateThresholds(playerHp, player.stats.hp)
+      for (const label of reaction.labels) events.push({ type: 'skill', actor: target, target, label, ...hp() })
+      targetPassives.updateThresholds(target === 'player' ? playerHp : enemyHp, defender.stats.hp)
     }
-    if (passiveHit?.applyBleed && enemyHp > 0) { vorkaBleedTicks = 2; vorkaBleedDamage = Math.max(1, Math.round(damage * .10)) }
-    if (passiveHit?.bonusStrikes.length && enemyHp > 0) {
+    if (passiveHit?.applyBleed && (target === 'player' ? playerHp > 0 : enemyHp > 0)) {
+      if (target === 'player') { enemyVorkaBleedTicks = 2; enemyVorkaBleedDamage = Math.max(1, Math.round(damage * .10)) }
+      else { vorkaBleedTicks = 2; vorkaBleedDamage = Math.max(1, Math.round(damage * .10)) }
+    }
+    if (passiveHit?.bonusStrikes.length && (target === 'player' ? playerHp > 0 : enemyHp > 0)) {
       for (const portion of passiveHit.bonusStrikes) {
-        if (enemyHp <= 0) break
+        if (target === 'player' ? playerHp <= 0 : enemyHp <= 0) break
         const extraDamage = Math.max(1, Math.round(bonusStrikeBasis * portion))
-        events.push({ type: 'attack', actor: 'player', target: 'enemy', label: 'Coup supplémentaire', ...hp() })
-        enemyHp -= extraDamage
-        events.push({ type: 'damage', actor: 'player', target: 'enemy', value: extraDamage, ...hp() })
+        events.push({ type: 'attack', actor, target, label: 'Coup supplémentaire', ...hp() })
+        if (target === 'player') playerHp -= extraDamage; else enemyHp -= extraDamage
+        events.push({ type: 'damage', actor, target, value: extraDamage, ...hp() })
       }
     }
     if (owns(attacker, 'Vampirisme')) {

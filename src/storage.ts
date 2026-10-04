@@ -3,9 +3,10 @@ import { enemyIds } from './art/assetsV04'
 import { RIFT_DIFFICULTIES } from './rift'
 import { KARG_ID, warriorDefinitions } from './warriors'
 import { MAX_WARRIOR_LEVEL, xpForLevel } from './warriorProgression'
+import { MAX_COMBAT_CHARGES, rechargeAdventure } from './combatReserves'
 
 export const SAVE_KEY = 'chronos-age-warriors:v4'
-export const SAVE_VERSION = 4
+export const SAVE_VERSION = 5
 export const PREVIOUS_SAVE_KEY = 'chronos-age-warriors:v3'
 export const PREVIOUS_ADMIN_SAVE_KEY = 'chronos-age-warriors:admin:v3'
 export const LEGACY_SAVE_KEY = 'chronos-age-warriors:v2'
@@ -21,7 +22,7 @@ export function freshSave(): SaveData {
     unlockedSkills: [],
     coins: 300,
     owned: {},
-    equippedWeapon: '', equippedArmor: '', campaignNode: 1, defeatedNodes: [], campaignRemaining: 10,
+    equippedWeapon: '', equippedArmor: '', campaignNode: 1, defeatedNodes: [], campaignRemaining: 10, campaignRechargeAt: null,
     nemesisUnlocked: false, nemesisCampaignNode: 1, nemesisDefeatedNodes: [], nemesisCompleted: false,
     normalBossFirstClearRewardClaimed: false, nemesisBossFirstClearRewardClaimed: false,
     loadouts: {},
@@ -33,7 +34,11 @@ export function freshSave(): SaveData {
 }
 
 export function dailyReset(save: SaveData, today = localDate()) {
-  if (save.lastReset !== today) { save.lastReset = today; save.campaignRemaining = 10 }
+  // Legacy field is kept for save compatibility; Adventure no longer resets daily.
+  save.lastReset = today
+  const charged = rechargeAdventure(save)
+  save.campaignRemaining = charged.campaignRemaining
+  save.campaignRechargeAt = charged.campaignRechargeAt
   return save
 }
 
@@ -46,7 +51,7 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     const raw = storage.getItem(key) ?? fallbacks.map((fallback) => storage.getItem(fallback)).find(Boolean)
     if (!raw) return freshSave()
     const parsed = JSON.parse(raw) as SaveData & { bossTrophyPending?: boolean; eraRewardClaimed?: boolean }
-    if (parsed.version !== SAVE_VERSION && parsed.version !== 3 && parsed.version !== 2) return freshSave()
+    if (![2, 3, 4, SAVE_VERSION].includes(parsed.version)) return freshSave()
     const oldId = 'dev-primordial-warrior'
     if (parsed.ownedWarriors?.[oldId]) {
       const old = parsed.ownedWarriors[oldId]
@@ -75,6 +80,9 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     delete legacyTraining.trainingRemaining
     delete legacyTraining.trainingWins
     parsed.version = SAVE_VERSION
+    parsed.campaignRemaining = Number.isInteger(parsed.campaignRemaining) ? Math.min(MAX_COMBAT_CHARGES, Math.max(0, parsed.campaignRemaining)) : MAX_COMBAT_CHARGES
+    parsed.campaignRechargeAt = parsed.campaignRemaining === MAX_COMBAT_CHARGES ? null
+      : Number.isSafeInteger(parsed.campaignRechargeAt) && (parsed.campaignRechargeAt ?? 0) > 0 ? parsed.campaignRechargeAt : Date.now() + 20 * 60 * 1000
     parsed.defeatedNodes = Array.isArray(parsed.defeatedNodes) ? [...new Set(parsed.defeatedNodes.filter((node) => Number.isInteger(node) && node >= 1 && node <= 20))] : []
     parsed.campaignNode = Number.isInteger(parsed.campaignNode) ? Math.min(20, Math.max(1, parsed.campaignNode)) : 1
     const normalComplete = parsed.defeatedNodes.includes(20) || parsed.eraRewardClaimed === true
@@ -129,6 +137,21 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     }
     return dailyReset(parsed)
   } catch { return freshSave() }
+}
+
+/** Reject an unusable cloud/cache payload before invoking legacy save migrations. */
+export function parseAccountSave(value: unknown): SaveData | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const data = value as Record<string, unknown>
+  if (![2, 3, 4, SAVE_VERSION].includes(data.version as number)
+    || typeof data.activeWarriorId !== 'string' || !data.ownedWarriors || typeof data.ownedWarriors !== 'object' || Array.isArray(data.ownedWarriors)
+    || !Array.isArray(data.unlockedSkills) || !Number.isSafeInteger(data.coins) || (data.coins as number) < 0) return null
+  if (!data.activeWarriorId && (Object.keys(data.ownedWarriors).length > 0 || data.welcomeChestOpened !== false)) return null
+  const serialized = JSON.stringify(value)
+  const parsed = loadSave({ getItem: () => serialized }, 'account-save')
+  // loadSave falls back to freshSave on validation failures; do not accept that as a valid cloud row.
+  if (data.activeWarriorId && !parsed.activeWarriorId) return null
+  return parsed
 }
 
 export function persistSave(save: SaveData, storage: Pick<Storage, 'setItem'> = localStorage, key = SAVE_KEY) {

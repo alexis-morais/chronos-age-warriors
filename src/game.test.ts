@@ -241,9 +241,10 @@ describe('sauvegarde et reset quotidien', () => {
     expect(active.loadouts.naya).toEqual({ weapon: '', armor: '' })
     expect(active.owned['flint-club'].quantity).toBe(1)
   })
-  it('restaure les compteurs à une nouvelle date locale', () => {
+  it('ne recharge plus la réserve Aventure au changement de date', () => {
     const save = freshSave(); save.lastReset = '2025-01-01'; save.campaignRemaining = 0
     dailyReset(save, '2025-01-02')
-    expect(save.campaignRemaining).toBe(10)
+    expect(save.campaignRemaining).toBe(0)
+    expect(save.campaignRechargeAt).not.toBeNull()
   })
 })
