@@ -1,4 +1,5 @@
-import { addWarriorXp, effectiveStats, simulateBattle } from './game'
+import { creditWarriorXp, effectiveStats, simulateBattle } from './game'
+export { warriorTotalXp } from './game'
 import type { BattleResult, Fighter, Rarity, SaveData } from './types'
 import { activeWarrior, warriorDefinitions } from './warriors'
 import { recordBattleOutcome } from './victories'
@@ -9,9 +10,9 @@ import { xpForLevel } from './warriorProgression'
 export { warriorDefinitions } from './warriors'
 
 export const DUEL_MAX_CHARGES = 10
-export const DUEL_RECHARGE_MS = 20 * 60 * 1000
+export const DUEL_RESET_TIMEZONE = 'Europe/Paris'
 
-export const DUEL_REWARDS = { win: { xp: 20, coins: 20 }, loss: { xp: 4, coins: 0 } } as const
+export const DUEL_REWARDS = { win: { xp: 20, coins: 10 }, loss: { xp: 4, coins: 0 } } as const
 
 export const RARITY_TIERS: Record<Rarity, number> = {
   Commun: 0, 'Peu commun': 1, Rare: 2, 'Épique': 3, Légendaire: 4, Mythique: 5,
@@ -50,6 +51,19 @@ export function strictDuelPayload(value: unknown): boolean {
       || (raw.level === 10 ? raw.xp !== 0 : (raw.xp as number) >= xpForLevel(raw.level as number))) return false
   }
   if (!Object.hasOwn(value.ownedWarriors, value.activeWarriorId)) return false
+  if (value.version === 6) {
+    if (!record(value.personalClears) || !Number.isSafeInteger(value.campaignBattleSequence)
+      || (value.campaignBattleSequence as number) < 0 || !Number.isSafeInteger(value.equipmentRecycleSequence)
+      || (value.equipmentRecycleSequence as number) < 0) return false
+    for (const [id, clears] of Object.entries(value.personalClears)) {
+      if (!Object.hasOwn(value.ownedWarriors, id) || !record(clears)) return false
+      for (const mode of ['normal', 'nemesis']) {
+        const nodes = clears[mode]
+        if (!Array.isArray(nodes) || nodes.some(node => !Number.isInteger(node) || node < 1 || node > 20)
+          || new Set(nodes).size !== nodes.length) return false
+      }
+    }
+  }
   const definitions = new Map(equipment.map((item) => [item.id, item]))
   for (const [id, raw] of Object.entries(value.owned)) {
     if (!definitions.has(id) || !record(raw) || !Number.isInteger(raw.level) || (raw.level as number) < 1
@@ -95,7 +109,7 @@ export function applyDuelReward(save: SaveData, resolution: ReturnType<typeof re
   const next = structuredClone(save)
   next.coins += resolution.coins
   recordBattleOutcome(next, 'duel', resolution.result.winner)
-  addWarriorXp(next, resolution.xp)
+  creditWarriorXp(next, resolution.xp)
   return grantEarnedBadges(next)
 }
 

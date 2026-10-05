@@ -4,6 +4,7 @@ import { Award, Check, ChevronLeft, Sparkles } from 'lucide-react'
 import { ADMIN_SAVE_KEY, canEnterCampaignNode, isLocalAdmin, withAdminAccess } from './admin'
 import { equipment } from './data'
 import { activateWarrior, claimWelcomeWarrior, effectiveStats, equipmentStats, equipItem, generateEnemy, rollWarriorChest, seededRng, simulateBattle, xpForLevel } from './game'
+import { equipmentRecycleQuote, recycleEquipment } from './equipmentRecycle'
 import { LEGACY_ADMIN_SAVE_KEY, LEGACY_SAVE_KEY, PREVIOUS_ADMIN_SAVE_KEY, PREVIOUS_SAVE_KEY, loadSave, persistSave, SAVE_KEY } from './storage'
 import type { BattleResult, EquipmentDefinition, Fighter, Rarity, SaveData, View } from './types'
 import { campaignNodeTier } from './campaignProgression'
@@ -43,6 +44,7 @@ import { AccountGate, type AccountPlay } from './components/AccountGate'
 import { DuelPage } from './components/DuelPage'
 import { resolveDuel, type DuelReplay } from './duelRules'
 import { rechargeAdventure } from './combatReserves'
+import { v015Fixture, V015_QA_KITS } from './qa/v015Fixtures'
 
 const nav: { id: View; label: string; icon: string }[] = [
   { id: 'hub', label: 'Hub', icon: 'hub' }, { id: 'collection', label: 'Collection', icon: 'collection' },
@@ -98,10 +100,10 @@ function Hub({ save, setView }: { save: SaveData; setView: (view: View) => void 
   const nextXp = xpForLevel(warrior.level)
   return <div className="hub-page page-enter">
     <section className="hero-warrior"><span className="eyebrow">WARRIOR ACTIF</span><div className="hero-avatar"><WarriorCard warrior={warrior} level={warrior.level} className="hub-warrior-card" loading="eager"/></div><div className="hero-name"><h1>{warrior.name}</h1><div className="warrior-tags"><span>{warrior.warriorClass}</span><span className={`warrior-rarity ${rarityClass(warrior.rarity)}`}>{warrior.rarity}</span></div></div><WarriorStats stats={stats} className="hub-warrior-stats"/>
-      <div className="resource-row mobile-only"><span><GameIcon group="stats" name="xp"/>{save.campaignRemaining} / 10 combats récompensés</span></div>
+      <div className="resource-row mobile-only"><span><GameIcon group="stats" name="xp"/>{save.campaignRemaining} / 15 combats récompensés</span></div>
       <button className="adventure-button" onClick={() => setView('adventure')}><GameIcon group="navigation" name="adventure"/><span><small>CAMPAGNE</small>AVENTURE</span><i>→</i></button>
     </section>
-    <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><GameIcon group="stats" name="pv"/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{nextXp ? `${warrior.xp} / ${nextXp}` : 'Niveau maximum'}</b></span><div className="progress"><i style={{ width: `${nextXp ? warrior.xp / nextXp * 100 : 100}%` }}/></div></div><div className="daily"><span><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 Campagne</span></div></div></section>
+    <section className="stats-panel"><span className="eyebrow">PUISSANCE</span><h2>Statistiques</h2><div className="desktop-stats"><div className="hp-display"><GameIcon group="stats" name="pv"/><span>POINTS DE VIE</span><strong>{stats.hp}</strong></div><div className="stats-grid"><Stat type="strength" value={stats.strength}/><Stat type="dodge" value={stats.dodge}/><Stat type="speed" value={stats.speed}/></div><div className="xp-block"><span>EXPÉRIENCE <b>{nextXp ? `${warrior.xp} / ${nextXp}` : 'Niveau maximum'}</b></span><div className="progress"><i style={{ width: `${nextXp ? warrior.xp / nextXp * 100 : 100}%` }}/></div></div><div className="daily"><span><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 15 Campagne</span></div></div></section>
     <section className="hub-bottom"><div className="skill-panel skill-summary"><div className="section-title"><div><span className="eyebrow">PASSIFS</span><h2>Passifs du Warrior</h2></div><span>{unlockedCount} / 3 débloqués</span></div>
       <div className="passive-milestones">{passives.map((passive) => <article className={`passive-milestone ${warrior.level >= passive.unlockLevel ? 'reached' : 'locked'}`} key={passive.id}><span className="passive-level">Niv. {passive.unlockLevel} · {warrior.level >= passive.unlockLevel ? 'Débloqué' : 'Verrouillé'}</span><strong>{passive.name}</strong><p>{passive.description}</p></article>)}</div></div>
       <div className="hub-equipment" aria-label="Équipement du Warrior actif"><span className="eyebrow">ÉQUIPEMENT</span><div className="hub-equipment-grid"><HubEquipmentSlot type="weapon" item={weapon}/><HubEquipmentSlot type="armor" item={armor}/></div></div>
@@ -110,6 +112,8 @@ function Hub({ save, setView }: { save: SaveData; setView: (view: View) => void 
 }
 
 function EquipmentCollection({ save, setSave, type, setType }: { save: SaveData; setSave: (save: SaveData) => void; type: EquipmentDefinition['type']; setType: (type: EquipmentDefinition['type']) => void }) {
+  const [recycle, setRecycle] = useState<{ id: string; count: number; quantity: number; sequence: number } | null>(null)
+  const quote = recycle ? equipmentRecycleQuote(save, recycle.id, recycle.count) : null
   const [confirmation, setConfirmation] = useState<{ itemId: string; label: string; sequence: number } | null>(null)
   const timer = useRef<number | null>(null)
   const sequence = useRef(0)
@@ -131,14 +135,15 @@ function EquipmentCollection({ save, setSave, type, setType }: { save: SaveData;
       const quantity = save.owned[item.id].quantity ?? 1
       const contents = <><img src={equipmentIcon(item.type)} alt=""/><span className="inventory-entry-copy"><strong>{item.name}</strong><small>{shortEquipmentSummary(item)}</small></span><span className="inventory-entry-meta">{equipped && <span className="inventory-equipped"><Check aria-hidden="true"/>Équipé</span>}{quantity > 1 && <b className="inventory-quantity">×{quantity}</b>}</span></>
       const className = `inventory-entry ${rarityClass(item.rarity)} ${equipped ? 'is-equipped' : ''} ${confirmation?.itemId === item.id ? 'just-equipped' : ''}`
-      return equipped ? <article key={item.id} className={className} aria-label={`${item.name} équipé`}>{contents}</article> : <button key={item.id} className={className} onClick={() => equip(item)} aria-label={`Équiper ${item.name}`}>{contents}</button>
+      return <div key={item.id}>{equipped ? <article className={className} aria-label={`${item.name} équipé`}>{contents}</article> : <button className={className} onClick={() => equip(item)} aria-label={`Équiper ${item.name}`}>{contents}</button>}{quantity > 1 && <button className="equipment-recycle-trigger" type="button" onClick={() => setRecycle({ id: item.id, count: 1, quantity, sequence: save.equipmentRecycleSequence + 1 })} aria-label={`Recycler les doublons de ${item.name}`}>Recycler les doublons</button>}</div>
     })}</div> : <p className="inventory-empty">Aucune {type === 'weapon' ? 'arme possédée' : 'armure possédée'}.</p>}
     {confirmation && createPortal(<div key={confirmation.sequence} className="equipment-confirmation" role="status" aria-live="polite"><Check aria-hidden="true"/><span>{confirmation.label}</span></div>, document.body)}
+    {recycle && createPortal(<div className="rift-confirm-overlay" role="dialog" aria-modal="true" aria-label="Recycler les doublons"><section className="rift-confirm equipment-recycle-dialog"><h3>{equipment.find((item) => item.id === recycle.id)?.name}</h3><p>{recycle.quantity} exemplaires possédés. Un exemplaire conservé pour tous vos loadouts.</p><label>Exemplaires à recycler <input type="number" min={1} max={recycle.quantity - 1} value={recycle.count} onChange={(event) => setRecycle({ ...recycle, count: Number(event.target.value) })}/></label><p>{quote ? `+${quote.coins} pièces · ${quote.remaining} exemplaire(s) restant(s) · aucune XP` : 'Quantité invalide ou inventaire modifié.'}</p><div><button onClick={() => setRecycle(null)}>ANNULER</button><button className="primary" disabled={!quote || quote.quantity !== recycle.quantity} onClick={() => { setSave(recycleEquipment(save, recycle.id, recycle.count, recycle.quantity, recycle.sequence)); setRecycle(null) }}>RECYCLER</button></div></section></div>, document.body)}
   </section>
 }
 
 function Collection({ save, setSave, setWarriorDetail }: { save: SaveData; setSave: (save: SaveData) => void; setWarriorDetail: (id: string) => void }) {
-  const [tab, setTab] = useState<'warriors' | 'equipment' | 'badges'>('warriors')
+  const [tab, setTab] = useState<'warriors' | 'equipment' | 'badges'>(() => import.meta.env.DEV && isLocalAdmin(window.location) && new URLSearchParams(window.location.search).get('v015Qa') === 'recycle' ? 'equipment' : 'warriors')
   const [type, setType] = useState<'weapon' | 'armor'>('weapon')
   return <div className="content-page page-enter"><div className="page-heading"><span className="eyebrow">ARCHIVES DU TEMPS</span><h1>Collection</h1><p>Warriors possédés : {Object.keys(save.ownedWarriors).length} / {primalWarriors.length} · {Object.keys(save.owned).length} types d’équipements possédés</p></div><div className="big-tabs"><button className={tab === 'warriors' ? 'active' : ''} onClick={() => setTab('warriors')}><img className="collection-tab-icon" src="/assets/icons/collection/warrior.png" alt="" aria-hidden="true"/>Warriors</button><button className={tab === 'equipment' ? 'active' : ''} onClick={() => setTab('equipment')}><GameIcon group="navigation" name="equipment"/>Équipements</button><button className={tab === 'badges' ? 'active' : ''} onClick={() => setTab('badges')}><GameIcon group="stats" name="badge"/>Badges</button></div>
     {tab === 'warriors' ? <div className="warrior-collection-grid">{primalWarriors.map((warrior) => {
@@ -157,13 +162,13 @@ function Chests({ save, setSave, admin }: { save: SaveData; setSave: (save: Save
 function Adventure({ save, mode, setMode, startBattle, admin }: { save: SaveData; mode: AdventureMode; setMode: (mode: AdventureMode) => void; startBattle: (node: number) => void; admin: boolean }) {
   const progress = campaignProgress(save, mode)
   return <div className={`adventure-page page-enter ${mode === 'nemesis' ? 'is-nemesis' : ''}`}>
-    <header className="adventure-copy"><div><span className="eyebrow">CARTE I · ÈRE PRIMORDIALE{mode === 'nemesis' ? ' · NÉMÉSIS' : ''}</span><h1>La Vallée des Titans</h1><p>{mode === 'nemesis' ? 'La vallée renaît sous les cendres. Chaque victoire se mérite.' : 'La puissance qui sommeille au volcan déforme la faune et les guerriers.'}</p>{save.nemesisUnlocked && <div className="adventure-mode-switch" role="group" aria-label="Mode Aventure"><button type="button" aria-pressed={mode === 'normal'} onClick={() => setMode('normal')}>Normal</button><button type="button" aria-pressed={mode === 'nemesis'} onClick={() => setMode('nemesis')}>Némésis</button></div>}</div><div className="adventure-progress"><span>{progress.completed ? 'CAMPAGNE TERMINÉE' : 'PROCHAIN COMBAT'}</span><strong>{progress.completed ? mode === 'nemesis' ? 'Némésis terminé' : 'Ère achevée' : <>Niveau {progress.node} <small>/ 20</small></>}</strong><span className="daily-pill"><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 10 combats récompensés</span></div></header>
+    <header className="adventure-copy"><div><span className="eyebrow">CARTE I · ÈRE PRIMORDIALE{mode === 'nemesis' ? ' · NÉMÉSIS' : ''}</span><h1>La Vallée des Titans</h1><p>{mode === 'nemesis' ? 'La vallée renaît sous les cendres. Chaque victoire se mérite.' : 'La puissance qui sommeille au volcan déforme la faune et les guerriers.'}</p>{save.nemesisUnlocked && <div className="adventure-mode-switch" role="group" aria-label="Mode Aventure"><button type="button" aria-pressed={mode === 'normal'} onClick={() => setMode('normal')}>Normal</button><button type="button" aria-pressed={mode === 'nemesis'} onClick={() => setMode('nemesis')}>Némésis</button></div>}</div><div className="adventure-progress"><span>{progress.completed ? 'CAMPAGNE TERMINÉE' : 'PROCHAIN COMBAT'}</span><strong>{progress.completed ? mode === 'nemesis' ? 'Némésis terminé' : 'Ère achevée' : <>Niveau {progress.node} <small>/ 20</small></>}</strong><span className="daily-pill"><GameIcon group="stats" name="xp"/> {save.campaignRemaining} / 15 combats récompensés</span></div></header>
     {isWarriorOnExpedition(save, save.activeWarriorId) && <p className="expedition-unavailable">Ce Warrior est en expédition.</p>}
     <div className="map-scene"><AdventureMap layout={primalMapLayout} currentNode={progress.node} defeatedNodes={progress.defeated} canEnter={(node) => canEnterCampaignNode(save, node, admin, mode)} onEnter={startBattle}/></div>
   </div>
 }
 
-interface ActiveBattle { result: BattleResult; mode: 'campaign' | 'nemesis' | 'rift' | 'duel'; node: number; enemyLevel: number; player: Fighter; enemyId?: EnemyId; duelReplay?: DuelReplay; riftToken?: Pick<RiftEncounter, 'dateKey' | 'stage' | 'seed'> }
+interface ActiveBattle { result: BattleResult; mode: 'campaign' | 'nemesis' | 'rift' | 'duel'; node: number; enemyLevel: number; player: Fighter; enemyId?: EnemyId; campaignSequence?: number; duelReplay?: DuelReplay; riftToken?: Pick<RiftEncounter, 'dateKey' | 'stage' | 'seed'> }
 interface BattleSummary { xp: number; coins: number; points?: number; levelUp: number; badges: string[]; campaignProgress?: string; riftChest?: boolean; bonusCoins?: number; bonusChests?: number; bonusChestKind?: 'warrior' | 'rift' | null; nemesisUnlockedNow?: boolean; unlockedPassives: readonly WarriorPassiveDefinition[] }
 
 export function PassiveUnlockModal({ passives, onContinue }: { passives: readonly WarriorPassiveDefinition[]; onContinue: () => void }) {
@@ -177,7 +182,7 @@ export function BattleResultOverlay({ winner, enemyName, summary, warriorLevel, 
       <h1>{winner === 'player' ? 'VICTOIRE' : 'DÉFAITE'}</h1>
       <p>contre <strong>{enemyName}</strong></p>
       <div className="result-rewards">
-        <span><GameIcon group="stats" name="xp"/><b>+{summary.xp} XP</b></span>
+        <span><GameIcon group="stats" name="xp"/><b>{summary.xp > 0 ? `+${summary.xp} XP` : warriorLevel === 10 ? 'Niveau maximum' : '0 XP'}</b></span>
         <span><GameIcon group="stats" name="coins"/><b>+{summary.coins} pièces</b></span>
         {summary.points !== undefined && summary.points > 0 && <span className="duel-result-points"><b>+{summary.points} points</b></span>}
       </div>
@@ -252,7 +257,8 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
     if (active.mode === 'duel' && active.duelReplay) {
       const previousLevel = active.player.level ?? 1
       const nextLevel = active.duelReplay.levelAfter
-      setSummary({ xp: active.duelReplay.xp, coins: active.duelReplay.coins, points: active.duelReplay.points,
+      // Old immutable server receipts may still contain a nominal reward for an already capped attacker.
+      setSummary({ xp: previousLevel === MAX_WARRIOR_LEVEL ? 0 : active.duelReplay.xp, coins: active.duelReplay.coins, points: active.duelReplay.points,
         levelUp: nextLevel - previousLevel, unlockedPassives: getNewlyUnlockedWarriorPassives(warriorId, previousLevel, nextLevel),
         badges: active.duelReplay.badges.map(({ title, coins }) => `${title} · +${coins} pièces`) })
       setSettled(true)
@@ -266,7 +272,7 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
       const previousLevel = active.player.level ?? 1
       const nextLevel = next.ownedWarriors[warriorId].level
       const reward = RIFT_REWARDS[active.node - 1]
-      setSummary({ xp: won ? reward.xp : 0, coins: won ? reward.coins : 0,
+      setSummary({ xp: won ? (next.riftRun?.earnedXp ?? 0) - (save.riftRun?.earnedXp ?? 0) : 0, coins: won ? reward.coins : 0,
         levelUp: nextLevel - previousLevel, unlockedPassives: getNewlyUnlockedWarriorPassives(warriorId, previousLevel, nextLevel),
         badges: earnedBadges.map(({ title, coins: value }) => `${title} · +${value} pièces`),
         campaignProgress: won ? `${RIFT_STAGE_LABELS[active.node - 1]} terminé${active.node < 5 ? ` · ${RIFT_STAGE_LABELS[active.node]}` : ''}` : 'Faille échouée',
@@ -277,10 +283,10 @@ function Battle({ save, setSave, onCampaignCommit, active, onExit, onQuit, admin
       return
     }
     const mode = active.mode === 'nemesis' ? 'nemesis' : 'normal'
-    const previousLevel = activeWarrior(save).level
-    const { save: next, xp, coins, bonusCoins, bonusChests, bonusChestKind, progress } = settleCampaignBattle(save, mode, active.node, active.result.winner)
+    const previousLevel = save.ownedWarriors[warriorId].level
+    const { save: next, xp, coins, bonusCoins, bonusChests, bonusChestKind, progress } = settleCampaignBattle(save, mode, active.node, active.result.winner, { warriorId, sequence: active.campaignSequence ?? save.campaignBattleSequence + 1, now: Date.now() })
     const earnedBadges = grantEarnedBadges(next).granted
-    setSummary({ xp, coins, bonusCoins, bonusChests, bonusChestKind, nemesisUnlockedNow: !save.nemesisUnlocked && next.nemesisUnlocked, levelUp: activeWarrior(next).level - previousLevel, unlockedPassives: getNewlyUnlockedWarriorPassives(save.activeWarriorId, previousLevel, activeWarrior(next).level), badges: earnedBadges.map(({ title, coins: reward }) => `${title} · +${reward} pièces`), campaignProgress: progress })
+    setSummary({ xp, coins, bonusCoins, bonusChests, bonusChestKind, nemesisUnlockedNow: !save.nemesisUnlocked && next.nemesisUnlocked, levelUp: next.ownedWarriors[warriorId].level - previousLevel, unlockedPassives: getNewlyUnlockedWarriorPassives(warriorId, previousLevel, next.ownedWarriors[warriorId].level), badges: earnedBadges.map(({ title, coins: reward }) => `${title} · +${reward} pièces`), campaignProgress: progress })
     onCampaignCommit(next); setSettled(true)
   }
   useEffect(() => {
@@ -452,7 +458,7 @@ function createActiveBattle(save: SaveData, node: number, mode: AdventureMode = 
   const enemyLevel = campaignNodeTier(node)
   const enemy = mode === 'nemesis' ? nemesisEnemy(node) : generateEnemy(enemyLevel, node, rng)
   const fighter: Fighter = { name: activeWarrior(save).name, stats: effectiveStats(save), skills: [], warriorId: save.activeWarriorId, level: activeWarrior(save).level, weapon: save.equippedWeapon, armor: save.equippedArmor }
-  return { result: simulateBattle(fighter, enemy, seed), mode: mode === 'nemesis' ? 'nemesis' : 'campaign', node, enemyLevel, player: fighter }
+  return { result: simulateBattle(fighter, enemy, seed), mode: mode === 'nemesis' ? 'nemesis' : 'campaign', node, enemyLevel, player: fighter, campaignSequence: save.campaignBattleSequence + 1 }
 }
 
 function riftActiveBattle(encounter: RiftEncounter): ActiveBattle {
@@ -467,13 +473,14 @@ function qaDuelBattle(save: SaveData): ActiveBattle {
   const resolved = resolveDuel(attackerSave, defenderSave, 42)
   const replay: DuelReplay = { result: resolved.result, attacker: resolved.attacker, defender: resolved.defender,
     opponent: { username: 'APERÇU LOCAL', warriorId: 'naya', level: 10, rarity: 'Commun', points: 0 },
-    xp: resolved.xp, coins: resolved.coins, points: resolved.points, levelAfter: 10, badges: [] }
+    xp: 0, coins: resolved.coins, points: resolved.points, levelAfter: 10, badges: [] }
   return { mode: 'duel', node: 0, enemyLevel: 10, player: resolved.attacker, result: resolved.result, duelReplay: replay }
 }
 
 function GameApp({ account }: { account?: AccountPlay }) {
   const adminMode = isLocalAdmin(window.location)
   const query = new URLSearchParams(window.location.search)
+  const v015Qa = import.meta.env.DEV && adminMode ? query.get('v015Qa') : null
   const desktopCombatPreview = import.meta.env.DEV && adminMode && query.has('desktopCombatPreview')
   const adventurePreview = import.meta.env.DEV && adminMode && query.has('adventurePreview')
   const nemesisPreview = import.meta.env.DEV && adminMode && query.has('nemesisPreview')
@@ -483,7 +490,7 @@ function GameApp({ account }: { account?: AccountPlay }) {
   const riftChestPreview = import.meta.env.DEV && adminMode && query.has('riftChestPreview')
   const expeditionPreview = import.meta.env.DEV && adminMode && query.has('expeditionPreview')
   const duelReplayPreview = import.meta.env.DEV && adminMode && query.has('duelReplayPreview')
-  const qaMode = import.meta.env.DEV && (query.has('qaPreview') || desktopCombatPreview || adventurePreview || nemesisPreview || normalBossPreview || nemesisBossPreview || riftPreview || riftChestPreview || expeditionPreview || duelReplayPreview || (adminMode && (query.has('enemySpritePreview') || query.has('qaLevelChoice'))))
+  const qaMode = import.meta.env.DEV && (Boolean(v015Qa) || query.has('qaPreview') || desktopCombatPreview || adventurePreview || nemesisPreview || normalBossPreview || nemesisBossPreview || riftPreview || riftChestPreview || expeditionPreview || duelReplayPreview || (adminMode && (query.has('duelPreview') || query.has('enemySpritePreview') || query.has('qaLevelChoice'))))
   const requestedQaSeed = Number(query.get('qaSeed'))
   const qaSeed = adminMode && qaMode && query.has('qaSeed') && Number.isSafeInteger(requestedQaSeed) && requestedQaSeed >= 0 ? requestedQaSeed : undefined
   const requestedQaNode = Number(query.get('qaNode'))
@@ -492,29 +499,32 @@ function GameApp({ account }: { account?: AccountPlay }) {
     const targetKey = adminMode ? ADMIN_SAVE_KEY : SAVE_KEY
     const legacyKeys = adminMode ? [PREVIOUS_ADMIN_SAVE_KEY, LEGACY_ADMIN_SAVE_KEY] : [PREVIOUS_SAVE_KEY, LEGACY_SAVE_KEY]
     const migrated = !localStorage.getItem(targetKey) && legacyKeys.some((key) => Boolean(localStorage.getItem(key)))
-    const initialSave = adminMode ? withAdminAccess(loadSave(localStorage, ADMIN_SAVE_KEY)) : account?.initialSave ?? loadSave()
+    const initialSave = v015Qa ? v015Fixture(v015Qa) : adminMode ? withAdminAccess(loadSave(localStorage, ADMIN_SAVE_KEY)) : account?.initialSave ?? loadSave()
     const initialBadges = grantEarnedBadges(initialSave)
-    return { loaded: adminMode ? withAdminAccess(initialBadges.save) : initialBadges.save, granted: initialBadges.granted.length > 0, migrated }
+    return { loaded: adminMode && !v015Qa ? withAdminAccess(initialBadges.save) : initialBadges.save, granted: initialBadges.granted.length > 0, migrated }
   })
   const [save, setSaveState] = useState<SaveData>(() => {
     const loaded = initialLoad.loaded
     if (!qaMode) return loaded
     const qaWeapon = query.get('qaWeapon'), qaWarrior = query.get('qaWarrior') ?? (desktopCombatPreview ? 'karg' : null)
-    const weapon = qaWeapon && equipment.some((item) => item.type === 'weapon' && item.id === qaWeapon) ? qaWeapon : loaded.equippedWeapon
-    const owned = !weapon || loaded.owned[weapon] ? loaded.owned : { ...loaded.owned, [weapon]: { quantity: 1, level: 1, xp: 0, kills: 0 } }
+    const kit = adminMode ? V015_QA_KITS[query.get('qaKit') ?? ''] : undefined
+    const weapon = qaWeapon && equipment.some((item) => item.type === 'weapon' && item.id === qaWeapon) ? qaWeapon : kit?.[0] ?? loaded.equippedWeapon
+    const armor = kit?.[1] ?? loaded.equippedArmor
+    const owned = { ...loaded.owned }
+    for (const id of [weapon, armor]) if (id && !owned[id]) owned[id] = { quantity: 1, level: 1, xp: 0, kills: 0 }
     const previewWarrior = qaWarrior && warriorDefinitions[qaWarrior]
     const ownedWarriors = previewWarrior && !loaded.ownedWarriors[qaWarrior] ? { ...loaded.ownedWarriors, [qaWarrior]: { warriorId: qaWarrior, level: 1, xp: 0 } } : loaded.ownedWarriors
     const activeWarriorId = previewWarrior ? qaWarrior : loaded.activeWarriorId
     const requestedLevel = Number(query.get('qaLevel'))
     const qaLevel = adminMode && Number.isInteger(requestedLevel) && requestedLevel >= 1 ? Math.min(MAX_WARRIOR_LEVEL, requestedLevel) : null
     const previewOwnedWarriors = qaLevel && ownedWarriors[activeWarriorId] ? { ...ownedWarriors, [activeWarriorId]: { ...ownedWarriors[activeWarriorId], level: qaLevel, xp: 0 } } : ownedWarriors
-    return { ...loaded, activeWarriorId, ownedWarriors: previewOwnedWarriors, coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, unlockedSkills: [],
+    return { ...loaded, activeWarriorId, ownedWarriors: previewOwnedWarriors, coins: query.has('qaCoins') ? Math.max(loaded.coins, Number(query.get('qaCoins')) || 500) : loaded.coins, owned, equippedWeapon: weapon, equippedArmor: armor, unlockedSkills: [],
       riftChestCount: riftChestPreview ? Math.max(1, loaded.riftChestCount) : loaded.riftChestCount,
       ...(adventurePreview ? { campaignNode: qaNode, defeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}),
       ...(nemesisPreview || nemesisBossPreview ? { nemesisUnlocked: true, nemesisCampaignNode: qaNode, nemesisDefeatedNodes: Array.from({ length: qaNode - 1 }, (_, index) => index + 1) } : {}) }
-  }), [view, setView] = useState<View>(() => duelReplayPreview || desktopCombatPreview || normalBossPreview || nemesisBossPreview ? 'battle' : adventurePreview || nemesisPreview ? 'adventure' : riftPreview || expeditionPreview ? 'activities' : riftChestPreview ? 'chest' : import.meta.env.DEV && query.has('duelPreview') ? 'duel' : createRiftEncounter(save) ? 'battle' : 'hub'), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => duelReplayPreview ? qaDuelBattle(save) : desktopCombatPreview || normalBossPreview || nemesisBossPreview ? createActiveBattle(save, qaNode, nemesisBossPreview ? 'nemesis' : 'normal', qaSeed) : adventurePreview || nemesisPreview || riftPreview || expeditionPreview || riftChestPreview || import.meta.env.DEV && query.has('duelPreview') ? null : createRiftEncounter(save) ? riftActiveBattle(createRiftEncounter(save)!) : null)
+  }), [view, setView] = useState<View>(() => duelReplayPreview || desktopCombatPreview || normalBossPreview || nemesisBossPreview ? 'battle' : adventurePreview || nemesisPreview || v015Qa === 'personal' ? 'adventure' : riftPreview || expeditionPreview ? 'activities' : riftChestPreview ? 'chest' : v015Qa === 'recycle' ? 'collection' : v015Qa === 'advanced' ? 'activities' : import.meta.env.DEV && query.has('duelPreview') ? 'duel' : createRiftEncounter(save) ? 'battle' : 'hub'), [warriorDetailId, setWarriorDetailId] = useState<string | null>(null), [activeBattle, setActiveBattle] = useState<ActiveBattle | null>(() => duelReplayPreview ? qaDuelBattle(save) : desktopCombatPreview || normalBossPreview || nemesisBossPreview ? createActiveBattle(save, qaNode, nemesisBossPreview ? 'nemesis' : 'normal', qaSeed) : adventurePreview || nemesisPreview || riftPreview || expeditionPreview || riftChestPreview || import.meta.env.DEV && query.has('duelPreview') ? null : createRiftEncounter(save) ? riftActiveBattle(createRiftEncounter(save)!) : null)
   const [adventureMode, setAdventureMode] = useState<AdventureMode>(() => nemesisPreview || nemesisBossPreview ? 'nemesis' : 'normal')
-  const [welcomeFlow, setWelcomeFlow] = useState(() => !adminMode && !qaMode && !save.welcomeChestOpened)
+  const [welcomeFlow, setWelcomeFlow] = useState(() => v015Qa === 'new' || !adminMode && !qaMode && !save.welcomeChestOpened)
   const [badgeNotice, setBadgeNotice] = useState<{ label: string; coins: number } | null>(null)
   const badgeNoticeTimer = useRef<number | null>(null)
   const initial = useRef(true)
@@ -528,9 +538,9 @@ function GameApp({ account }: { account?: AccountPlay }) {
     return () => window.removeEventListener('chronos-cloud-save', receive)
   }, [account?.userId])
   const setSave = (next: SaveData) => {
-    const prepared = adminMode ? withAdminAccess(next) : next
+    const prepared = adminMode && !v015Qa ? withAdminAccess(next) : next
     const { save: awarded, granted } = grantEarnedBadges(prepared)
-    const finalSave = adminMode ? withAdminAccess(awarded) : awarded
+    const finalSave = adminMode && !v015Qa ? withAdminAccess(awarded) : awarded
     if (account && !qaMode) account.manager.change(finalSave)
     setSaveState(finalSave)
     if (granted.length) {

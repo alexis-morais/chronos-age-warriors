@@ -6,7 +6,7 @@ import { MAX_WARRIOR_LEVEL, xpForLevel } from './warriorProgression'
 import { MAX_COMBAT_CHARGES, rechargeAdventure } from './combatReserves'
 
 export const SAVE_KEY = 'chronos-age-warriors:v4'
-export const SAVE_VERSION = 5
+export const SAVE_VERSION = 6
 export const PREVIOUS_SAVE_KEY = 'chronos-age-warriors:v3'
 export const PREVIOUS_ADMIN_SAVE_KEY = 'chronos-age-warriors:admin:v3'
 export const LEGACY_SAVE_KEY = 'chronos-age-warriors:v2'
@@ -22,10 +22,11 @@ export function freshSave(): SaveData {
     unlockedSkills: [],
     coins: 300,
     owned: {},
-    equippedWeapon: '', equippedArmor: '', campaignNode: 1, defeatedNodes: [], campaignRemaining: 10, campaignRechargeAt: null,
+    equippedWeapon: '', equippedArmor: '', campaignNode: 1, defeatedNodes: [], campaignRemaining: MAX_COMBAT_CHARGES, campaignRechargeAt: null,
     nemesisUnlocked: false, nemesisCampaignNode: 1, nemesisDefeatedNodes: [], nemesisCompleted: false,
     normalBossFirstClearRewardClaimed: false, nemesisBossFirstClearRewardClaimed: false,
     loadouts: {},
+    personalClears: {}, campaignBattleSequence: 0, equipmentRecycleSequence: 0,
     totalWins: 0, adventureWins: 0, riftWins: 0, duelWins: 0, chests: 0,
     riftChestCount: 0, riftLossStreak: 0, riftRun: null, expedition: null, expeditionReturn: null,
     equipmentChestCount: 0, warriorChestCount: 0, speed: 1, badges: [],
@@ -52,7 +53,8 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     const raw = storage.getItem(key) ?? fallbacks.map((fallback) => storage.getItem(fallback)).find(Boolean)
     if (!raw) return freshSave()
     const parsed = JSON.parse(raw) as SaveData & { bossTrophyPending?: boolean; eraRewardClaimed?: boolean }
-    if (![2, 3, 4, SAVE_VERSION].includes(parsed.version)) return freshSave()
+    if (![2, 3, 4, 5, SAVE_VERSION].includes(parsed.version)) return freshSave()
+    const legacy = parsed.version < SAVE_VERSION
     const oldId = 'dev-primordial-warrior'
     if (parsed.ownedWarriors?.[oldId]) {
       const old = parsed.ownedWarriors[oldId]
@@ -79,6 +81,22 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     delete legacyTraining.trainingRemaining
     delete legacyTraining.trainingWins
     parsed.version = SAVE_VERSION
+    // Old full reserve becomes full at the new cap; partial reserves keep their timer.
+    if (legacy && parsed.campaignRemaining === 10) parsed.campaignRemaining = MAX_COMBAT_CHARGES
+    const clears = parsed.personalClears
+    parsed.personalClears = {}
+    if (!legacy && clears && typeof clears === 'object' && !Array.isArray(clears)) {
+      for (const id of Object.keys(parsed.ownedWarriors)) {
+        const entry = clears[id]
+        if (!entry || typeof entry !== 'object') continue
+        const nodes = (value: unknown) => Array.isArray(value) ? [...new Set(value.filter((node): node is number => Number.isInteger(node) && node >= 1 && node <= 20))].sort((a, b) => a - b) : []
+        parsed.personalClears[id] = { normal: nodes(entry.normal), nemesis: nodes(entry.nemesis) }
+      }
+    }
+    // No guessed historical Warrior assignment and no XP paid by migration.
+    for (const key of ['campaignBattleSequence', 'equipmentRecycleSequence'] as const) {
+      parsed[key] = !legacy && Number.isSafeInteger(parsed[key]) && parsed[key] >= 0 ? parsed[key] : 0
+    }
     parsed.campaignRemaining = Number.isInteger(parsed.campaignRemaining) ? Math.min(MAX_COMBAT_CHARGES, Math.max(0, parsed.campaignRemaining)) : MAX_COMBAT_CHARGES
     parsed.campaignRechargeAt = parsed.campaignRemaining === MAX_COMBAT_CHARGES ? null
       : Number.isSafeInteger(parsed.campaignRechargeAt) && (parsed.campaignRechargeAt ?? 0) > 0 ? parsed.campaignRechargeAt : Date.now() + 20 * 60 * 1000
@@ -91,9 +109,9 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
     parsed.nemesisCampaignNode = Number.isInteger(parsed.nemesisCampaignNode) ? Math.min(20, Math.max(1, parsed.nemesisCampaignNode)) : 1
     parsed.nemesisCompleted = parsed.nemesisCompleted === true || parsed.nemesisDefeatedNodes.includes(20)
     if (parsed.nemesisCompleted && !parsed.nemesisDefeatedNodes.includes(20)) parsed.nemesisDefeatedNodes.push(20)
-    // A legacy clear unlocks Némésis, but the new bonus is only earned on a future boss victory.
-    parsed.normalBossFirstClearRewardClaimed = parsed.normalBossFirstClearRewardClaimed === true
-    parsed.nemesisBossFirstClearRewardClaimed = parsed.nemesisBossFirstClearRewardClaimed === true
+    // Old global clears never repay account-level Boss lots when a personal opportunity is restored.
+    parsed.normalBossFirstClearRewardClaimed = parsed.normalBossFirstClearRewardClaimed === true || legacy && normalComplete
+    parsed.nemesisBossFirstClearRewardClaimed = parsed.nemesisBossFirstClearRewardClaimed === true || legacy && parsed.nemesisCompleted
     delete parsed.bossTrophyPending
     delete parsed.eraRewardClaimed
     parsed.riftChestCount = Number.isSafeInteger(parsed.riftChestCount) && parsed.riftChestCount >= 0 ? parsed.riftChestCount : 0
@@ -118,6 +136,9 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
       && Array.isArray(receipt.equipmentIds) && receipt.equipmentIds.every((id) => typeof id === 'string')
       && typeof receipt.equipmentChest === 'boolean' && typeof receipt.warriorChest === 'boolean'
       && Number.isSafeInteger(receipt.levelsGained) && receipt.levelsGained >= 0 ? receipt : null
+    // A legacy receipt may have advertised nominal XP while the Warrior was already capped.
+    if (legacy && parsed.expeditionReturn && parsed.ownedWarriors[parsed.expeditionReturn.warriorId].level === 10
+      && parsed.expeditionReturn.levelsGained === 0) parsed.expeditionReturn.xp = 0
     const run = parsed.riftRun
     parsed.riftRun = run && /^\d{4}-\d{2}-\d{2}$/.test(run.dateKey) && Number.isInteger(run.stage) && run.stage >= 0 && run.stage < 5
       && Array.isArray(run.lineup) && run.lineup.length === 5 && run.lineup.every((id) => enemyIds.some((enemyId) => enemyId === id))
@@ -149,7 +170,7 @@ export function loadSave(storage: Pick<Storage, 'getItem'> = localStorage, key =
 export function parseAccountSave(value: unknown): SaveData | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const data = value as Record<string, unknown>
-  if (![2, 3, 4, SAVE_VERSION].includes(data.version as number)
+  if (![2, 3, 4, 5, SAVE_VERSION].includes(data.version as number)
     || typeof data.activeWarriorId !== 'string' || !data.ownedWarriors || typeof data.ownedWarriors !== 'object' || Array.isArray(data.ownedWarriors)
     || !Array.isArray(data.unlockedSkills) || !Number.isSafeInteger(data.coins) || (data.coins as number) < 0) return null
   if (!data.activeWarriorId && (Object.keys(data.ownedWarriors).length > 0 || data.welcomeChestOpened !== false)) return null

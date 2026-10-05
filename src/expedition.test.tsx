@@ -79,11 +79,11 @@ describe('Expédition — temps, disponibilité et sauvegarde', () => {
 })
 
 describe('Expédition — tables et récompenses', () => {
-  it('scale 600 XP / 350 pièces avec ±10 % sans valeur négative', () => {
-    expect(rollExpeditionRewards(24 * hour, neutral)).toMatchObject({ xp: 600, coins: 350 })
-    expect(rollExpeditionRewards(12 * hour, neutral)).toMatchObject({ xp: 300, coins: 175 })
-    expect(rollExpeditionRewards(24 * hour, () => 0)).toMatchObject({ xp: 540, coins: 315 })
-    expect(rollExpeditionRewards(24 * hour, () => 0.999999)).toMatchObject({ xp: 660, coins: 385 })
+  it('scale 300 XP / 50 pièces avec ±10 % sans valeur négative', () => {
+    expect(rollExpeditionRewards(24 * hour, neutral)).toMatchObject({ xp: 300, coins: 50 })
+    expect(rollExpeditionRewards(12 * hour, neutral)).toMatchObject({ xp: 150, coins: 25 })
+    expect(rollExpeditionRewards(24 * hour, () => 0)).toMatchObject({ xp: 270, coins: 45 })
+    expect(rollExpeditionRewards(24 * hour, () => 0.999999)).toMatchObject({ xp: 330, coins: 55 })
     expect(rollExpeditionRewards(0, () => 0)).toMatchObject({ xp: 0, coins: 0 })
   })
 
@@ -125,7 +125,7 @@ describe('Expédition — tables et récompenses', () => {
     save.owned['flint-club'].quantity = 2
     const next = settleExpedition(save, start + 48 * hour, () => 0, { forceEquipmentChest: true, forceWarriorChest: true })
     expect(next.expedition).toBeNull()
-    expect(next.expeditionReturn).toMatchObject({ elapsedMs: 24 * hour, xp: 540, coins: 315, equipmentChest: true, warriorChest: true })
+    expect(next.expeditionReturn).toMatchObject({ elapsedMs: 24 * hour, xp: 270, coins: 45, equipmentChest: true, warriorChest: true })
     expect(next.ownedWarriors.karg.level).toBeGreaterThan(save.ownedWarriors.karg.level)
     expect(next.owned['flint-club'].quantity).toBe(6)
     expect(next.equipmentChestCount).toBe(1)

@@ -318,3 +318,21 @@ export function addWarriorXp(save: SaveData, amount: number, rng: Rng = Math.ran
   void rng
   return levels
 }
+
+/** Actual credited XP, including a partial final level; never counts discarded XP. */
+export function warriorTotalXp(save: SaveData, id = save.activeWarriorId): number {
+  const owned = save.ownedWarriors[id]
+  if (!owned) return 0
+  let total = owned.xp
+  for (let level = 1; level < owned.level; level++) total += xpForLevel(level)
+  return total
+}
+
+export function creditWarriorXp(save: SaveData, amount: number, id = save.activeWarriorId): number {
+  const before = warriorTotalXp(save, id)
+  const active = save.activeWarriorId
+  save.activeWarriorId = id
+  addWarriorXp(save, amount)
+  save.activeWarriorId = active
+  return warriorTotalXp(save, id) - before
+}

@@ -4,8 +4,8 @@ import { nemesisEnemy } from './nemesisBalance'
 import { primalWarriors } from './warriors'
 import { riftEnemy, riftLineup } from './riftBalance'
 
-describe('V0.14 murs mesurés avec le vrai moteur', () => {
-  it('Morgath distingue niveau 9, niveau 10 et qualité du loadout sans scaling', () => {
+describe('murs fixes : calibration Common V0.14 préservée, avantage rareté V0.15 autorisé', () => {
+  it('Morgath distingue N9/N10 et qualité du loadout des Common sans scaling', () => {
     const rates: Record<string, number[]> = {}
     for (const [label, level, weapon, armor, mode] of [
       ['nine', 9, 'titan-heart', 'primordial-titan-skin', 'normal'],
@@ -14,7 +14,7 @@ describe('V0.14 murs mesurés avec le vrai moteur', () => {
       ['endgame', 10, 'titan-heart', 'primordial-titan-skin', 'normal'],
       ['nemesis', 10, 'titan-heart', 'primordial-titan-skin', 'nemesis'],
     ] as const) {
-      rates[label] = primalWarriors.map((warrior) => {
+      rates[label] = primalWarriors.filter(warrior => warrior.rarity === 'Commun').map((warrior) => {
         const stats = getEffectiveWarriorStats(warrior.id, level, weapon, armor)
         const player = { name: warrior.name, warriorId: warrior.id, level, stats, skills: [], weapon, armor }
         const enemy = mode === 'normal' ? generateEnemy(1, 20, () => .5) : nemesisEnemy(20)
@@ -50,14 +50,15 @@ describe('V0.14 murs mesurés avec le vrai moteur', () => {
     expect(mean).toBeGreaterThan(78); expect(mean).toBeLessThan(92)
   })
 
-  it('préserve le mur 10 avec gear de départ et une fin de parcours non garantie avant maîtrise', () => {
+  it('préserve les murs des Common avec gear de départ et la progression vers maîtrise', () => {
     const averageRate = (level: number, node: number, weapon: string, armor: string) => {
       let wins=0
-      for (const warrior of primalWarriors) {
+      const commons = primalWarriors.filter(warrior => warrior.rarity === 'Commun')
+      for (const warrior of commons) {
         const player={name:warrior.name,warriorId:warrior.id,level,stats:getEffectiveWarriorStats(warrior.id,level,weapon,armor),skills:[],weapon,armor}
         for (let sample=0;sample<300;sample++) wins+=simulateBattle(player,generateEnemy(1,node,()=>.5),node*1000003+level*7919+sample*97).winner==='player' ? 1 : 0
       }
-      return wins/(primalWarriors.length*3)
+      return wins/(commons.length*3)
     }
     expect(averageRate(5,10,'flint-club','hunter-hides')).toBeLessThan(5)
     const seven=averageRate(7,19,'tyrant-claw','white-titan-fur')

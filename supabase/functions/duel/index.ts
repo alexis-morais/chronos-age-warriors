@@ -1,6 +1,6 @@
 // Supabase Edge / Deno. engine.js is built from src/duelRules.ts by pnpm run build:duel-edge.
 import { createClient } from 'npm:@supabase/supabase-js@2'
-import { applyDuelReward, normalizedDuelSave, resolveDuel, warriorDefinitions } from './engine.js'
+import { applyDuelReward, normalizedDuelSave, resolveDuel, warriorDefinitions, warriorTotalXp } from './engine.js'
 
 declare const Deno: { env: { get(name: string): string | undefined }; serve(handler: (request: Request) => Promise<Response>): void }
 
@@ -47,7 +47,7 @@ async function publicOpponent(userId: string) {
 
 async function assign(attackerId: string) {
   const excluded: string[] = []
-  let lastState: { opponent_id: string | null; charges: number; recharge_at: string | null; server_now: string; points: number } | null = null
+  let lastState: { opponent_id: string | null; charges: number; recharge_at: string | null; reset_at: string; limit_rule: string; server_now: string; points: number } | null = null
   for (let attempt = 0; attempt < 20; attempt++) {
     const state = await rpc('duel_assign', { p_attacker: attackerId, p_exclude: excluded })
     lastState = state
@@ -83,7 +83,7 @@ async function battle(attackerId: string, requestId: string) {
     const rewarded = applyDuelReward(attackerSave, resolution)
     const nextSave = rewarded.save
     const replay = { result: resolution.result, attacker: resolution.attacker, defender: resolution.defender,
-      opponent, xp: resolution.xp, coins: resolution.coins, points: resolution.points,
+      opponent, xp: warriorTotalXp(nextSave) - warriorTotalXp(attackerSave), coins: resolution.coins, points: resolution.points,
       levelAfter: nextSave.ownedWarriors[resolution.attacker.warriorId].level,
       badges: rewarded.granted.map(({ title, coins }: { title: string; coins: number }) => ({ title, coins })) }
     try {
@@ -126,7 +126,7 @@ Deno.serve(async (request) => {
     if (body.action === 'state') {
       await requireEligibleAttacker(attackerId)
       const { state, opponent } = await assign(attackerId)
-      return reply({ charges: state.charges, rechargeAt: state.recharge_at, serverNow: state.server_now,
+      return reply({ charges: state.charges, rechargeAt: null, resetAt: state.reset_at, limitRule: state.limit_rule, serverNow: state.server_now,
         points: state.points, opponent })
     }
     if (body.action === 'fight') {

@@ -64,6 +64,10 @@ export interface SaveData {
   equippedWeapon: string
   equippedArmor: string
   loadouts: Record<string, WarriorLoadout>
+  /** Earned victories only; legacy attribution was not recorded. */
+  personalClears: Record<string, { normal: number[]; nemesis: number[] }>
+  campaignBattleSequence: number
+  equipmentRecycleSequence: number
   campaignNode: number
   defeatedNodes: number[]
   nemesisUnlocked: boolean

@@ -1,7 +1,7 @@
 import { supabase } from './lib/supabase'
 import type { DuelReplay, PublicDuelOpponent } from './duelRules'
 
-export interface DuelState { charges: number; rechargeAt: string | null; serverNow: string; points: number; opponent: PublicDuelOpponent | null }
+export interface DuelState { charges: number; rechargeAt: string | null; resetAt: string; limitRule: 'daily-v015'; serverNow: string; points: number; opponent: PublicDuelOpponent | null }
 export interface DuelRankRow { rank: number; username: string; warrior_id: string | null; level: number | null; points: number; rarity: string | null }
 export interface DuelBoard { ownRank: number; ownPoints: number; top: DuelRankRow[] }
 export interface DuelProfile { username: string; rank: number; points: number; warrior_id: string | null; level: number | null; rarity: string | null; history: { opponent: string; warrior_id: string; won: boolean; created_at: string }[] }
@@ -28,7 +28,11 @@ export async function invokeDuel<T>(body: Record<string, unknown>): Promise<T> {
   return data as T
 }
 
-export const duelState = () => invokeDuel<DuelState>({ action: 'state' })
+export const duelState = async () => {
+  const state = await invokeDuel<DuelState>({ action: 'state' })
+  if (state.limitRule !== 'daily-v015' || !Number.isFinite(Date.parse(state.resetAt))) throw new Error('Mise à jour du service Duel nécessaire.')
+  return state
+}
 export const duelFight = (requestId: string) => invokeDuel<DuelReplay>({ action: 'fight', requestId })
 export const duelBoard = () => invokeDuel<DuelBoard>({ action: 'leaderboard' })
 export const duelProfile = (username: string) => invokeDuel<DuelProfile>({ action: 'profile', username })

@@ -11,6 +11,7 @@ import { WarriorGacha } from './WarriorGacha'
 import { ChestOddsModal } from './ChestOddsModal'
 import { recycleWarrior, WARRIOR_RECYCLE_REWARDS } from '../warriorRecycle'
 import { warriorDefinitions } from '../warriors'
+import { warriorTotalXp } from '../game'
 
 const rarityClass = (rarity: Rarity) => `rarity-${rarity.toLowerCase().replace(' ', '-').normalize('NFD').replace(/[\u0300-\u036f]/g, '')}`
 const equipmentIcon = (type: 'weapon' | 'armor') => `/assets/icons/collection/${type}.png`
@@ -94,7 +95,8 @@ export function ChestPage({ save, setSave, admin }: { save: SaveData; setSave: (
     const reward = WARRIOR_RECYCLE_REWARDS[warriorDefinitions[id].rarity]
     const owned = next.ownedWarriors[id]
     setSave(next)
-    setRecycleSummary(`+${reward.coins} pièces · +${reward.xp} XP · Niveau ${owned.level}${owned.level === 10 ? ' (maximum)' : ` · ${owned.xp} XP`}`)
+    const creditedXp = warriorTotalXp(next, id) - warriorTotalXp(save, id)
+    setRecycleSummary(`+${reward.coins} pièces · ${creditedXp > 0 ? `+${creditedXp} XP` : '0 XP (maximum)'} · Niveau ${owned.level}${owned.level === 10 ? ' (maximum)' : ` · ${owned.xp} XP`}`)
   }
   return <div className="chest-page-v095 content-page page-enter"><header className="chest-page-heading"><span className="eyebrow">AUTEL DES POSSIBLES</span><h1>Coffres</h1><button className="icon-button" type="button" aria-label="Probabilités des coffres" onClick={() => setOddsOpen(true)}><Info/></button><p>Trois chemins pour enrichir votre légende.</p></header><div className="chest-offers"><ChestOffer kind="warrior" busy={Boolean(result)} save={save} admin={admin} onOpen={open} onStoredOpen={openStored}/><ChestOffer kind="equipment" busy={Boolean(result)} save={save} admin={admin} onOpen={open} onStoredOpen={openStored}/><section className="chest-offer chest-offer-rift" aria-label="Coffre de Faille"><div className="rift-chest-art" aria-hidden="true"><span className="rift-chest-aura"/><img src={assetsV06.chest.closed} alt=""/><span className="rift-chest-fracture"/></div><div className="chest-offer-copy"><span className="eyebrow">RELIQUE · FAILLE PRIMORDIALE</span><h2>Coffre de Faille</h2><p>Un Warrior issu de la fracture des Âges.</p><strong className="rift-chest-count">Coffres : {save.riftChestCount}</strong></div><div className="chest-offer-actions"><button type="button" onClick={openRift} disabled={Boolean(result) || save.riftChestCount === 0} aria-label="Ouvrir un Coffre de Faille"><strong>OUVRIR</strong><span>{save.riftChestCount > 0 ? 'Coffre stocké' : 'Aucun coffre'}</span></button></div></section></div>
     {oddsOpen && createPortal(<ChestOddsModal onClose={() => setOddsOpen(false)}/>, document.body)}

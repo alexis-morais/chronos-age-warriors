@@ -18,7 +18,7 @@ describe('frontière transport Duel', () => {
     await expect(duelState()).rejects.toThrow('Service Duel indisponible. Réessaie.')
   })
   it('conserve Aucun adversaire comme état normal et sans faux résultat', async () => {
-    const state = { charges: 10, rechargeAt: null, serverNow: '2026-10-04T00:00:00Z', points: 0, opponent: null }
+    const state = { charges: 10, rechargeAt: null, resetAt: '2026-10-05T22:00:00Z', limitRule: 'daily-v015', serverNow: '2026-10-04T00:00:00Z', points: 0, opponent: null }
     mocks.invoke.mockResolvedValue({ data: state, error: null })
     await expect(duelState()).resolves.toEqual(state)
     expect(mocks.invoke).toHaveBeenCalledWith('duel', { body: { action: 'state' } })

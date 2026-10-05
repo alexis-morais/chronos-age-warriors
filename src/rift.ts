@@ -1,5 +1,5 @@
 import { enemyIds, type EnemyId } from './art/assetsV04'
-import { addWarriorXp, effectiveStats, seededRng, simulateBattle } from './game'
+import { creditWarriorXp, effectiveStats, seededRng, simulateBattle } from './game'
 import { riftEnemy, riftLineup, RIFT_REWARDS } from './riftBalance'
 import type { BattleResult, Fighter, RiftRun, SaveData } from './types'
 import { recordBattleOutcome } from './victories'
@@ -82,13 +82,10 @@ export function resolveRiftStage(save: SaveData, encounter: Pick<RiftEncounter, 
   }
   const reward = RIFT_REWARDS[settled.stage]
   next.coins += reward.coins
-  const previousActive = next.activeWarriorId
-  next.activeWarriorId = settled.warriorId
-  addWarriorXp(next, reward.xp)
-  next.activeWarriorId = previousActive
+  const creditedXp = creditWarriorXp(next, reward.xp, settled.warriorId)
   recordBattleOutcome(next, 'rift', 'player')
   settled.earnedCoins += reward.coins
-  settled.earnedXp += reward.xp
+  settled.earnedXp += creditedXp
   if (settled.stage === 4) {
     settled.status = 'complete'
     next.riftLossStreak = 0

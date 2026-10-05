@@ -5,7 +5,7 @@ import { addWarriorXp, effectiveStats, generateEnemy, grantWarrior, seededRng } 
 import { LEGACY_ADMIN_SAVE_KEY, LEGACY_SAVE_KEY, loadSave, SAVE_KEY, SAVE_VERSION } from './storage'
 import { establishedKargSave } from './testFixtures'
 import { primalWarriors, ownedWarrior } from './warriors'
-import { getUnlockedPassiveSlots, getWarriorLevelStats, WARRIOR_XP_REQUIREMENTS } from './warriorProgression'
+import { getUnlockedPassiveSlots, getWarriorLevelStats, WARRIOR_XP_REQUIREMENTS, RARITY_STAT_PROFILES } from './warriorProgression'
 
 const legacyLevelTen: Record<string, [number, number, number, number]> = {
   karg: [28,18,22,270], naya: [21,27,30,220], brakk: [24,15,17,330], eyla: [23,21,28,235],
@@ -16,24 +16,26 @@ const levelTen: Record<string, [number, number, number, number]> = {"karg":[90,2
 const values = (stats: { strength: number; dodge: number; speed: number; hp: number }) => [stats.strength, stats.dodge, stats.speed, stats.hp]
 
 describe('progression Warrior 1→10', () => {
-  it('préserve les niveaux 1–6 et prépare progressivement le palier final sans doubler une stat', () => {
+  it('préserve N1, les courbes Common et une croissance monotone avec profils de rareté visibles', () => {
     for (const warrior of primalWarriors) {
       expect(values(getWarriorLevelStats(warrior.id, 1))).toEqual(values(warrior.baseStats))
-      expect(values(getWarriorLevelStats(warrior.id, 10))).toEqual([
+      const oldEnd = [
         warrior.id === 'naya' ? 73 : Math.round(levelTen[warrior.id][0] * 1.1), levelTen[warrior.id][1], levelTen[warrior.id][2],
         warrior.id === 'naya' ? 900 : Math.round(levelTen[warrior.id][3] * 1.34),
-      ])
-      for (const level of [2, 5, 6]) {
+      ]
+      const budget = warrior.rarity === 'Commun' ? 1 : RARITY_STAT_PROFILES[warrior.rarity].forceHpBudget
+      expect(values(getWarriorLevelStats(warrior.id, 10))).toEqual(oldEnd.map((value,index)=>Math.round(value * (index === 0 || index === 3 ? budget : 1))))
+      for (const level of warrior.rarity === 'Commun' ? [2, 5, 6] : []) {
         expect(values(getWarriorLevelStats(warrior.id, level))).toEqual(values(warrior.baseStats).map((start, index) =>
           Math.round(start + (legacyLevelTen[warrior.id][index] - start) * (level - 1) / 9)))
       }
-      for (let level = 7; level <= 10; level++) {
+      for (let level = 2; level <= 10; level++) {
         const prior = values(getWarriorLevelStats(warrior.id,level-1)), current = values(getWarriorLevelStats(warrior.id,level))
         current.forEach((value,index) => expect(value).toBeGreaterThanOrEqual(prior[index]))
         if (level === 10) current.forEach((value,index) => expect(value / prior[index]).toBeLessThan(2))
       }
       const gains = (level: number, index: number) => values(getWarriorLevelStats(warrior.id,level))[index] - values(getWarriorLevelStats(warrior.id,level-1))[index]
-      for (const stat of [0,3]) {
+      for (const stat of warrior.rarity === 'Commun' ? [0,3] : []) {
         expect(gains(8,stat)).toBeGreaterThan(0)
         expect(gains(9,stat)).toBeGreaterThan(0)
         expect(gains(10,stat)).toBeGreaterThan(gains(9,stat))
@@ -139,14 +141,14 @@ describe('difficulté Primal fixe', () => {
     expect(enemyFor(20).name).toBe('Morgath, Roi Primordial')
   })
 
-  it('accorde 400 XP de combat pour le parcours de 20 victoires, sans ancien bonus Boss', () => {
+  it('accorde 5375 XP de combat pour le parcours de 20 victoires, sans ancien bonus Boss', () => {
     const total = Array.from({ length: 20 }, (_, index) => {
       const node = index + 1
       return campaignBaseXp(node)
     }).reduce((sum, reward) => sum + reward, 0)
-    expect(total).toBe(400)
+    expect(total).toBe(5375)
     const save = establishedKargSave()
     addWarriorXp(save, total)
-    expect(save.ownedWarriors.karg).toMatchObject({ level: 3, xp: 100 })
+    expect(save.ownedWarriors.karg).toMatchObject({ level: 9, xp: 325 })
   })
 })

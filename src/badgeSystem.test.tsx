@@ -19,7 +19,7 @@ describe('distinctions primordiales', () => {
     expect(primalBadges.filter(({ grade }) => grade === 'gold')).toHaveLength(3)
     expect(primalBadges.filter(({ grade }) => grade === 'platinum')).toHaveLength(2)
     expect(primalWarriors).toHaveLength(12)
-    expect(primalEquipmentIds).toHaveLength(15)
+    expect(primalEquipmentIds).toHaveLength(20)
     expect(gradeRewards).toEqual({ bronze: 50, silver: 100, gold: 200, platinum: 500 })
   })
 
@@ -54,6 +54,7 @@ describe('distinctions primordiales', () => {
   it('accorde Maîtrise Primordiale une fois les douze reçus, sans doublon', () => {
     const save = establishedKargSave()
     save.badges = primalBadges.map(({ id }) => ({ id, unlockedAt: '2026-01-01T00:00:00Z' }))
+    save.badges.push({ id: 'primal-warriors-v015-reward', unlockedAt: '2026-01-01T00:00:00Z' })
     const first = grantEarnedBadges(save)
     expect(first.granted).toEqual([{ id: PRIMAL_MASTERY_ID, title: 'Maîtrise Primordiale', coins: PRIMAL_MASTERY_REWARD }])
     expect(first.save.coins).toBe(save.coins + 1500)

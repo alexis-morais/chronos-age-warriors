@@ -1,5 +1,5 @@
 import { equipment } from './data'
-import { addEquipmentCopy, addWarriorXp, type Rng } from './game'
+import { addEquipmentCopy, creditWarriorXp, type Rng } from './game'
 import { EXPEDITION_EQUIPMENT_CHEST_CHANCE, EXPEDITION_EQUIPMENT_FIND_CHANCE, EXPEDITION_MAX_COINS, EXPEDITION_MAX_MS, EXPEDITION_MAX_XP, EXPEDITION_ROLL_MS, EXPEDITION_WARRIOR_CHEST_CHANCE, expeditionRarityWeights } from './expeditionBalance'
 import type { ExpeditionReturn, SaveData } from './types'
 
@@ -68,10 +68,9 @@ export function settleExpedition(save: SaveData, now = Date.now(), rng: Rng = Ma
   for (const id of reward.equipmentIds) next = addEquipmentCopy(next, id)
   if (reward.equipmentChest) next.equipmentChestCount += 1
   if (reward.warriorChest) next.warriorChestCount += 1
-  const previousActive = next.activeWarriorId
-  next.activeWarriorId = active.warriorId
-  const levelsGained = addWarriorXp(next, reward.xp)
-  next.activeWarriorId = previousActive
+  const beforeLevel = next.ownedWarriors[active.warriorId].level
+  reward.xp = creditWarriorXp(next, reward.xp, active.warriorId)
+  const levelsGained = next.ownedWarriors[active.warriorId].level - beforeLevel
   const receipt: ExpeditionReturn = { id: `${active.warriorId}:${active.startedAt}`, warriorId: active.warriorId, elapsedMs, ...reward, levelsGained }
   next.expedition = null
   next.expeditionReturn = receipt

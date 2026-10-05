@@ -1,6 +1,6 @@
 import type { SaveData } from './types'
 
-export const MAX_COMBAT_CHARGES = 10
+export const MAX_COMBAT_CHARGES = 15
 export const COMBAT_RECHARGE_MS = 20 * 60 * 1000
 
 /** nextAt is the instant of the next charge, not the last spend. */

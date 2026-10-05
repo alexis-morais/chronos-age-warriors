@@ -1,11 +1,11 @@
-import type { Stats } from './types'
+import type { Rarity, Stats } from './types'
 
 export const MAX_WARRIOR_LEVEL = 10
 export const WARRIOR_XP_REQUIREMENTS = [120, 180, 300, 450, 650, 850, 1100, 1400, 1800] as const
 
-// Canonical level 1→10 values: [Force, Esquive, Vitesse, PV].
-// V0.14.1: levels 1–6 preserved; preparation grows through 7–9 before final mastery.
-const warriorLevelStats: Record<string, readonly (readonly [number, number, number, number])[]> = {
+// Phase 2 anchors: [Force, Esquive, Vitesse, PV]. Common curves remain unchanged.
+// V0.15 rarity-first profiles derive visible canonical stats, never combat modifiers.
+export const PHASE2_LEVEL_STATS: Readonly<Record<string, readonly (readonly [number, number, number, number])[]>> = {
   karg: [[11,8,10,110],[13,9,11,128],[15,10,13,146],[17,11,14,163],[19,12,15,181],[20,14,17,199],[29,15,18,306],[40,16,20,455],[54,17,22,626],[99,28,40,1139]],
   naya: [[8,13,14,90],[9,15,16,104],[11,16,18,119],[12,18,19,133],[14,19,21,148],[15,21,23,162],[21,22,25,235],[28,24,26,338],[37,25,28,455],[73,45,55,900]],
   brakk: [[12,6,7,145],[13,7,8,166],[15,8,9,186],[16,9,10,207],[17,10,11,227],[19,11,13,248],[27,12,14,356],[38,13,15,507],[51,14,17,680],[95,25,32,1260]],
@@ -20,11 +20,30 @@ const warriorLevelStats: Record<string, readonly (readonly [number, number, numb
   tyrak: [[23,8,12,245],[25,9,13,273],[28,10,15,302],[30,11,16,330],[32,12,18,358],[35,14,19,387],[41,15,21,480],[49,16,22,610],[58,17,24,759],[106,28,42,1380]],
 }
 
+export const RARITY_STAT_PROFILES = {
+  'Peu commun': { forceHpBudget: 1.02, growth: [0,.035,.075,.13,.21,.30,.43,.59,.77,1] },
+  Rare: { forceHpBudget: 1.06, growth: [0,.065,.15,.30,.48,.59,.69,.79,.89,1] },
+  'Épique': { forceHpBudget: 1.16, growth: [0,.10,.30,.60,.88,.904,.928,.952,.976,1] },
+  Légendaire: { forceHpBudget: 1.24, growth: [0,.12,.33,.62,.88,.904,.928,.952,.976,1] },
+  Mythique: { forceHpBudget: 1.30, growth: [0,.14,.36,.64,.86,.888,.916,.944,.972,1] },
+} as const
+
+// Kept here to avoid a progression ↔ roster import cycle. A contract test checks the roster.
+export const WARRIOR_GROWTH_TIERS: Readonly<Record<string, Exclude<Rarity, 'Commun'>>> = {
+  asha: 'Peu commun', rhex: 'Peu commun', ursak: 'Peu commun', saar: 'Rare', morga: 'Rare',
+  vorka: 'Épique', urgath: 'Légendaire', tyrak: 'Mythique',
+}
+
 export function getWarriorLevelStats(warriorId: string, level: number): Stats {
-  const table = warriorLevelStats[warriorId]
+  const table = PHASE2_LEVEL_STATS[warriorId]
   if (!table) throw new Error(`Unknown Warrior: ${warriorId}`)
   const clamped = Number.isFinite(level) ? Math.min(MAX_WARRIOR_LEVEL, Math.max(1, Math.trunc(level))) : 1
-  const [strength, dodge, speed, hp] = table[clamped - 1]
+  const profile = RARITY_STAT_PROFILES[WARRIOR_GROWTH_TIERS[warriorId]]
+  const tuple = profile ? table[0].map((start, stat) => {
+    const end = Math.round(table[9][stat] * (stat === 0 || stat === 3 ? profile.forceHpBudget : 1))
+    return Math.round(start + (end - start) * profile.growth[clamped - 1])
+  }) : table[clamped - 1]
+  const [strength, dodge, speed, hp] = tuple
   return { strength, dodge, speed, hp }
 }
 

@@ -3,8 +3,9 @@ import type { Rarity } from './types'
 
 export const EXPEDITION_MAX_MS = 24 * 60 * 60 * 1000
 export const EXPEDITION_ROLL_MS = 6 * 60 * 60 * 1000
-export const EXPEDITION_MAX_XP = 600
-export const EXPEDITION_MAX_COINS = 350
+export const EXPEDITION_MAX_XP = 300
+// V0.15 recurring economy: Phase 2 measured >11 paid Warrior chests/day before calibration.
+export const EXPEDITION_MAX_COINS = 50
 export const EXPEDITION_EQUIPMENT_FIND_CHANCE = 0.35
 export const EXPEDITION_EQUIPMENT_CHEST_CHANCE = 0.1
 export const EXPEDITION_WARRIOR_CHEST_CHANCE = 0.02

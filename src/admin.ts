@@ -24,7 +24,7 @@ export function withAdminAccess(save: SaveData): SaveData {
   for (const item of equipment) owned[item.id] ??= { quantity: 1, level: 1, xp: 0, kills: 0 }
   return {
     ...save, activeWarriorId: save.activeWarriorId || primalWarriors[0].id, welcomeChestOpened: true, ownedWarriors, owned, coins: ADMIN_COINS,
-    campaignRemaining: Math.max(save.campaignRemaining, GAME.campaignDaily),
+    campaignRemaining: GAME.campaignDaily, campaignRechargeAt: null,
   }
 }
 

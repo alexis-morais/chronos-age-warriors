@@ -753,24 +753,112 @@ var e = [
 			1380
 		]
 	]
+}, n = {
+	"Peu commun": {
+		forceHpBudget: 1.02,
+		growth: [
+			0,
+			.035,
+			.075,
+			.13,
+			.21,
+			.3,
+			.43,
+			.59,
+			.77,
+			1
+		]
+	},
+	Rare: {
+		forceHpBudget: 1.06,
+		growth: [
+			0,
+			.065,
+			.15,
+			.3,
+			.48,
+			.59,
+			.69,
+			.79,
+			.89,
+			1
+		]
+	},
+	Épique: {
+		forceHpBudget: 1.16,
+		growth: [
+			0,
+			.1,
+			.3,
+			.6,
+			.88,
+			.904,
+			.928,
+			.952,
+			.976,
+			1
+		]
+	},
+	Légendaire: {
+		forceHpBudget: 1.24,
+		growth: [
+			0,
+			.12,
+			.33,
+			.62,
+			.88,
+			.904,
+			.928,
+			.952,
+			.976,
+			1
+		]
+	},
+	Mythique: {
+		forceHpBudget: 1.3,
+		growth: [
+			0,
+			.14,
+			.36,
+			.64,
+			.86,
+			.888,
+			.916,
+			.944,
+			.972,
+			1
+		]
+	}
+}, r = {
+	asha: "Peu commun",
+	rhex: "Peu commun",
+	ursak: "Peu commun",
+	saar: "Rare",
+	morga: "Rare",
+	vorka: "Épique",
+	urgath: "Légendaire",
+	tyrak: "Mythique"
 };
-function n(e, n) {
-	let r = t[e];
-	if (!r) throw Error(`Unknown Warrior: ${e}`);
-	let [i, a, o, s] = r[(Number.isFinite(n) ? Math.min(10, Math.max(1, Math.trunc(n))) : 1) - 1];
+function i(e, i) {
+	let a = t[e];
+	if (!a) throw Error(`Unknown Warrior: ${e}`);
+	let o = Number.isFinite(i) ? Math.min(10, Math.max(1, Math.trunc(i))) : 1, s = n[r[e]], [c, l, u, d] = s ? a[0].map((e, t) => {
+		let n = Math.round(a[9][t] * (t === 0 || t === 3 ? s.forceHpBudget : 1));
+		return Math.round(e + (n - e) * s.growth[o - 1]);
+	}) : a[o - 1];
 	return {
-		strength: i,
-		dodge: a,
-		speed: o,
-		hp: s
+		strength: c,
+		dodge: l,
+		speed: u,
+		hp: d
 	};
 }
-function r(t) {
+function a(t) {
 	return !Number.isInteger(t) || t < 1 || t >= 10 ? 0 : e[t - 1];
 }
 //#endregion
 //#region src/config.ts
-var i = {
+var o = {
 	baseDamage: 6,
 	strengthExponent: .75,
 	strengthScale: 2.2,
@@ -783,16 +871,16 @@ var i = {
 	speedOffset: 10,
 	speedExponent: .65,
 	maxConsecutiveActions: 3,
-	campaignDaily: 10,
+	campaignDaily: 15,
 	maxWarriorLevel: 10
-}, a = [
+}, s = [
 	"Commun",
 	"Peu commun",
 	"Rare",
 	"Épique",
 	"Légendaire",
 	"Mythique"
-], o = [
+], c = [
 	{
 		id: "flint-club",
 		name: "Massue de silex",
@@ -887,11 +975,11 @@ var i = {
 		type: "weapon",
 		rarity: "Épique",
 		stats: {
-			strength: 30,
-			speed: 20,
-			dodge: 8
+			strength: 65,
+			speed: 45,
+			dodge: 16
 		},
-		bonus: "+30 Force · +20 Vitesse · +8 Esquive",
+		bonus: "+65 Force · +45 Vitesse · +16 Esquive",
 		effect: "Premier coup : +20 % dégâts",
 		art: "spear"
 	},
@@ -901,10 +989,10 @@ var i = {
 		type: "weapon",
 		rarity: "Légendaire",
 		stats: {
-			strength: 55,
+			strength: 75,
 			speed: 14
 		},
-		bonus: "+55 Force · +14 Vitesse",
+		bonus: "+75 Force · +14 Vitesse",
 		effect: "12 % : +50 % dégâts",
 		art: "claw"
 	},
@@ -1018,11 +1106,11 @@ var i = {
 		type: "armor",
 		rarity: "Épique",
 		stats: {
-			hp: 260,
+			hp: 440,
 			dodge: 20,
-			speed: 12
+			speed: 32
 		},
-		bonus: "+260 PV · +20 Esquive · +12 Vitesse",
+		bonus: "+440 PV · +20 Esquive · +32 Vitesse",
 		effect: "Les 3 premiers coups reçus : −15 % dégâts",
 		art: "plate"
 	},
@@ -1052,8 +1140,8 @@ var i = {
 		effect: "Les 3 premiers coups reçus : −20 % dégâts",
 		art: "titan"
 	}
-], s = "karg", c = {
-	id: s,
+], l = "karg", u = {
+	id: l,
 	name: "Karg",
 	title: "Premier Chasseur",
 	era: "Primordiale",
@@ -1071,7 +1159,7 @@ var i = {
 	},
 	art: "/assets/warriors/primal/karg.png",
 	artPosition: "50% 8%"
-}, l = (e, t, n, r, i, a, o) => ({
+}, d = (e, t, n, r, i, a, o) => ({
 	id: e,
 	name: t,
 	title: n,
@@ -1081,100 +1169,100 @@ var i = {
 	baseStats: a,
 	art: `/assets/warriors/primal/${e}.png`,
 	artPosition: o
-}), u = [
-	c,
-	l("naya", "Naya", "Ombre des Falaises", "Commun", "Spectre", {
+}), f = [
+	u,
+	d("naya", "Naya", "Ombre des Falaises", "Commun", "Spectre", {
 		strength: 8,
 		dodge: 13,
 		speed: 14,
 		hp: 90
 	}, "50% 8%"),
-	l("brakk", "Brakk", "Brise-Roc", "Commun", "Bastion", {
+	d("brakk", "Brakk", "Brise-Roc", "Commun", "Bastion", {
 		strength: 12,
 		dodge: 6,
 		speed: 7,
 		hp: 145
 	}, "50% 7%"),
-	l("eyla", "Eyla", "Œil de Silex", "Commun", "Tempête", {
+	d("eyla", "Eyla", "Œil de Silex", "Commun", "Tempête", {
 		strength: 10,
 		dodge: 10,
 		speed: 12,
 		hp: 100
 	}, "50% 9%"),
-	l("asha", "Asha", "Voix des Braises", "Peu commun", "Fléau", {
+	d("asha", "Asha", "Voix des Braises", "Peu commun", "Fléau", {
 		strength: 11,
 		dodge: 10,
 		speed: 11,
 		hp: 120
 	}, "50% 8%"),
-	l("rhex", "Rhex", "Meneur de Raptors", "Peu commun", "Héraut", {
+	d("rhex", "Rhex", "Meneur de Raptors", "Peu commun", "Héraut", {
 		strength: 11,
 		dodge: 11,
 		speed: 13,
 		hp: 115
 	}, "50% 10%"),
-	l("ursak", "Ursak", "Roi des Cavernes", "Peu commun", "Ravageur", {
+	d("ursak", "Ursak", "Roi des Cavernes", "Peu commun", "Ravageur", {
 		strength: 14,
 		dodge: 7,
 		speed: 9,
 		hp: 150
 	}, "50% 5%"),
-	l("saar", "Saar", "Croc du Smilodon", "Rare", "Spectre", {
+	d("saar", "Saar", "Croc du Smilodon", "Rare", "Spectre", {
 		strength: 15,
 		dodge: 16,
 		speed: 16,
 		hp: 135
 	}, "50% 15%"),
-	l("morga", "Morga", "Matriarche d’Ivoire", "Rare", "Bastion", {
+	d("morga", "Morga", "Matriarche d’Ivoire", "Rare", "Bastion", {
 		strength: 16,
 		dodge: 5,
 		speed: 7,
 		hp: 195
 	}, "50% 9%"),
-	l("vorka", "Vorka", "Reine d’Obsidienne", "Épique", "Fléau", {
+	d("vorka", "Vorka", "Reine d’Obsidienne", "Épique", "Fléau", {
 		strength: 18,
 		dodge: 12,
 		speed: 14,
 		hp: 165
 	}, "50% 5%"),
-	l("urgath", "Urgath", "Titan des Glaces", "Légendaire", "Bastion", {
+	d("urgath", "Urgath", "Titan des Glaces", "Légendaire", "Bastion", {
 		strength: 21,
 		dodge: 6,
 		speed: 8,
 		hp: 225
 	}, "50% 5%"),
-	l("tyrak", "TYRAK", "Roi Primordial", "Mythique", "Ravageur", {
+	d("tyrak", "TYRAK", "Roi Primordial", "Mythique", "Ravageur", {
 		strength: 23,
 		dodge: 8,
 		speed: 12,
 		hp: 245
 	}, "50% 0%")
-], d = Object.fromEntries(u.map((e) => [e.id, e]));
-function f(e, t) {
-	let r = e.ownedWarriors[t], i = d[t];
-	if (!r || !i || r.warriorId !== i.id) throw Error("Warrior definition or ownership is missing");
-	let a = n(t, r.level);
+], p = Object.fromEntries(f.map((e) => [e.id, e]));
+function m(e, t) {
+	let n = e.ownedWarriors[t], r = p[t];
+	if (!n || !r || n.warriorId !== r.id) throw Error("Warrior definition or ownership is missing");
+	let a = i(t, n.level);
 	return {
-		...i,
-		level: r.level,
-		xp: r.xp,
+		...r,
+		level: n.level,
+		xp: n.xp,
 		stats: a,
 		skills: []
 	};
 }
-function p(e) {
-	return f(e, e.activeWarriorId);
+function h(e) {
+	return m(e, e.activeWarriorId);
 }
 //#endregion
 //#region src/warriorPassives.ts
-var m = (e, t) => t.map(([t, n, r]) => ({
+var g = (e, t) => t.map(([t, n, r]) => ({
 	id: `${e}-${t}`,
 	warriorId: e,
 	name: n,
 	unlockLevel: t,
 	description: r
-})), h = {
-	karg: m("karg", [
+})), _ = {
+	karg: g("karg", [
 		[
 			3,
 			"Premier Sang",
@@ -1191,7 +1279,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"Infligez +30 % de dégâts aux cibles à 30 % de PV ou moins."
 		]
 	]),
-	naya: m("naya", [
+	naya: g("naya", [
 		[
 			3,
 			"Pas d’Ombre",
@@ -1208,7 +1296,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"Après une esquive, le prochain coup réussi inflige +60 % de dégâts au lieu de +40 %."
 		]
 	]),
-	brakk: m("brakk", [
+	brakk: g("brakk", [
 		[
 			3,
 			"Garde rocheuse",
@@ -1225,7 +1313,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"À 30 % de PV ou moins, les 3 prochains coups reçus infligent −35 % de dégâts. Une fois par combat."
 		]
 	]),
-	eyla: m("eyla", [
+	eyla: g("eyla", [
 		[
 			3,
 			"Mise en joue",
@@ -1242,7 +1330,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"Le premier coup réussi contre une cible à 50 % de PV ou moins inflige +40 % de dégâts."
 		]
 	]),
-	asha: m("asha", [
+	asha: g("asha", [
 		[
 			3,
 			"Marque de Braise",
@@ -1259,7 +1347,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"Les détonations infligent +50 % au lieu de +30 % et donnent +20 % de cadence à la prochaine action."
 		]
 	]),
-	rhex: m("rhex", [
+	rhex: g("rhex", [
 		[
 			3,
 			"Signal de meute",
@@ -1276,7 +1364,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"Chaque assaut ajoute 2 morsures à 30 % des dégâts normaux chacune, au lieu d’une à 35 %."
 		]
 	]),
-	ursak: m("ursak", [
+	ursak: g("ursak", [
 		[
 			3,
 			"Fureur cavernicole",
@@ -1293,7 +1381,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"À 30 % de PV ou moins, gagnez +20 % de dégâts et +15 % de cadence jusqu’à la fin du combat."
 		]
 	]),
-	saar: m("saar", [
+	saar: g("saar", [
 		[
 			3,
 			"Pas félin",
@@ -1310,7 +1398,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"Après une esquive, le prochain coup réussi inflige +45 % de dégâts."
 		]
 	]),
-	morga: m("morga", [
+	morga: g("morga", [
 		[
 			3,
 			"Garde d’Ivoire",
@@ -1327,7 +1415,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"À 25 % de PV ou moins, récupérez 15 % des PV maximum et recevez −15 % de dégâts jusqu’à la fin. Une fois par combat."
 		]
 	]),
-	vorka: m("vorka", [
+	vorka: g("vorka", [
 		[
 			3,
 			"Entaille d’obsidienne",
@@ -1344,7 +1432,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"Le premier coup contre une cible qui saigne à 40 % de PV ou moins inflige +45 % de dégâts et consume le saignement."
 		]
 	]),
-	urgath: m("urgath", [
+	urgath: g("urgath", [
 		[
 			3,
 			"Rempart glacial",
@@ -1361,7 +1449,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"À 40 % de PV ou moins, recevez −20 % de dégâts."
 		]
 	]),
-	tyrak: m("tyrak", [
+	tyrak: g("tyrak", [
 		[
 			3,
 			"Présence primordiale",
@@ -1378,7 +1466,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 			"À 35 % de PV ou moins, gagnez +25 % de dégâts et recevez −12 % de dégâts jusqu’à la fin du combat."
 		]
 	])
-}, g = class {
+}, v = class {
 	warriorId;
 	level;
 	targetedAttacks = 0;
@@ -1405,7 +1493,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 		this.warriorId = e, this.level = t;
 	}
 	has(e) {
-		return this.level >= e && !!h[this.warriorId];
+		return this.level >= e && !!_[this.warriorId];
 	}
 	credit(e) {
 		this.actionCredit = Math.min(1, this.actionCredit + e);
@@ -1502,7 +1590,7 @@ var m = (e, t) => t.map(([t, n, r]) => ({
 };
 //#endregion
 //#region src/game.ts
-function _(e) {
+function y(e) {
 	let t = e >>> 0;
 	return () => {
 		t += 1831565813;
@@ -1510,277 +1598,288 @@ function _(e) {
 		return e = Math.imul(e ^ e >>> 15, e | 1), e ^= e + Math.imul(e ^ e >>> 7, e | 61), ((e ^ e >>> 14) >>> 0) / 4294967296;
 	};
 }
-var ee = (e) => i.baseDamage + i.strengthScale * e ** i.strengthExponent, te = (e) => Math.min(i.dodgeCap, i.dodgeBase + i.dodgeScale * e / (e + 100)), v = (e) => (e + i.speedOffset) ** i.speedExponent;
-function y(e) {
-	return { ...o.find((t) => t.id === e)?.stats };
+var ee = (e) => o.baseDamage + o.strengthScale * e ** o.strengthExponent, te = (e) => Math.min(o.dodgeCap, o.dodgeBase + o.dodgeScale * e / (e + 100)), ne = (e) => (e + o.speedOffset) ** o.speedExponent;
+function b(e) {
+	return { ...c.find((t) => t.id === e)?.stats };
 }
-function b(e, t, r = "", i = "") {
-	let a = n(e, t);
-	for (let e of [r, i]) {
-		let t = y(e);
+function x(e, t, n = "", r = "") {
+	let a = i(e, t);
+	for (let e of [n, r]) {
+		let t = b(e);
 		for (let [e, n] of Object.entries(t)) a[e] += n;
 	}
 	return a;
 }
-function x(e, t = e.activeWarriorId) {
-	let n = f(e, t), r = t === e.activeWarriorId ? {
+function S(e, t = e.activeWarriorId) {
+	let n = m(e, t), r = t === e.activeWarriorId ? {
 		weapon: e.equippedWeapon,
 		armor: e.equippedArmor
 	} : e.loadouts[t] ?? {
 		weapon: "",
 		armor: ""
 	};
-	return b(t, n.level, e.owned[r.weapon] ? r.weapon : "", e.owned[r.armor] ? r.armor : "");
+	return x(t, n.level, e.owned[r.weapon] ? r.weapon : "", e.owned[r.armor] ? r.armor : "");
 }
-function S(e, t) {
+function C(e, t) {
 	return e.skills.includes(t);
 }
-function C(e, t, n) {
-	let r = _(n), a = new g(e.warriorId, e.level), o = new g(t.warriorId, t.level), s = e.stats.hp, c = t.stats.hp, l = null, u = 0, d = 0, f = 0, p = 0, m = 0, h = !1, y = !1, b = 0, x = 0, C = 0, w = 0, T = 0, E = 0, D = [], O = () => ({
+function w(e, t, n) {
+	let r = y(n), i = new v(e.warriorId, e.level), a = new v(t.warriorId, t.level), s = e.stats.hp, c = t.stats.hp, l = null, u = 0, d = 0, f = 0, p = 0, m = 0, h = !1, g = !1, _ = 0, b = 0, x = 0, S = 0, w = 0, T = 0, E = [], D = () => ({
 		playerHp: Math.max(0, Math.round(s)),
 		enemyHp: Math.max(0, Math.round(c))
 	});
-	for (; s > 0 && c > 0 && f < 160 && (f += 1, !(C > 0 && (c -= w, C--, D.push({
+	for (; s > 0 && c > 0 && f < 160 && (f += 1, !(x > 0 && (c -= S, x--, E.push({
 		type: "bleed",
 		actor: "player",
 		target: "enemy",
-		value: w,
+		value: S,
 		label: "Saignement",
-		...O()
-	}), c <= 0) || T > 0 && (s -= E, T--, D.push({
+		...D()
+	}), c <= 0) || w > 0 && (s -= T, w--, E.push({
 		type: "bleed",
 		actor: "enemy",
 		target: "player",
-		value: E,
+		value: T,
 		label: "Saignement",
-		...O()
+		...D()
 	}), s <= 0)));) {
-		let n = v(e.stats.speed) * (S(e, "Accélération") ? 1.12 : 1) * a.actionRateMultiplier() * o.opponentRateMultiplier(), f = v(t.stats.speed) * (S(t, "Accélération") ? 1.12 : 1) * o.actionRateMultiplier() * a.opponentRateMultiplier(), g = r() < n / (n + f) ? "player" : "enemy";
-		g === l && u >= i.maxConsecutiveActions && (g = g === "player" ? "enemy" : "player"), u = g === l ? u + 1 : 1, d = Math.max(d, u), l = g;
-		let _ = g === "player" ? a : o, k = g === "player" ? o : a;
-		_.onAction();
-		let A = g === "player" ? "enemy" : "player", j = g === "player" ? e : t, M = g === "player" ? t : e, N = (e) => {
-			A === "player" ? s -= e : c -= e, D.push({
+		let n = ne(e.stats.speed) * (C(e, "Accélération") ? 1.12 : 1) * i.actionRateMultiplier() * a.opponentRateMultiplier(), f = ne(t.stats.speed) * (C(t, "Accélération") ? 1.12 : 1) * a.actionRateMultiplier() * i.opponentRateMultiplier(), v = r() < n / (n + f) ? "player" : "enemy";
+		v === l && u >= o.maxConsecutiveActions && (v = v === "player" ? "enemy" : "player"), u = v === l ? u + 1 : 1, d = Math.max(d, u), l = v;
+		let y = v === "player" ? i : a, O = v === "player" ? a : i;
+		y.onAction();
+		let k = v === "player" ? "enemy" : "player", A = v === "player" ? e : t, j = v === "player" ? t : e, M = (e) => {
+			k === "player" ? s -= e : c -= e, E.push({
 				type: "damage",
-				actor: g,
-				target: A,
+				actor: v,
+				target: k,
 				value: e,
-				...O()
+				...D()
 			});
-			let t = A === "player" ? s : c, n = k.onDamageTaken(t, M.stats.hp);
+			let t = k === "player" ? s : c, n = O.onDamageTaken(t, j.stats.hp);
 			if (n.heal > 0) {
-				let e = Math.max(0, t), r = Math.min(M.stats.hp, e + n.heal);
-				A === "player" ? s = r : c = r, D.push({
+				let e = Math.max(0, t), r = Math.min(j.stats.hp, e + n.heal);
+				k === "player" ? s = r : c = r, E.push({
 					type: "heal",
-					actor: A,
-					target: A,
+					actor: k,
+					target: k,
 					value: r - e,
 					label: "Endurance de Matriarche",
-					...O()
+					...D()
 				});
 			}
-			for (let e of n.labels) D.push({
+			for (let e of n.labels) E.push({
 				type: "skill",
-				actor: A,
-				target: A,
+				actor: k,
+				target: k,
 				label: e,
-				...O()
+				...D()
 			});
-			k.updateThresholds(A === "player" ? s : c, M.stats.hp);
-		}, P = g === "player" ? ++p : ++m;
-		D.push({
+			O.updateThresholds(k === "player" ? s : c, j.stats.hp);
+		}, N = v === "player" ? ++p : ++m;
+		E.push({
 			type: "attack",
-			actor: g,
-			target: A,
-			...O()
+			actor: v,
+			target: k,
+			...D()
 		});
-		let F = (S(j, "Précision") ? .05 : 0) + (j.weapon === "hunter-bow" ? .03 : 0), I = Math.max(0, te(M.stats.dodge) - F), L = k.dodgeChance(I, i.dodgeCap);
-		if (r() < L) {
-			D.push({
+		let P = (C(A, "Précision") ? .05 : 0) + (A.weapon === "hunter-bow" ? .03 : 0), F = Math.max(0, te(j.stats.dodge) - P), I = O.dodgeChance(F, o.dodgeCap);
+		if (r() < I) {
+			E.push({
 				type: "dodge",
-				actor: A,
-				target: g,
+				actor: k,
+				target: v,
 				label: "Esquive",
-				...O()
-			}), k.onDodge(), _.onMiss();
+				...D()
+			}), O.onDodge(), y.onMiss();
 			continue;
 		}
-		if (k.blockChance() > 0 && r() < k.blockChance()) {
-			k.onBlock(), D.push({
+		if (O.blockChance() > 0 && r() < O.blockChance()) {
+			O.onBlock(), E.push({
 				type: "skill",
-				actor: A,
-				target: g,
+				actor: k,
+				target: v,
 				label: "Parade",
-				...O()
+				...D()
 			});
 			continue;
 		}
-		let R = ee(j.stats.strength) * (.9 + r() * .2);
-		P === 1 && S(j, "Premier Sang") && (R *= 1.22), S(j, "Frappe Dévastatrice") && r() < .12 && (R *= 1.45, D.push({
+		let L = ee(A.stats.strength) * (.9 + r() * .2);
+		N === 1 && C(A, "Premier Sang") && (L *= 1.22), C(A, "Frappe Dévastatrice") && r() < .12 && (L *= 1.45, E.push({
 			type: "skill",
-			actor: g,
-			target: A,
+			actor: v,
+			target: k,
 			label: "Frappe Dévastatrice",
-			...O()
-		})), S(j, "Rage") && (R *= 1 + (1 - (g === "player" ? s / e.stats.hp : c / t.stats.hp)) * .22), S(j, "Opportuniste") && (A === "player" ? s / e.stats.hp : c / t.stats.hp) < .3 && (R *= 1.25), j.weapon === "flint-club" && r() < .05 && (R *= 1.2), j.weapon === "bone-spear" && P === 1 && (R *= 1.1), j.weapon === "storm-javelin" && P === 1 && (R *= 1.2), j.weapon === "tyrant-claw" && r() < .12 && (R *= 1.5), j.weapon === "titan-heart" && r() < .07 && (R *= 1.8);
-		let ne = R, z = r() < i.criticalChance + (S(j, "Élan") ? .03 : 0);
-		z && (R *= M.armor === "mammoth-plate" ? 1 + (i.criticalMultiplier - 1) * .8 : i.criticalMultiplier, D.push({
+			...D()
+		})), C(A, "Rage") && (L *= 1 + (1 - (v === "player" ? s / e.stats.hp : c / t.stats.hp)) * .22), C(A, "Opportuniste") && (k === "player" ? s / e.stats.hp : c / t.stats.hp) < .3 && (L *= 1.25), A.weapon === "flint-club" && r() < .05 && (L *= 1.2), A.weapon === "bone-spear" && N === 1 && (L *= 1.1), A.weapon === "storm-javelin" && N === 1 && (L *= 1.2), A.weapon === "tyrant-claw" && r() < .12 && (L *= 1.5), A.weapon === "titan-heart" && r() < .07 && (L *= 1.8);
+		let R = L, z = r() < o.criticalChance + (C(A, "Élan") ? .03 : 0);
+		z && (L *= j.armor === "mammoth-plate" ? 1 + (o.criticalMultiplier - 1) * .8 : o.criticalMultiplier, E.push({
 			type: "critical",
-			actor: g,
-			target: A,
+			actor: v,
+			target: k,
 			label: "Critique",
-			...O()
+			...D()
 		}));
-		let B = A === "player" ? s : c, re = A === "player" ? T > 0 || b > 0 : C > 0 || x > 0, V = j.warriorId ? _.onSuccessfulAttack(B, M.stats.hp, re, r) : null;
-		if (V) {
-			R *= V.multiplier;
-			for (let e of V.labels) D.push({
+		let B = k === "player" ? s : c, V = k === "player" ? w > 0 || _ > 0 : x > 0 || b > 0, H = A.warriorId ? y.onSuccessfulAttack(B, j.stats.hp, V, r) : null;
+		if (H) {
+			L *= H.multiplier;
+			for (let e of H.labels) E.push({
 				type: "skill",
-				actor: g,
-				target: A,
+				actor: v,
+				target: k,
 				label: e,
-				...O()
+				...D()
 			});
-			V.consumeBleed && (A === "player" ? (T = 0, b = 0) : (C = 0, x = 0));
+			H.consumeBleed && (k === "player" ? (w = 0, _ = 0) : (x = 0, b = 0));
 		}
-		let H = j.weapon === "mammoth-spear" && r() < .1;
-		H && z && M.armor === "mammoth-plate" && (R *= i.criticalMultiplier / (1 + (i.criticalMultiplier - 1) * .8));
-		let U = R;
-		H || (S(M, "Peau Dure") && (R *= .9), S(M, "Parade") && r() < .1 && (R *= .55, D.push({
+		let U = A.weapon === "mammoth-spear" && r() < .1;
+		U && z && j.armor === "mammoth-plate" && (L *= o.criticalMultiplier / (1 + (o.criticalMultiplier - 1) * .8));
+		let W = L;
+		U || (C(j, "Peau Dure") && (L *= .9), C(j, "Parade") && r() < .1 && (L *= .55, E.push({
 			type: "skill",
-			actor: A,
-			target: g,
+			actor: k,
+			target: v,
 			label: "Parade",
-			...O()
-		})), ["hunter-hides", "reed-mantle"].includes(M.armor ?? "") && k.receivedHits === 0 && (R *= .95), M.armor === "raptor-scales" && k.receivedHits === 0 && (R *= .9), M.armor === "smilodon-cloak" && k.receivedHits === 0 && (R *= .85), M.armor === "bone-harness" && r() < .05 && (R *= .75), M.armor === "white-titan-fur" && (A === "player" ? s / e.stats.hp : c / t.stats.hp) > .5 && (R *= .92), M.armor === "primordial-titan-skin" && k.receivedHits < 3 && (R *= .8), M.armor === "ancestor-guard" && k.receivedHits < 3 && (R *= .85), R *= k.incomingMultiplier(B, M.stats.hp));
-		let W = ne * R / U;
-		if (R = Math.max(1, Math.round(R)), N(R), V?.applyBleed && (A === "player" ? s > 0 : c > 0) && (A === "player" ? (T = 2, E = Math.max(1, Math.round(R * .1))) : (C = 2, w = Math.max(1, Math.round(R * .1)))), V?.bonusStrikes.length && (A === "player" ? s > 0 : c > 0)) for (let e of V.bonusStrikes) {
-			if (A === "player" ? s <= 0 : c <= 0) break;
-			let t = Math.max(1, Math.round(W * e));
-			D.push({
+			...D()
+		})), ["hunter-hides", "reed-mantle"].includes(j.armor ?? "") && O.receivedHits === 0 && (L *= .95), j.armor === "raptor-scales" && O.receivedHits === 0 && (L *= .9), j.armor === "smilodon-cloak" && O.receivedHits === 0 && (L *= .85), j.armor === "bone-harness" && r() < .05 && (L *= .75), j.armor === "white-titan-fur" && (k === "player" ? s / e.stats.hp : c / t.stats.hp) > .5 && (L *= .92), j.armor === "primordial-titan-skin" && O.receivedHits < 3 && (L *= .8), j.armor === "ancestor-guard" && O.receivedHits < 3 && (L *= .85), L *= O.incomingMultiplier(B, j.stats.hp));
+		let G = R * L / W;
+		if (L = Math.max(1, Math.round(L)), M(L), H?.applyBleed && (k === "player" ? s > 0 : c > 0) && (k === "player" ? (w = 2, T = Math.max(1, Math.round(L * .1))) : (x = 2, S = Math.max(1, Math.round(L * .1)))), H?.bonusStrikes.length && (k === "player" ? s > 0 : c > 0)) for (let e of H.bonusStrikes) {
+			if (k === "player" ? s <= 0 : c <= 0) break;
+			let t = Math.max(1, Math.round(G * e));
+			E.push({
 				type: "attack",
-				actor: g,
-				target: A,
+				actor: v,
+				target: k,
 				label: "Coup supplémentaire",
-				...O()
-			}), N(t);
+				...D()
+			}), M(t);
 		}
-		if (S(j, "Vampirisme")) {
-			let n = Math.max(1, Math.round(R * .08));
-			g === "player" ? s = Math.min(e.stats.hp, s + n) : c = Math.min(t.stats.hp, c + n), D.push({
+		if (C(A, "Vampirisme")) {
+			let n = Math.max(1, Math.round(L * .08));
+			v === "player" ? s = Math.min(e.stats.hp, s + n) : c = Math.min(t.stats.hp, c + n), E.push({
 				type: "heal",
-				actor: g,
-				target: g,
+				actor: v,
+				target: v,
 				value: n,
 				label: "Vampirisme",
-				...O()
+				...D()
 			});
 		}
-		let ie = S(j, "Saignement") ? .12 : j.weapon === "obsidian-axe" ? .06 : j.weapon === "volcanic-hammer" ? .1 : 0;
-		r() < ie && (A === "player" ? b = 2 : x = 2, D.push({
+		let K = C(A, "Saignement") ? .12 : A.weapon === "obsidian-axe" ? .06 : A.weapon === "volcanic-hammer" ? .1 : 0;
+		r() < K && (k === "player" ? _ = 2 : b = 2, E.push({
 			type: "skill",
-			actor: g,
-			target: A,
-			label: j.weapon === "volcanic-hammer" ? "Brûlure" : "Saignement",
-			...O()
-		})), M.armor === "volcanic-shell" && r() < .1 && (g === "player" ? b = 2 : x = 2, D.push({
+			actor: v,
+			target: k,
+			label: A.weapon === "volcanic-hammer" ? "Brûlure" : "Saignement",
+			...D()
+		})), j.armor === "volcanic-shell" && r() < .1 && (v === "player" ? _ = 2 : b = 2, E.push({
 			type: "skill",
-			actor: A,
-			target: g,
+			actor: k,
+			target: v,
 			label: "Brûlure",
-			...O()
-		})), b > 0 && (s -= 3, --b, D.push({
+			...D()
+		})), _ > 0 && (s -= 3, --_, E.push({
 			type: "bleed",
 			actor: "enemy",
 			target: "player",
 			value: 3,
-			...O()
-		})), x > 0 && (c -= 3, --x, D.push({
+			...D()
+		})), b > 0 && (c -= 3, --b, E.push({
 			type: "bleed",
 			actor: "player",
 			target: "enemy",
 			value: 3,
-			...O()
-		})), s <= 0 && S(e, "Second Souffle") && !h && (s = Math.round(e.stats.hp * .18), h = !0, D.push({
+			...D()
+		})), s <= 0 && C(e, "Second Souffle") && !h && (s = Math.round(e.stats.hp * .18), h = !0, E.push({
 			type: "heal",
 			actor: "player",
 			target: "player",
 			value: s,
 			label: "Second Souffle",
-			...O()
-		})), c <= 0 && S(t, "Second Souffle") && !y && (c = Math.round(t.stats.hp * .18), y = !0, D.push({
+			...D()
+		})), c <= 0 && C(t, "Second Souffle") && !g && (c = Math.round(t.stats.hp * .18), g = !0, E.push({
 			type: "heal",
 			actor: "enemy",
 			target: "enemy",
 			value: c,
 			label: "Second Souffle",
-			...O()
+			...D()
 		}));
-		let ae = S(j, "Double Frappe") ? .1 : j.weapon === "smilodon-fangs" ? .08 : 0;
-		if (r() < ae && s > 0 && c > 0) {
-			let n = Math.max(1, Math.round(W * .5));
-			D.push({
+		let q = C(A, "Double Frappe") ? .1 : A.weapon === "smilodon-fangs" ? .08 : 0;
+		if (r() < q && s > 0 && c > 0) {
+			let n = Math.max(1, Math.round(G * .5));
+			E.push({
 				type: "attack",
-				actor: g,
-				target: A,
+				actor: v,
+				target: k,
 				label: "Coup supplémentaire",
-				...O()
-			}), N(n), s <= 0 && S(e, "Second Souffle") && !h && (s = Math.round(e.stats.hp * .18), h = !0, D.push({
+				...D()
+			}), M(n), s <= 0 && C(e, "Second Souffle") && !h && (s = Math.round(e.stats.hp * .18), h = !0, E.push({
 				type: "heal",
 				actor: "player",
 				target: "player",
 				value: s,
 				label: "Second Souffle",
-				...O()
-			})), c <= 0 && S(t, "Second Souffle") && !y && (c = Math.round(t.stats.hp * .18), y = !0, D.push({
+				...D()
+			})), c <= 0 && C(t, "Second Souffle") && !g && (c = Math.round(t.stats.hp * .18), g = !0, E.push({
 				type: "heal",
 				actor: "enemy",
 				target: "enemy",
 				value: c,
 				label: "Second Souffle",
-				...O()
+				...D()
 			}));
 		}
 	}
-	let k = c <= 0 ? "player" : "enemy";
-	return D.push({
+	let O = c <= 0 ? "player" : "enemy";
+	return E.push({
 		type: "ko",
-		actor: k,
-		target: k === "player" ? "enemy" : "player",
+		actor: O,
+		target: O === "player" ? "enemy" : "player",
 		label: "K.O.",
-		...O()
+		...D()
 	}), {
-		winner: k,
-		events: D,
+		winner: O,
+		events: E,
 		enemy: t,
 		consecutiveMax: d
 	};
 }
-function w(e, t, n = Math.random) {
-	let a = e.ownedWarriors[e.activeWarriorId];
-	if (!a || a.level >= i.maxWarriorLevel || !Number.isFinite(t) || t <= 0) return 0;
-	a.xp += Math.trunc(t);
-	let o = 0;
-	for (; a.level < i.maxWarriorLevel && a.xp >= r(a.level);) a.xp -= r(a.level), a.level += 1, o += 1;
-	return a.level >= i.maxWarriorLevel && (a.xp = 0), o;
+function T(e, t, n = Math.random) {
+	let r = e.ownedWarriors[e.activeWarriorId];
+	if (!r || r.level >= o.maxWarriorLevel || !Number.isFinite(t) || t <= 0) return 0;
+	r.xp += Math.trunc(t);
+	let i = 0;
+	for (; r.level < o.maxWarriorLevel && r.xp >= a(r.level);) r.xp -= a(r.level), r.level += 1, i += 1;
+	return r.level >= o.maxWarriorLevel && (r.xp = 0), i;
+}
+function E(e, t = e.activeWarriorId) {
+	let n = e.ownedWarriors[t];
+	if (!n) return 0;
+	let r = n.xp;
+	for (let e = 1; e < n.level; e++) r += a(e);
+	return r;
+}
+function D(e, t, n = e.activeWarriorId) {
+	let r = E(e, n), i = e.activeWarriorId;
+	return e.activeWarriorId = n, T(e, t), e.activeWarriorId = i, E(e, n) - r;
 }
 //#endregion
 //#region src/victories.ts
-var T = (e) => typeof e == "number" && Number.isSafeInteger(e) && e >= 0 ? e : 0;
-function E(e) {
-	return T(e.adventureWins) + T(e.riftWins) + T(e.duelWins);
+var O = (e) => typeof e == "number" && Number.isSafeInteger(e) && e >= 0 ? e : 0;
+function k(e) {
+	return O(e.adventureWins) + O(e.riftWins) + O(e.duelWins);
 }
-function D(e, t, n) {
-	n === "player" && (e.totalWins = T(e.totalWins) + 1, t === "adventure" ? e.adventureWins = T(e.adventureWins) + 1 : t === "rift" ? e.riftWins = T(e.riftWins) + 1 : e.duelWins = T(e.duelWins) + 1);
+function A(e, t, n) {
+	n === "player" && (e.totalWins = O(e.totalWins) + 1, t === "adventure" ? e.adventureWins = O(e.adventureWins) + 1 : t === "rift" ? e.riftWins = O(e.riftWins) + 1 : e.duelWins = O(e.duelWins) + 1);
 }
 //#endregion
 //#region src/badgeSystem.ts
-var O = {
+var j = {
 	bronze: 50,
 	silver: 100,
 	gold: 200,
 	platinum: 500
-}, k = 1500, A = [
+}, M = 1500, N = [
 	"flint-club",
 	"bone-spear",
 	"obsidian-axe",
@@ -1795,46 +1894,51 @@ var O = {
 	"mammoth-plate",
 	"volcanic-shell",
 	"white-titan-fur",
-	"primordial-titan-skin"
-], j = (e, t) => ({
+	"primordial-titan-skin",
+	"storm-javelin",
+	"reed-mantle",
+	"raptor-scales",
+	"smilodon-cloak",
+	"ancestor-guard"
+], P = (e, t) => ({
 	current: Math.min(Math.max(Number.isFinite(e) ? e : 0, 0), t),
 	target: t
-}), M = (e) => new Set(e.defeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20)), N = (e) => u.filter(({ id: t }) => !!e.ownedWarriors[t]).length, P = (e) => Object.keys(e.ownedWarriors).filter((t) => d[t] && e.ownedWarriors[t]?.warriorId === t), F = (e) => P(e).length, I = (e, t, n = !1) => P(e).some((e) => {
-	let r = d[e].rarity;
-	return n ? a.indexOf(r) >= a.indexOf(t) : r === t;
-}), L = (e) => A.filter((t) => (e.owned[t]?.quantity ?? 0) > 0).length, R = (e, t) => e.badges.some((e) => e.id === t);
-function ne(e) {
-	return !1;
+}), F = (e) => new Set(e.defeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20)), I = (e) => f.filter(({ id: t }) => !!e.ownedWarriors[t]).length, L = (e) => Object.keys(e.ownedWarriors).filter((t) => p[t] && e.ownedWarriors[t]?.warriorId === t), R = (e) => L(e).length, z = (e, t, n = !1) => L(e).some((e) => {
+	let r = p[e].rarity;
+	return n ? s.indexOf(r) >= s.indexOf(t) : r === t;
+}), B = (e) => N.filter((t) => (e.owned[t]?.quantity ?? 0) > 0).length, V = (e, t) => e.badges.some((e) => e.id === t);
+function H(e) {
+	return e.nemesisCompleted || e.nemesisDefeatedNodes.includes(20);
 }
-var z = [
+var U = [
 	{
 		id: "primal-first-level",
 		title: "Premiers pas dans le Primal",
 		description: "Terminez le premier niveau de l’Ère Primordiale.",
 		grade: "bronze",
 		binary: !0,
-		progress: (e) => j(Number(M(e).has(1)), 1)
+		progress: (e) => P(Number(F(e).has(1)), 1)
 	},
 	{
 		id: "primal-three-warriors",
 		title: "Tribu naissante",
 		description: "Obtenez 3 Warriors de l’Ère Primordiale.",
 		grade: "bronze",
-		progress: (e) => j(N(e), 3)
+		progress: (e) => P(I(e), 3)
 	},
 	{
 		id: "primal-three-equipment",
 		title: "Équipement de survie",
 		description: "Obtenez 3 équipements primordiaux différents.",
 		grade: "bronze",
-		progress: (e) => j(L(e), 3)
+		progress: (e) => P(B(e), 3)
 	},
 	{
 		id: "primal-ten-levels",
 		title: "Au cœur de la jungle",
 		description: "Terminez 10 niveaux de l’Ère Primordiale.",
 		grade: "silver",
-		progress: (e) => j(M(e).size, 10)
+		progress: (e) => P(F(e).size, 10)
 	},
 	{
 		id: "primal-first-elite",
@@ -1842,25 +1946,25 @@ var z = [
 		description: "Vainquez votre premier Élite Primal.",
 		grade: "silver",
 		binary: !0,
-		progress: (e) => j(Number([
+		progress: (e) => P(Number([
 			5,
 			10,
 			15
-		].some((t) => M(e).has(t)) || R(e, "first-elite")), 1)
+		].some((t) => F(e).has(t)) || V(e, "first-elite")), 1)
 	},
 	{
 		id: "primal-six-warriors",
 		title: "Meute primordiale",
 		description: "Obtenez 6 Warriors de l’Ère Primordiale.",
 		grade: "silver",
-		progress: (e) => j(N(e), 6)
+		progress: (e) => P(I(e), 6)
 	},
 	{
 		id: "primal-eight-equipment",
 		title: "Arsenal de chasse",
 		description: "Obtenez 8 équipements primordiaux différents.",
 		grade: "silver",
-		progress: (e) => j(L(e), 8)
+		progress: (e) => P(B(e), 8)
 	},
 	{
 		id: "primal-conqueror",
@@ -1868,21 +1972,21 @@ var z = [
 		description: "Vainquez le Boss final de l’Aventure Primal.",
 		grade: "gold",
 		binary: !0,
-		progress: (e) => j(Number(M(e).has(20) || R(e, "boss")), 1)
+		progress: (e) => P(Number(F(e).has(20) || V(e, "boss")), 1)
 	},
 	{
 		id: "primal-all-warriors",
 		title: "Panthéon primordial",
 		description: "Obtenez les 12 Warriors primordiaux.",
 		grade: "gold",
-		progress: (e) => j(N(e), u.length)
+		progress: (e) => P(I(e), f.length)
 	},
 	{
 		id: "primal-all-equipment",
 		title: "Arsenal primordial",
-		description: "Obtenez les 15 équipements primordiaux.",
+		description: "Obtenez les 20 équipements primordiaux.",
 		grade: "gold",
-		progress: (e) => j(L(e), A.length)
+		progress: (e) => P(B(e), N.length)
 	},
 	{
 		id: "primal-tyrak",
@@ -1890,7 +1994,7 @@ var z = [
 		description: "Obtenez Tyrak, Roi Primordial.",
 		grade: "platinum",
 		binary: !0,
-		progress: (e) => j(Number(!!e.ownedWarriors.tyrak), 1)
+		progress: (e) => P(Number(!!e.ownedWarriors.tyrak), 1)
 	},
 	{
 		id: "primal-nemesis",
@@ -1898,27 +2002,27 @@ var z = [
 		description: "Terminez l’Ère Primordiale en Némésis.",
 		grade: "platinum",
 		binary: !0,
-		progress: (e) => j(Number(ne(e)), 1)
+		progress: (e) => P(Number(H(e)), 1)
 	}
 ];
-function B(e) {
-	return P(e).filter((t) => e.ownedWarriors[t].level >= 10).length;
+function W(e) {
+	return L(e).filter((t) => e.ownedWarriors[t].level >= 10).length;
 }
-var re = [
+var G = [
 	{
 		id: "exploit-first-impact",
 		title: "Premier Impact",
 		description: "Remportez votre premier combat.",
 		grade: "bronze",
 		binary: !0,
-		progress: (e) => j(E(e), 1)
+		progress: (e) => P(k(e), 1)
 	},
 	{
 		id: "exploit-first-reinforcements",
 		title: "Premiers renforts",
 		description: "Rassemblez 5 Warriors différents.",
 		grade: "bronze",
-		progress: (e) => j(F(e), 5)
+		progress: (e) => P(R(e), 5)
 	},
 	{
 		id: "exploit-rare-spark",
@@ -1926,7 +2030,7 @@ var re = [
 		description: "Obtenez votre premier Warrior Rare ou supérieur.",
 		grade: "bronze",
 		binary: !0,
-		progress: (e) => j(Number(I(e, "Rare", !0)), 1)
+		progress: (e) => P(Number(z(e, "Rare", !0)), 1)
 	},
 	{
 		id: "exploit-first-duel",
@@ -1934,21 +2038,21 @@ var re = [
 		description: "Remportez votre premier Duel.",
 		grade: "bronze",
 		binary: !0,
-		progress: (e) => j(e.duelWins, 1)
+		progress: (e) => P(e.duelWins, 1)
 	},
 	{
 		id: "exploit-seasoned-fighter",
 		title: "Combattant aguerri",
 		description: "Remportez 25 combats.",
 		grade: "silver",
-		progress: (e) => j(E(e), 25)
+		progress: (e) => P(k(e), 25)
 	},
 	{
 		id: "exploit-chronos-collector",
 		title: "Collectionneur de Chronos",
 		description: "Rassemblez 10 Warriors différents.",
 		grade: "silver",
-		progress: (e) => j(F(e), 10)
+		progress: (e) => P(R(e), 10)
 	},
 	{
 		id: "exploit-ascension",
@@ -1956,14 +2060,14 @@ var re = [
 		description: "Amenez un Warrior au niveau 10.",
 		grade: "silver",
 		binary: !0,
-		progress: (e) => j(B(e), 1)
+		progress: (e) => P(W(e), 1)
 	},
 	{
 		id: "exploit-war-machine",
 		title: "Machine de guerre",
 		description: "Remportez 100 combats.",
 		grade: "gold",
-		progress: (e) => j(E(e), 100)
+		progress: (e) => P(k(e), 100)
 	},
 	{
 		id: "exploit-awakened-legend",
@@ -1971,7 +2075,7 @@ var re = [
 		description: "Obtenez votre premier Warrior Légendaire.",
 		grade: "gold",
 		binary: !0,
-		progress: (e) => j(Number(I(e, "Légendaire")), 1)
+		progress: (e) => P(Number(z(e, "Légendaire")), 1)
 	},
 	{
 		id: "exploit-elite-squad",
@@ -1979,14 +2083,14 @@ var re = [
 		description: "Amenez 6 Warriors au niveau 10.",
 		grade: "gold",
 		binary: !0,
-		progress: (e) => j(B(e), 6)
+		progress: (e) => P(W(e), 6)
 	},
 	{
 		id: "exploit-feared-rival",
 		title: "Rival redouté",
 		description: "Remportez 25 Duels.",
 		grade: "gold",
-		progress: (e) => j(e.duelWins, 25)
+		progress: (e) => P(e.duelWins, 25)
 	},
 	{
 		id: "exploit-mythic-fracture",
@@ -1994,45 +2098,55 @@ var re = [
 		description: "Obtenez votre premier Warrior Mythique.",
 		grade: "platinum",
 		binary: !0,
-		progress: (e) => j(Number(I(e, "Mythique")), 1)
+		progress: (e) => P(Number(z(e, "Mythique")), 1)
 	}
-], V = "primal-mastery", H = (e, t) => e.badges.some((e) => e.id === t), U = (e) => z.every(({ id: t }) => H(e, t));
-function W(e, t = (/* @__PURE__ */ new Date()).toISOString()) {
-	let n = [...z, ...re].filter((t) => {
-		if (H(e, t.id)) return !1;
+], K = "primal-mastery", q = (e, t) => e.badges.some((e) => e.id === t), re = (e) => U.every(({ id: t }) => q(e, t));
+function ie(e, t = (/* @__PURE__ */ new Date()).toISOString()) {
+	let n = [...U, ...G].filter((t) => {
+		if (q(e, t.id)) return !1;
 		let { current: n, target: r } = t.progress(e);
 		return n >= r;
-	});
-	if (!n.length && (H(e, "primal-mastery") || !U(e))) return {
+	}), r = q(e, "primal-all-warriors") && !q(e, "primal-warriors-v015-reward");
+	if (!n.length && !r && (q(e, "primal-mastery") || !re(e))) return {
 		save: e,
 		granted: []
 	};
-	let r = structuredClone(e), i = n.map((e) => {
-		let n = O[e.grade];
-		return r.badges.push({
+	let i = structuredClone(e), a = n.map((e) => {
+		let n = e.id === "primal-all-warriors" ? M : j[e.grade];
+		return i.badges.push({
 			id: e.id,
 			unlockedAt: t
-		}), r.coins += n, {
+		}), i.coins += n, {
 			id: e.id,
 			title: e.title,
 			coins: n
 		};
 	});
-	return U(r) && !H(r, "primal-mastery") && (r.badges.push({
-		id: V,
+	return q(e, "primal-all-warriors") && !q(i, "primal-warriors-v015-reward") ? (i.badges.push({
+		id: "primal-warriors-v015-reward",
 		unlockedAt: t
-	}), r.coins += k, i.push({
-		id: V,
+	}), i.coins += M - j.gold, a.push({
+		id: "primal-warriors-v015-reward",
+		title: "Panthéon primordial · complément V0.15",
+		coins: M - j.gold
+	})) : n.some(({ id: e }) => e === "primal-all-warriors") && i.badges.push({
+		id: "primal-warriors-v015-reward",
+		unlockedAt: t
+	}), re(i) && !q(i, "primal-mastery") && (i.badges.push({
+		id: K,
+		unlockedAt: t
+	}), i.coins += M, a.push({
+		id: K,
 		title: "Maîtrise Primordiale",
-		coins: k
+		coins: M
 	})), {
-		save: r,
-		granted: i
+		save: i,
+		granted: a
 	};
 }
 //#endregion
 //#region src/art/assetsV04.ts
-var ie = [
+var ae = [
 	"flint-club",
 	"bone-spear",
 	"obsidian-axe",
@@ -2042,14 +2156,14 @@ var ie = [
 	"volcanic-hammer",
 	"tyrant-claw",
 	"titan-heart"
-], ae = [
+], oe = [
 	"hunter-hides",
 	"bone-harness",
 	"mammoth-plate",
 	"volcanic-shell",
 	"white-titan-fur",
 	"primordial-titan-skin"
-], oe = [
+], se = [
 	"tribal-hunter",
 	"tribal-warrior",
 	"cave-brute",
@@ -2058,10 +2172,10 @@ var ie = [
 	"smilodon",
 	"mammoth"
 ];
-new Set(ie), new Set(ae), new Set(oe);
+new Set(ae), new Set(oe), new Set(se);
 //#endregion
 //#region src/rift.ts
-var se = [
+var ce = [
 	100,
 	90,
 	82,
@@ -2070,29 +2184,29 @@ var se = [
 	62,
 	56,
 	50
-], G = 12e5;
-function ce(e, t, n) {
-	let r = Math.min(10, Math.max(0, Math.trunc(e)));
-	if (r === 10) return {
+], J = 12e5;
+function le(e, t, n) {
+	let r = Math.min(15, Math.max(0, Math.trunc(e)));
+	if (r === 15) return {
 		charges: r,
 		nextAt: null
 	};
 	if (t === null || !Number.isFinite(t)) return {
 		charges: r,
-		nextAt: n + G
+		nextAt: n + J
 	};
 	if (n < t) return {
 		charges: r,
 		nextAt: t
 	};
-	let i = 1 + Math.floor((n - t) / G), a = Math.min(10, r + i);
+	let i = 1 + Math.floor((n - t) / J), a = Math.min(15, r + i);
 	return {
 		charges: a,
-		nextAt: a === 10 ? null : t + i * G
+		nextAt: a === 15 ? null : t + i * J
 	};
 }
-function le(e, t = Date.now()) {
-	let n = ce(e.campaignRemaining, e.campaignRechargeAt, t);
+function ue(e, t = Date.now()) {
+	let n = le(e.campaignRemaining, e.campaignRechargeAt, t);
 	return n.charges === e.campaignRemaining && n.nextAt === e.campaignRechargeAt ? e : {
 		...e,
 		campaignRemaining: n.charges,
@@ -2101,10 +2215,10 @@ function le(e, t = Date.now()) {
 }
 //#endregion
 //#region src/storage.ts
-var ue = "chronos-age-warriors:v4", de = "chronos-age-warriors:v3", fe = "chronos-age-warriors:admin:v3", K = "chronos-age-warriors:v2", q = "chronos-age-warriors:admin:v2", J = (e = /* @__PURE__ */ new Date()) => e.toLocaleDateString("sv-SE");
+var de = "chronos-age-warriors:v4", fe = "chronos-age-warriors:v3", pe = "chronos-age-warriors:admin:v3", me = "chronos-age-warriors:v2", he = "chronos-age-warriors:admin:v2", ge = (e = /* @__PURE__ */ new Date()) => e.toLocaleDateString("sv-SE");
 function Y() {
 	return {
-		version: 5,
+		version: 6,
 		activeWarriorId: "",
 		welcomeChestOpened: !1,
 		ownedWarriors: {},
@@ -2115,7 +2229,7 @@ function Y() {
 		equippedArmor: "",
 		campaignNode: 1,
 		defeatedNodes: [],
-		campaignRemaining: 10,
+		campaignRemaining: 15,
 		campaignRechargeAt: null,
 		nemesisUnlocked: !1,
 		nemesisCampaignNode: 1,
@@ -2124,6 +2238,9 @@ function Y() {
 		normalBossFirstClearRewardClaimed: !1,
 		nemesisBossFirstClearRewardClaimed: !1,
 		loadouts: {},
+		personalClears: {},
+		campaignBattleSequence: 0,
+		equipmentRecycleSequence: 0,
 		totalWins: 0,
 		adventureWins: 0,
 		riftWins: 0,
@@ -2139,89 +2256,103 @@ function Y() {
 		speed: 1,
 		badges: [],
 		pendingWarriorRecycles: [],
-		lastReset: J()
+		lastReset: ge()
 	};
 }
-function pe(e, t = J()) {
+function _e(e, t = ge()) {
 	e.lastReset = t;
-	let n = le(e);
+	let n = ue(e);
 	return e.campaignRemaining = n.campaignRemaining, e.campaignRechargeAt = n.campaignRechargeAt, e;
 }
-function me(e = localStorage, t = ue) {
+function ve(e = localStorage, t = de) {
 	try {
-		let n = t === "chronos-age-warriors:v4" ? [de, K] : t === "chronos-age-warriors:admin:v4" ? [fe, q] : t === "chronos-age-warriors:v3" ? [K] : t === "chronos-age-warriors:admin:v3" ? [q] : [], i = e.getItem(t) ?? n.map((t) => e.getItem(t)).find(Boolean);
-		if (!i) return Y();
-		let a = JSON.parse(i);
+		let n = t === "chronos-age-warriors:v4" ? [fe, me] : t === "chronos-age-warriors:admin:v4" ? [pe, he] : t === "chronos-age-warriors:v3" ? [me] : t === "chronos-age-warriors:admin:v3" ? [he] : [], r = e.getItem(t) ?? n.map((t) => e.getItem(t)).find(Boolean);
+		if (!r) return Y();
+		let i = JSON.parse(r);
 		if (![
 			2,
 			3,
 			4,
-			5
-		].includes(a.version)) return Y();
-		let o = "dev-primordial-warrior";
-		if (a.ownedWarriors?.[o]) {
-			let e = a.ownedWarriors[o];
-			a.ownedWarriors.karg || (a.ownedWarriors[s] = {
+			5,
+			6
+		].includes(i.version)) return Y();
+		let o = i.version < 6, s = "dev-primordial-warrior";
+		if (i.ownedWarriors?.[s]) {
+			let e = i.ownedWarriors[s];
+			i.ownedWarriors.karg || (i.ownedWarriors[l] = {
 				...e,
-				warriorId: s
-			}), delete a.ownedWarriors[o], a.activeWarriorId === o && (a.activeWarriorId = s);
+				warriorId: l
+			}), delete i.ownedWarriors[s], i.activeWarriorId === s && (i.activeWarriorId = l);
 		}
-		let c = !!(d[a.activeWarriorId] && a.ownedWarriors?.[a.activeWarriorId]?.warriorId === a.activeWarriorId), l = a.activeWarriorId === "" && Object.keys(a.ownedWarriors ?? {}).length === 0 && a.welcomeChestOpened === !1;
-		if (!c && !l || !Array.isArray(a.unlockedSkills)) return Y();
-		a.version === 2 && (a.unlockedSkills = [], delete a.pendingLevelChoice);
-		for (let e of Object.values(a.ownedWarriors)) delete e.bonusStats, e.level = Number.isInteger(e.level) ? Math.min(10, Math.max(1, e.level)) : 1, e.xp = e.level === 10 ? 0 : Number.isInteger(e.xp) && e.xp >= 0 ? Math.min(e.xp, r(e.level) - 1) : 0;
-		delete a.pendingLevelChoice, a.welcomeChestOpened = !!c;
-		let u = a;
-		delete u.trainingRemaining, delete u.trainingWins, a.version = 5, a.campaignRemaining = Number.isInteger(a.campaignRemaining) ? Math.min(10, Math.max(0, a.campaignRemaining)) : 10, a.campaignRechargeAt = a.campaignRemaining === 10 ? null : Number.isSafeInteger(a.campaignRechargeAt) && (a.campaignRechargeAt ?? 0) > 0 ? a.campaignRechargeAt : Date.now() + 12e5, a.defeatedNodes = Array.isArray(a.defeatedNodes) ? [...new Set(a.defeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20))] : [], a.campaignNode = Number.isInteger(a.campaignNode) ? Math.min(20, Math.max(1, a.campaignNode)) : 1;
-		let f = a.defeatedNodes.includes(20) || a.eraRewardClaimed === !0;
-		a.eraRewardClaimed === !0 && !a.defeatedNodes.includes(20) && a.defeatedNodes.push(20), a.nemesisUnlocked = f || a.nemesisUnlocked === !0, a.nemesisDefeatedNodes = Array.isArray(a.nemesisDefeatedNodes) ? [...new Set(a.nemesisDefeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20))] : [], a.nemesisCampaignNode = Number.isInteger(a.nemesisCampaignNode) ? Math.min(20, Math.max(1, a.nemesisCampaignNode)) : 1, a.nemesisCompleted = a.nemesisCompleted === !0 || a.nemesisDefeatedNodes.includes(20), a.nemesisCompleted && !a.nemesisDefeatedNodes.includes(20) && a.nemesisDefeatedNodes.push(20), a.normalBossFirstClearRewardClaimed = a.normalBossFirstClearRewardClaimed === !0, a.nemesisBossFirstClearRewardClaimed = a.nemesisBossFirstClearRewardClaimed === !0, delete a.bossTrophyPending, delete a.eraRewardClaimed, a.riftChestCount = Number.isSafeInteger(a.riftChestCount) && a.riftChestCount >= 0 ? a.riftChestCount : 0, a.riftLossStreak = Number.isSafeInteger(a.riftLossStreak) && a.riftLossStreak >= 0 ? a.riftLossStreak : 0, a.equipmentChestCount = Number.isSafeInteger(a.equipmentChestCount) && a.equipmentChestCount >= 0 ? a.equipmentChestCount : 0, a.warriorChestCount = Number.isSafeInteger(a.warriorChestCount) && a.warriorChestCount >= 0 ? a.warriorChestCount : 0;
-		let p = /* @__PURE__ */ new Set();
-		a.pendingWarriorRecycles = Array.isArray(a.pendingWarriorRecycles) ? a.pendingWarriorRecycles.filter((e) => !e || typeof e.id != "string" || !e.id || p.has(e.id) || !d[e.warriorId] || !a.ownedWarriors[e.warriorId] ? !1 : (p.add(e.id), !0)) : [];
-		let m = a.expedition;
-		a.expedition = m && a.ownedWarriors[m.warriorId] && Number.isSafeInteger(m.startedAt) && m.startedAt > 0 ? m : null;
-		let h = a.expeditionReturn;
-		a.expeditionReturn = h && typeof h.id == "string" && a.ownedWarriors[h.warriorId] && Number.isSafeInteger(h.elapsedMs) && h.elapsedMs >= 0 && h.elapsedMs <= 864e5 && Number.isSafeInteger(h.xp) && h.xp >= 0 && Number.isSafeInteger(h.coins) && h.coins >= 0 && Array.isArray(h.equipmentIds) && h.equipmentIds.every((e) => typeof e == "string") && typeof h.equipmentChest == "boolean" && typeof h.warriorChest == "boolean" && Number.isSafeInteger(h.levelsGained) && h.levelsGained >= 0 ? h : null;
-		let g = a.riftRun;
-		a.riftRun = g && /^\d{4}-\d{2}-\d{2}$/.test(g.dateKey) && Number.isInteger(g.stage) && g.stage >= 0 && g.stage < 5 && Array.isArray(g.lineup) && g.lineup.length === 5 && g.lineup.every((e) => oe.some((t) => t === e)) && Number.isSafeInteger(g.seed) && g.seed >= 0 && g.seed <= 4294967295 && se.some((e) => e === g.difficulty) && (g.warriorId === "" || a.ownedWarriors[g.warriorId]) && Number.isSafeInteger(g.earnedCoins) && g.earnedCoins >= 0 && Number.isSafeInteger(g.earnedXp) && g.earnedXp >= 0 && [
+		let c = !!(p[i.activeWarriorId] && i.ownedWarriors?.[i.activeWarriorId]?.warriorId === i.activeWarriorId), u = i.activeWarriorId === "" && Object.keys(i.ownedWarriors ?? {}).length === 0 && i.welcomeChestOpened === !1;
+		if (!c && !u || !Array.isArray(i.unlockedSkills)) return Y();
+		i.version === 2 && (i.unlockedSkills = [], delete i.pendingLevelChoice);
+		for (let e of Object.values(i.ownedWarriors)) delete e.bonusStats, e.level = Number.isInteger(e.level) ? Math.min(10, Math.max(1, e.level)) : 1, e.xp = e.level === 10 ? 0 : Number.isInteger(e.xp) && e.xp >= 0 ? Math.min(e.xp, a(e.level) - 1) : 0;
+		delete i.pendingLevelChoice, i.welcomeChestOpened = !!c;
+		let d = i;
+		delete d.trainingRemaining, delete d.trainingWins, i.version = 6, o && i.campaignRemaining === 10 && (i.campaignRemaining = 15);
+		let f = i.personalClears;
+		if (i.personalClears = {}, !o && f && typeof f == "object" && !Array.isArray(f)) for (let e of Object.keys(i.ownedWarriors)) {
+			let t = f[e];
+			if (!t || typeof t != "object") continue;
+			let n = (e) => Array.isArray(e) ? [...new Set(e.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20))].sort((e, t) => e - t) : [];
+			i.personalClears[e] = {
+				normal: n(t.normal),
+				nemesis: n(t.nemesis)
+			};
+		}
+		for (let e of ["campaignBattleSequence", "equipmentRecycleSequence"]) i[e] = !o && Number.isSafeInteger(i[e]) && i[e] >= 0 ? i[e] : 0;
+		i.campaignRemaining = Number.isInteger(i.campaignRemaining) ? Math.min(15, Math.max(0, i.campaignRemaining)) : 15, i.campaignRechargeAt = i.campaignRemaining === 15 ? null : Number.isSafeInteger(i.campaignRechargeAt) && (i.campaignRechargeAt ?? 0) > 0 ? i.campaignRechargeAt : Date.now() + 12e5, i.defeatedNodes = Array.isArray(i.defeatedNodes) ? [...new Set(i.defeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20))] : [], i.campaignNode = Number.isInteger(i.campaignNode) ? Math.min(20, Math.max(1, i.campaignNode)) : 1;
+		let m = i.defeatedNodes.includes(20) || i.eraRewardClaimed === !0;
+		i.eraRewardClaimed === !0 && !i.defeatedNodes.includes(20) && i.defeatedNodes.push(20), i.nemesisUnlocked = m || i.nemesisUnlocked === !0, i.nemesisDefeatedNodes = Array.isArray(i.nemesisDefeatedNodes) ? [...new Set(i.nemesisDefeatedNodes.filter((e) => Number.isInteger(e) && e >= 1 && e <= 20))] : [], i.nemesisCampaignNode = Number.isInteger(i.nemesisCampaignNode) ? Math.min(20, Math.max(1, i.nemesisCampaignNode)) : 1, i.nemesisCompleted = i.nemesisCompleted === !0 || i.nemesisDefeatedNodes.includes(20), i.nemesisCompleted && !i.nemesisDefeatedNodes.includes(20) && i.nemesisDefeatedNodes.push(20), i.normalBossFirstClearRewardClaimed = i.normalBossFirstClearRewardClaimed === !0 || o && m, i.nemesisBossFirstClearRewardClaimed = i.nemesisBossFirstClearRewardClaimed === !0 || o && i.nemesisCompleted, delete i.bossTrophyPending, delete i.eraRewardClaimed, i.riftChestCount = Number.isSafeInteger(i.riftChestCount) && i.riftChestCount >= 0 ? i.riftChestCount : 0, i.riftLossStreak = Number.isSafeInteger(i.riftLossStreak) && i.riftLossStreak >= 0 ? i.riftLossStreak : 0, i.equipmentChestCount = Number.isSafeInteger(i.equipmentChestCount) && i.equipmentChestCount >= 0 ? i.equipmentChestCount : 0, i.warriorChestCount = Number.isSafeInteger(i.warriorChestCount) && i.warriorChestCount >= 0 ? i.warriorChestCount : 0;
+		let h = /* @__PURE__ */ new Set();
+		i.pendingWarriorRecycles = Array.isArray(i.pendingWarriorRecycles) ? i.pendingWarriorRecycles.filter((e) => !e || typeof e.id != "string" || !e.id || h.has(e.id) || !p[e.warriorId] || !i.ownedWarriors[e.warriorId] ? !1 : (h.add(e.id), !0)) : [];
+		let g = i.expedition;
+		i.expedition = g && i.ownedWarriors[g.warriorId] && Number.isSafeInteger(g.startedAt) && g.startedAt > 0 ? g : null;
+		let _ = i.expeditionReturn;
+		i.expeditionReturn = _ && typeof _.id == "string" && i.ownedWarriors[_.warriorId] && Number.isSafeInteger(_.elapsedMs) && _.elapsedMs >= 0 && _.elapsedMs <= 864e5 && Number.isSafeInteger(_.xp) && _.xp >= 0 && Number.isSafeInteger(_.coins) && _.coins >= 0 && Array.isArray(_.equipmentIds) && _.equipmentIds.every((e) => typeof e == "string") && typeof _.equipmentChest == "boolean" && typeof _.warriorChest == "boolean" && Number.isSafeInteger(_.levelsGained) && _.levelsGained >= 0 ? _ : null, o && i.expeditionReturn && i.ownedWarriors[i.expeditionReturn.warriorId].level === 10 && i.expeditionReturn.levelsGained === 0 && (i.expeditionReturn.xp = 0);
+		let v = i.riftRun;
+		i.riftRun = v && /^\d{4}-\d{2}-\d{2}$/.test(v.dateKey) && Number.isInteger(v.stage) && v.stage >= 0 && v.stage < 5 && Array.isArray(v.lineup) && v.lineup.length === 5 && v.lineup.every((e) => se.some((t) => t === e)) && Number.isSafeInteger(v.seed) && v.seed >= 0 && v.seed <= 4294967295 && ce.some((e) => e === v.difficulty) && (v.warriorId === "" || i.ownedWarriors[v.warriorId]) && Number.isSafeInteger(v.earnedCoins) && v.earnedCoins >= 0 && Number.isSafeInteger(v.earnedXp) && v.earnedXp >= 0 && [
 			"ready",
 			"fighting",
 			"between",
 			"lost",
 			"quit",
 			"complete"
-		].includes(g.status) ? g : null, a.adventureWins = Number.isSafeInteger(a.adventureWins) && a.adventureWins >= 0 ? a.adventureWins : 0, a.riftWins = Number.isSafeInteger(a.riftWins) && a.riftWins >= 0 ? a.riftWins : 0, a.duelWins = Number.isSafeInteger(a.duelWins) && a.duelWins >= 0 ? a.duelWins : 0, a.owned ??= {};
-		for (let e of Object.values(a.owned)) e.quantity = Number.isSafeInteger(e.quantity) && (e.quantity ?? 0) > 0 ? e.quantity : 1;
-		if (a.loadouts ??= {}, a.loadouts[o] && (a.loadouts[s] ??= a.loadouts[o], delete a.loadouts[o]), c) {
-			a.loadouts[a.activeWarriorId] ??= {
-				weapon: a.equippedWeapon,
-				armor: a.equippedArmor
+		].includes(v.status) ? v : null, i.adventureWins = Number.isSafeInteger(i.adventureWins) && i.adventureWins >= 0 ? i.adventureWins : 0, i.riftWins = Number.isSafeInteger(i.riftWins) && i.riftWins >= 0 ? i.riftWins : 0, i.duelWins = Number.isSafeInteger(i.duelWins) && i.duelWins >= 0 ? i.duelWins : 0, i.owned ??= {};
+		for (let e of Object.values(i.owned)) e.quantity = Number.isSafeInteger(e.quantity) && (e.quantity ?? 0) > 0 ? e.quantity : 1;
+		if (i.loadouts ??= {}, i.loadouts[s] && (i.loadouts[l] ??= i.loadouts[s], delete i.loadouts[s]), c) {
+			i.loadouts[i.activeWarriorId] ??= {
+				weapon: i.equippedWeapon,
+				armor: i.equippedArmor
 			};
-			let e = a.loadouts[a.activeWarriorId];
-			a.equippedWeapon = a.owned[e.weapon] ? e.weapon : "", a.equippedArmor = a.owned[e.armor] ? e.armor : "";
+			let e = i.loadouts[i.activeWarriorId];
+			i.equippedWeapon = i.owned[e.weapon] ? e.weapon : "", i.equippedArmor = i.owned[e.armor] ? e.armor : "";
 		}
-		return pe(a);
+		return _e(i);
 	} catch {
 		return Y();
 	}
 }
-function he(e) {
+function ye(e) {
 	if (!e || typeof e != "object" || Array.isArray(e)) return null;
 	let t = e;
 	if (![
 		2,
 		3,
 		4,
-		5
+		5,
+		6
 	].includes(t.version) || typeof t.activeWarriorId != "string" || !t.ownedWarriors || typeof t.ownedWarriors != "object" || Array.isArray(t.ownedWarriors) || !Array.isArray(t.unlockedSkills) || !Number.isSafeInteger(t.coins) || t.coins < 0 || !t.activeWarriorId && (Object.keys(t.ownedWarriors).length > 0 || t.welcomeChestOpened !== !1)) return null;
-	let n = JSON.stringify(e), r = me({ getItem: () => n }, "account-save");
+	let n = JSON.stringify(e), r = ve({ getItem: () => n }, "account-save");
 	return t.activeWarriorId && !r.activeWarriorId ? null : r;
 }
 //#endregion
 //#region src/duelRules.ts
-var ge = 10, _e = 12e5, ve = {
+var be = 10, xe = "Europe/Paris", Se = {
 	win: {
 		xp: 20,
-		coins: 20
+		coins: 10
 	},
 	loss: {
 		xp: 4,
@@ -2235,26 +2366,36 @@ var ge = 10, _e = 12e5, ve = {
 	Légendaire: 4,
 	Mythique: 5
 };
-function ye(e, t, n) {
+function Ce(e, t, n) {
 	return n ? 20 + 5 * Math.max(0, X[t] - X[e]) : 0;
 }
 function Z(e) {
 	let t = e.activeWarriorId, n = e.ownedWarriors?.[t];
-	return !!(d[t] && n?.warriorId === t && Number.isInteger(n.level) && n.level >= 1 && n.level <= 10);
+	return !!(p[t] && n?.warriorId === t && Number.isInteger(n.level) && n.level >= 1 && n.level <= 10);
 }
-function be(e) {
-	if (!xe(e)) return null;
-	let t = he(e);
+function we(e) {
+	if (!Te(e)) return null;
+	let t = ye(e);
 	return t && Z(t) ? t : null;
 }
 function Q(e) {
 	return typeof e == "object" && !!e && !Array.isArray(e);
 }
-function xe(e) {
-	if (!Q(e) || typeof e.activeWarriorId != "string" || !d[e.activeWarriorId] || !Q(e.ownedWarriors) || !Q(e.owned) || typeof e.equippedWeapon != "string" || typeof e.equippedArmor != "string") return !1;
-	for (let [t, n] of Object.entries(e.ownedWarriors)) if (!d[t] || !Q(n) || n.warriorId !== t || !Number.isInteger(n.level) || n.level < 1 || n.level > 10 || !Number.isSafeInteger(n.xp) || n.xp < 0 || (n.level === 10 ? n.xp !== 0 : n.xp >= r(n.level))) return !1;
+function Te(e) {
+	if (!Q(e) || typeof e.activeWarriorId != "string" || !p[e.activeWarriorId] || !Q(e.ownedWarriors) || !Q(e.owned) || typeof e.equippedWeapon != "string" || typeof e.equippedArmor != "string") return !1;
+	for (let [t, n] of Object.entries(e.ownedWarriors)) if (!p[t] || !Q(n) || n.warriorId !== t || !Number.isInteger(n.level) || n.level < 1 || n.level > 10 || !Number.isSafeInteger(n.xp) || n.xp < 0 || (n.level === 10 ? n.xp !== 0 : n.xp >= a(n.level))) return !1;
 	if (!Object.hasOwn(e.ownedWarriors, e.activeWarriorId)) return !1;
-	let t = new Map(o.map((e) => [e.id, e]));
+	if (e.version === 6) {
+		if (!Q(e.personalClears) || !Number.isSafeInteger(e.campaignBattleSequence) || e.campaignBattleSequence < 0 || !Number.isSafeInteger(e.equipmentRecycleSequence) || e.equipmentRecycleSequence < 0) return !1;
+		for (let [t, n] of Object.entries(e.personalClears)) {
+			if (!Object.hasOwn(e.ownedWarriors, t) || !Q(n)) return !1;
+			for (let e of ["normal", "nemesis"]) {
+				let t = n[e];
+				if (!Array.isArray(t) || t.some((e) => !Number.isInteger(e) || e < 1 || e > 20) || new Set(t).size !== t.length) return !1;
+			}
+		}
+	}
+	let t = new Map(c.map((e) => [e.id, e]));
 	for (let [n, r] of Object.entries(e.owned)) if (!t.has(n) || !Q(r) || !Number.isInteger(r.level) || r.level < 1 || !Number.isSafeInteger(r.xp) || r.xp < 0 || r.quantity !== void 0 && (!Number.isSafeInteger(r.quantity) || r.quantity < 1)) return !1;
 	let n = (n, r) => typeof r == "string" && (!r || t.get(r)?.type === n && Object.hasOwn(e.owned, r));
 	if (!n("weapon", e.equippedWeapon) || !n("armor", e.equippedArmor)) return !1;
@@ -2268,10 +2409,10 @@ function xe(e) {
 }
 function $(e) {
 	if (!Z(e)) throw Error("Warrior actif invalide.");
-	let t = p(e);
+	let t = h(e);
 	return {
 		name: t.name,
-		stats: x(e),
+		stats: S(e),
 		skills: [],
 		warriorId: t.id,
 		level: t.level,
@@ -2279,22 +2420,22 @@ function $(e) {
 		armor: e.equippedArmor
 	};
 }
-function Se(e, t, n) {
-	let r = $(e), i = $(t), a = C(r, i, n), o = a.winner === "player", s = ve[o ? "win" : "loss"], c = d[r.warriorId].rarity, l = d[i.warriorId].rarity;
+function Ee(e, t, n) {
+	let r = $(e), i = $(t), a = w(r, i, n), o = a.winner === "player", s = Se[o ? "win" : "loss"], c = p[r.warriorId].rarity, l = p[i.warriorId].rarity;
 	return {
 		attacker: r,
 		defender: i,
 		result: a,
 		xp: s.xp,
 		coins: s.coins,
-		points: ye(c, l, o),
+		points: Ce(c, l, o),
 		attackerRarity: c,
 		defenderRarity: l
 	};
 }
-function Ce(e, t) {
+function De(e, t) {
 	let n = structuredClone(e);
-	return n.coins += t.coins, D(n, "duel", t.result.winner), w(n, t.xp), W(n);
+	return n.coins += t.coins, A(n, "duel", t.result.winner), D(n, t.xp), ie(n);
 }
 //#endregion
-export { ge as DUEL_MAX_CHARGES, _e as DUEL_RECHARGE_MS, ve as DUEL_REWARDS, X as RARITY_TIERS, Ce as applyDuelReward, $ as duelFighter, ye as duelPoints, be as normalizedDuelSave, Se as resolveDuel, xe as strictDuelPayload, Z as validDuelWarrior, d as warriorDefinitions };
+export { be as DUEL_MAX_CHARGES, xe as DUEL_RESET_TIMEZONE, Se as DUEL_REWARDS, X as RARITY_TIERS, De as applyDuelReward, $ as duelFighter, Ce as duelPoints, we as normalizedDuelSave, Ee as resolveDuel, Te as strictDuelPayload, Z as validDuelWarrior, p as warriorDefinitions, E as warriorTotalXp };

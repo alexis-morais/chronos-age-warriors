@@ -25,6 +25,7 @@ export const primalEquipmentIds = [
   'mammoth-spear', 'volcanic-hammer', 'tyrant-claw', 'titan-heart',
   'hunter-hides', 'bone-harness', 'mammoth-plate', 'volcanic-shell',
   'white-titan-fur', 'primordial-titan-skin',
+  'storm-javelin', 'reed-mantle', 'raptor-scales', 'smilodon-cloak', 'ancestor-guard',
 ] as const
 
 const count = (current: number, target: number): BadgeProgress => ({ current: Math.min(Math.max(Number.isFinite(current) ? current : 0, 0), target), target })
@@ -39,10 +40,9 @@ const ownsRarity = (save: SaveData, rarity: 'Rare' | 'Légendaire' | 'Mythique',
 const primalEquipmentCount = (save: SaveData) => primalEquipmentIds.filter((id) => (save.owned[id]?.quantity ?? 0) > 0).length
 const hasLegacyBadge = (save: SaveData, id: string) => save.badges.some((badge) => badge.id === id)
 
-/** Némésis has no persisted completion signal yet. Keep this predicate isolated. */
-export function hasCompletedPrimalNemesis(_save: SaveData): boolean {
-  void _save
-  return false
+/** Completion is persisted by campaign settlement (including migrated completed saves). */
+export function hasCompletedPrimalNemesis(save: SaveData): boolean {
+  return save.nemesisCompleted || save.nemesisDefeatedNodes.includes(20)
 }
 
 export const primalBadges: readonly EraBadgeDefinition[] = [
@@ -55,7 +55,7 @@ export const primalBadges: readonly EraBadgeDefinition[] = [
   { id: 'primal-eight-equipment', title: 'Arsenal de chasse', description: 'Obtenez 8 équipements primordiaux différents.', grade: 'silver', progress: (save) => count(primalEquipmentCount(save), 8) },
   { id: 'primal-conqueror', title: 'Conquérant primordial', description: 'Vainquez le Boss final de l’Aventure Primal.', grade: 'gold', binary: true, progress: (save) => count(Number(completedPrimalLevels(save).has(20) || hasLegacyBadge(save, 'boss')), 1) },
   { id: 'primal-all-warriors', title: 'Panthéon primordial', description: 'Obtenez les 12 Warriors primordiaux.', grade: 'gold', progress: (save) => count(primalWarriorCount(save), primalWarriors.length) },
-  { id: 'primal-all-equipment', title: 'Arsenal primordial', description: 'Obtenez les 15 équipements primordiaux.', grade: 'gold', progress: (save) => count(primalEquipmentCount(save), primalEquipmentIds.length) },
+  { id: 'primal-all-equipment', title: 'Arsenal primordial', description: 'Obtenez les 20 équipements primordiaux.', grade: 'gold', progress: (save) => count(primalEquipmentCount(save), primalEquipmentIds.length) },
   { id: 'primal-tyrak', title: 'Roi parmi les rois', description: 'Obtenez Tyrak, Roi Primordial.', grade: 'platinum', binary: true, progress: (save) => count(Number(Boolean(save.ownedWarriors.tyrak)), 1) },
   { id: 'primal-nemesis', title: 'Dominateur du Primal', description: 'Terminez l’Ère Primordiale en Némésis.', grade: 'platinum', binary: true, progress: (save) => count(Number(hasCompletedPrimalNemesis(save)), 1) },
 ]
@@ -92,14 +92,23 @@ export function grantEarnedBadges(save: SaveData, unlockedAt = new Date().toISOS
     const { current, target } = badge.progress(save)
     return current >= target
   })
-  if (!newlyEarned.length && (hasBadgeReward(save, PRIMAL_MASTERY_ID) || !primalMasteryReady(save))) return { save, granted: [] }
+  const legacyPanthéon = hasBadgeReward(save, 'primal-all-warriors') && !hasBadgeReward(save, 'primal-warriors-v015-reward')
+  if (!newlyEarned.length && !legacyPanthéon && (hasBadgeReward(save, PRIMAL_MASTERY_ID) || !primalMasteryReady(save))) return { save, granted: [] }
   const next = structuredClone(save)
   const granted = newlyEarned.map((badge) => {
-    const coins = gradeRewards[badge.grade]
+    const coins = badge.id === 'primal-all-warriors' ? PRIMAL_MASTERY_REWARD : gradeRewards[badge.grade]
     next.badges.push({ id: badge.id, unlockedAt })
     next.coins += coins
     return { id: badge.id, title: badge.title, coins }
   })
+  // Old Panthéon receipts paid 200. A separate receipt grants just the missing 1300 once.
+  if (hasBadgeReward(save, 'primal-all-warriors') && !hasBadgeReward(next, 'primal-warriors-v015-reward')) {
+    next.badges.push({ id: 'primal-warriors-v015-reward', unlockedAt })
+    next.coins += PRIMAL_MASTERY_REWARD - gradeRewards.gold
+    granted.push({ id: 'primal-warriors-v015-reward', title: 'Panthéon primordial · complément V0.15', coins: PRIMAL_MASTERY_REWARD - gradeRewards.gold })
+  } else if (newlyEarned.some(({ id }) => id === 'primal-all-warriors')) {
+    next.badges.push({ id: 'primal-warriors-v015-reward', unlockedAt })
+  }
   if (primalMasteryReady(next) && !hasBadgeReward(next, PRIMAL_MASTERY_ID)) {
     next.badges.push({ id: PRIMAL_MASTERY_ID, unlockedAt })
     next.coins += PRIMAL_MASTERY_REWARD

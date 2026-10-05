@@ -73,11 +73,11 @@ describe('règles de Duel', () => {
 
 describe('réserves distinctes', () => {
   const minute = 60_000
-  it('recharge Duel +1 par 20 minutes sans dépasser 10', () => {
-    const spent = spendCharge(10, null, 0)!
-    expect(spent).toEqual({ charges: 9, nextAt: 20 * minute })
-    expect(rechargeCharges(spent.charges, spent.nextAt, 20 * minute - 1).charges).toBe(9)
-    expect(rechargeCharges(spent.charges, spent.nextAt, 20 * minute)).toEqual({ charges: 10, nextAt: null })
+  it('recharge Aventure +1 par 20 minutes sans dépasser 15 (pas la réserve Duel serveur)', () => {
+    const spent = spendCharge(15, null, 0)!
+    expect(spent).toEqual({ charges: 14, nextAt: 20 * minute })
+    expect(rechargeCharges(spent.charges, spent.nextAt, 20 * minute - 1).charges).toBe(14)
+    expect(rechargeCharges(spent.charges, spent.nextAt, 20 * minute)).toEqual({ charges: 15, nextAt: null })
     expect(rechargeCharges(0, 20 * minute, 60 * minute)).toEqual({ charges: 3, nextAt: 80 * minute })
   })
   it('la dépense Aventure ne touche pas la réserve Duel', () => {

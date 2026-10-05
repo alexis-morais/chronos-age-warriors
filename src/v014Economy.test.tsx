@@ -54,8 +54,8 @@ describe('V0.14 économie et recyclage atomique', () => {
   it.each(['normal','nemesis'] as const)('sépare première victoire, replay et défaite (%s)', (mode) => {
     const save = establishedKargSave()
     const first = settleCampaignBattle(save, mode, 1, 'player')
-    expect(first.xp).toBe(mode === 'normal' ? 20 : 50)
-    expect(first.coins).toBe(first.xp)
+    expect(first.xp).toBe(mode === 'normal' ? 120 : 180)
+    expect(first.coins).toBe(mode === 'normal' ? 20 : 50)
     const replay = settleCampaignBattle(first.save, mode, 1, 'player')
     expect(replay.xp).toBe(mode === 'normal' ? 5 : 10)
     expect(replay.coins).toBe(replay.xp)

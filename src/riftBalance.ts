@@ -4,16 +4,18 @@ import type { Fighter, Stats } from './types'
 
 export const RIFT_STAGE_LABELS = ['Combat 1', 'Combat 2', 'Combat 3', 'Combat 4', 'Boss'] as const
 export const RIFT_REWARDS = [
-  { coins: 40, xp: 40 },
-  { coins: 40, xp: 40 },
-  { coins: 40, xp: 40 },
-  { coins: 40, xp: 40 },
-  { coins: 40, xp: 40 },
+  { coins: 20, xp: 40 },
+  { coins: 20, xp: 40 },
+  { coins: 20, xp: 40 },
+  { coins: 20, xp: 40 },
+  { coins: 20, xp: 40 },
 ] as const
 
 /** Independent of campaign tiers and of the Warrior entering the Rift. */
 export const RIFT_STAGE_BUDGETS: readonly Stats[] = [
-  { strength: 33, dodge: 15, speed: 24, hp: 430 },
+  // V0.15: immediate participation without free C1 for an unprepared level-one Common.
+  // Same fixed entry budget for everyone; C2–Boss and hidden loss-streak relief unchanged.
+  { strength: 14, dodge: 10, speed: 14, hp: 180 },
   { strength: 42, dodge: 17, speed: 26, hp: 530 },
   { strength: 52, dodge: 20, speed: 28, hp: 660 },
   // Bridge the ordinary encounters to a threatening endgame boss (full difficulty).
